@@ -1023,6 +1023,7 @@ prevDecorators = [copy.copy(decorators)]
 
 running = True
 currentPlayer = 1
+os.system('clear')
 while running:
     print('-'*50)
     print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
