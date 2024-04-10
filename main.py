@@ -475,7 +475,7 @@ def spinTheBadWheel():
         player = random.choice(players)
         temp = playerPositions[player]
         playerPositions[player] = playerPositions[currentPlayer]
-        playerPositions[playecurrentPlayerr2] = temp
+        playerPositions[currentPlayer] = temp
     if result == f'You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
         playerGolds[player] += playerGolds[currentPlayer]
