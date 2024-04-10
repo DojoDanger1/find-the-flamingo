@@ -1,6 +1,7 @@
 import random
 import time
 import os
+import copy
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
@@ -40,6 +41,7 @@ BAD_SPACE = getColour(255, 4, 0)
 SHOP_SPACE = getColour(0, 98, 255)
 TELEPORT_SPACE = getColour(255, 162, 0)
 GAMBLING_SPACE = getColour(148, 14, 4)
+TIMEWARP_SPACE = getColour(0, 97, 112)
 
 def fillSpaces(board, fillWith, howMany):
     linearBoard = sum(board, [])
@@ -168,6 +170,7 @@ def generateBoard():
     board = fillSpaces(board, 'shop', numEmpties // 8)
     board = fillSpaces(board, 'teleport', numEmpties // 20)
     board = fillSpaces(board, 'gambling', numEmpties // 20)
+    board = fillSpaces(board, 'timewarp', numEmpties // 20)
     #get positions of flamingo and shadow realm and home
     for n, row in enumerate(board):
         for m, cell in enumerate(row):
@@ -278,6 +281,8 @@ def generateImage(board, paths):
                 colour = '#ffa200'
             if cell == 'gambling':
                 colour = '#6b0a0a'
+            if cell == 'timewarp':
+                colour = '#006170'
             if cell != None:
                 draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
         
@@ -435,7 +440,7 @@ def spinTheBadWheel():
         f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
         f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
         f'You {TELEPORT_SPACE}swap places{CLEAR} with a random player.',
-        f'You must give away {YELLOW}all gold{CLEAR}.',
+        f'You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}',
         f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
         f'You must give away {YELLOW}3 gold{CLEAR}.',
         f'You must give away {CYAN}an item{CLEAR}.',
@@ -625,6 +630,12 @@ def goToTheShop():
                 itemPrices[item] += 1
 
 def useItem():
+    global playerPositions
+    global playerInventories
+    global playerGolds
+    global playerWaitingForWheelSpins
+    global itemPrices
+    global decorators
     done = False
     while not done:
         if len(playerInventories[currentPlayer]) == 0:
@@ -711,6 +722,28 @@ def useItem():
                     if item == 'wand':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerWaitingForWheelSpins[player] = True
+                    if item == 'time machine':
+                        if len(prevPlayerPositions) >= 4:
+                            playerPositions = prevPlayerPositions[-4]
+                            playerInventories = prevPlayerInventories[-4]
+                            playerGolds = prevPlayerGolds[-4]
+                            playerWaitingForWheelSpins = prevPlayerWaitingForWheelSpins[-4]
+                            itemPrices = prevItemPrices[-4]
+                            decorators = prevDecorators[-4]
+                            for _ in range(3):
+                                prevPlayerPositions.pop(-1)
+                                prevPlayerInventories.pop(-1)
+                                prevPlayerGolds.pop(-1)
+                                prevPlayerWaitingForWheelSpins.pop(-1)
+                                prevItemPrices.pop(-1)
+                                prevDecorators.pop(-1)
+                            if len(playerInventories[currentPlayer]) >= int(choice):
+                                if playerInventories[currentPlayer][int(choice)-1] == 'time machine':
+                                    playerInventories[currentPlayer].remove(item)
+                            return 'continue'
+                        else:
+                            print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                    return 'dont continue'
 
 def playBlackjack():
     def getCardColour(card):
@@ -939,6 +972,8 @@ def grammatiseSpaceType(spaceType):
         return f'a {TELEPORT_SPACE}teleport{CLEAR} space'
     if spaceType == 'gambling':
         return f'a {GAMBLING_SPACE}gambling{CLEAR} space'
+    if spaceType == 'timewarp':
+        return f'a {TIMEWARP_SPACE}time warp{CLEAR} space'
 
 board, paths, decorators = generateBoard()
 generateImage(board, paths)
@@ -952,7 +987,8 @@ itemDescriptions = {
     "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you',
     "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
     "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
-    "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn'
+    "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
+    "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.'
 }
 
 itemPrices = {
@@ -963,7 +999,8 @@ itemPrices = {
     "knife": 2,
     "red potion": 2,
     "goblin": 4,
-    "wand": 2 
+    "wand": 2,
+    "time machine": 3
 }
 
 playerPositions = [None]
@@ -975,6 +1012,13 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append([])
     playerGolds.append(STARTING_GOLD)
     playerWaitingForWheelSpins.append(False)
+
+prevPlayerPositions = [copy.copy(playerPositions)]
+prevPlayerInventories = [copy.copy(playerInventories)]
+prevPlayerGolds = [copy.copy(playerGolds)]
+prevPlayerWaitingForWheelSpins = [copy.copy(playerWaitingForWheelSpins)]
+prevItemPrices = [copy.copy(itemPrices)]
+prevDecorators = [copy.copy(decorators)]
 
 running = True
 currentPlayer = 1
@@ -988,7 +1032,9 @@ while running:
         spinTheBadWheel()
     #ask for item use
     if len(playerInventories[currentPlayer]) > 0:
-        useItem()
+        if useItem() == 'continue':
+            os.system('clear')
+            continue
     #if in shadow realm, dont move
     currentSpaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
     if currentSpaceType == 'shadow realm':
@@ -1088,15 +1134,41 @@ while running:
                     playBlackjack()
                 else:
                     print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} to gamble!')
+            if spaceType == 'timewarp':
+                print(f'You landed on {grammatiseSpaceType(spaceType)}!')
+                print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
+                player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                targetTime = min(10,len(prevPlayerPositions))
+                playerPositions[player] = prevPlayerPositions[-targetTime][player]
+                playerInventories[player] = prevPlayerInventories[-targetTime][player]
+                playerGolds[player] = prevPlayerGolds[-targetTime][player]
+                playerWaitingForWheelSpins[player] = prevPlayerWaitingForWheelSpins[-targetTime][player]
+                for _ in range(targetTime-1):
+                    for i in range(1, len(prevPlayerPositions)):
+                        prevPlayerPositions[(-1)*i][player] = copy.copy(prevPlayerPositions[(-1)*(i+1)][player])
+                        prevPlayerInventories[(-1)*i][player] = copy.copy(prevPlayerInventories[(-1)*(i+1)][player])
+                        prevPlayerGolds[(-1)*i][player] = copy.copy(prevPlayerGolds[(-1)*(i+1)][player])
+                        prevPlayerWaitingForWheelSpins[(-1)*i][player] = copy.copy(prevPlayerWaitingForWheelSpins[(-1)*(i+1)][player])
+                    
     #ask for item use
     if running == True:
         if len(playerInventories[currentPlayer]) > 0:
-            useItem()
+            if useItem() == 'continue':
+                os.system('clear')
+                continue
     #change turn order
     print('-'*50)
     if running == True:
         input(f'{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
         os.system('clear')
+        #store backups
+        prevPlayerPositions.append(copy.copy(playerPositions))
+        prevPlayerInventories.append(copy.copy(playerInventories))
+        prevPlayerGolds.append(copy.copy(playerGolds))
+        prevPlayerWaitingForWheelSpins.append(copy.copy(playerWaitingForWheelSpins))
+        prevItemPrices.append(copy.copy(itemPrices))
+        prevDecorators.append(copy.copy(decorators))
+        #change turn order
         currentPlayer += 1
         if currentPlayer > NUM_PLAYERS:
             currentPlayer = 1
