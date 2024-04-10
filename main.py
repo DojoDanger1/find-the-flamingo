@@ -39,7 +39,7 @@ GOOD_SPACE = getColour(17, 255, 0)
 BAD_SPACE = getColour(255, 4, 0)
 SHOP_SPACE = getColour(0, 98, 255)
 TELEPORT_SPACE = getColour(255, 162, 0)
-GAMBLING_SPACE = getColour(107, 10, 10)
+GAMBLING_SPACE = getColour(148, 14, 4)
 
 def fillSpaces(board, fillWith, howMany):
     linearBoard = sum(board, [])
@@ -937,6 +937,8 @@ def grammatiseSpaceType(spaceType):
         return f'a {SHOP_SPACE}shop{CLEAR} space'
     if spaceType == 'teleport':
         return f'a {TELEPORT_SPACE}teleport{CLEAR} space'
+    if spaceType == 'gambling':
+        return f'a {GAMBLING_SPACE}gambling{CLEAR} space'
 
 board, paths, decorators = generateBoard()
 generateImage(board, paths)
@@ -1044,43 +1046,43 @@ while running:
             #evaluate space type
             spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
             if spaceType == 'empty':
-                print(f'You landed on an {EMPTY_SPACE}empty{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print('Nothing Happens.')
             if spaceType == 'flamingo':
-                print(f'You landed on the {FLAMINGO_SPACE}flamingo{CLEAR} space!')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                 print(f'You {GREEN}win the game{CLEAR}!')
                 running = False
                 winner = currentPlayer
             if spaceType == 'home':
-                print(f'You landed on the {HOME_SPACE}home{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print(f'You gain {YELLOW}1 gold{CLEAR}!')
                 playerGolds[currentPlayer] += 1
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
             if spaceType == 'shadow realm':
-                print(f'You landed on the {SHADOW_REALM_SPACE}shadow realm{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print(f'You are stuck here until you escape. Instead of moving, you will spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
             if spaceType == 'good':
-                print(f'You landed on a {GOOD_SPACE}good{CLEAR} space!')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                 print(f'You get to spin the {GREEN}Good Wheel{CLEAR}!')
                 spinTheGoodWheel()
             if spaceType == 'bad':
-                print(f'You landed on a {BAD_SPACE}bad{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print(f'You get to spin the {RED}Bad Wheel{CLEAR}.')
                 spinTheBadWheel()
             if spaceType == 'shop':
-                print(f'You landed on a {SHOP_SPACE}shop{CLEAR} space!')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                 print(f'You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
                 if playerGolds[currentPlayer] < min(itemPrices.values()):
                     print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
                 else:
                     goToTheShop()
             if spaceType == 'teleport':
-                print(f'You landed on a {TELEPORT_SPACE}teleport{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
                 player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', False))
                 playerPositions[player] = selectRandomSpace(board)
             if spaceType == 'gambling':
-                print(f'You landed on a {GAMBLING_SPACE}gambling{CLEAR} space.')
+                print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 if playerGolds[currentPlayer] > 0:
                     print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
                     playBlackjack()
