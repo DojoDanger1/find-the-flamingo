@@ -15,6 +15,7 @@ NUM_PLAYERS = 3
 STARTING_GOLD = 3
 CHANCE_OF_INFLATION = 0.5
 BLACKJACK_TARGET = 31
+BLACKJACK_DEALER_CAUTION = 5
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -842,7 +843,7 @@ def playBlackjack():
     #let dealer simulate game
     dealerdoneDrawing = False
     while dealerdoneDrawing == False:
-        if dealerhandValue <= BLACKJACK_TARGET-5:
+        if dealerhandValue <= BLACKJACK_TARGET-BLACKJACK_DEALER_CAUTION:
             dealercardAmount += 1
             globals()[f'dealercard{dealercardAmount}'] = f'{random.choice(cards)} of {random.choice(suits)}'
             if 'Ace' in globals()[f'dealercard{dealercardAmount}']:
@@ -850,7 +851,7 @@ def playBlackjack():
             globals()[f'dealercard{dealercardAmount}Value'] = findValue(globals()[f'dealercard{dealercardAmount}'])
             dealerhand.append(globals()[f'dealercard{dealercardAmount}'])
             dealerhandValue += globals()[f'dealercard{dealercardAmount}Value']
-            if dealerhandValue > BLACKJACK_TARGET-5:
+            if dealerhandValue > BLACKJACK_TARGET-BLACKJACK_DEALER_CAUTION:
                 if dealerhandValue > BLACKJACK_TARGET:
                     if dealeracesInHand != 0:
                         dealerhandValue -= 10
