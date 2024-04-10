@@ -13,6 +13,7 @@ PROBABILITY_ONE_WAY = 0.1
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
 CHANCE_OF_INFLATION = 0.5
+BLACKJACK_TARGET = 31
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -38,6 +39,7 @@ GOOD_SPACE = getColour(17, 255, 0)
 BAD_SPACE = getColour(255, 4, 0)
 SHOP_SPACE = getColour(0, 98, 255)
 TELEPORT_SPACE = getColour(255, 162, 0)
+GAMBLING_SPACE = getColour(107, 10, 10)
 
 def fillSpaces(board, fillWith, howMany):
     linearBoard = sum(board, [])
@@ -165,6 +167,7 @@ def generateBoard():
     board = fillSpaces(board, 'bad', numEmpties // 10)
     board = fillSpaces(board, 'shop', numEmpties // 8)
     board = fillSpaces(board, 'teleport', numEmpties // 20)
+    board = fillSpaces(board, 'gambling', numEmpties // 20)
     #get positions of flamingo and shadow realm and home
     for n, row in enumerate(board):
         for m, cell in enumerate(row):
@@ -273,6 +276,8 @@ def generateImage(board, paths):
                 colour = '#0062ff'
             if cell == 'teleport':
                 colour = '#ffa200'
+            if cell == 'gambling':
+                colour = '#6b0a0a'
             if cell != None:
                 draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
         
@@ -707,6 +712,204 @@ def useItem():
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerWaitingForWheelSpins[player] = True
 
+def playBlackjack():
+    def getCardColour(card):
+        if 'Hearts' in card or 'Diamonds' in card:
+            return f'{getColour(219, 72, 72)}{card}\033[0m'
+        else:
+            return f'{getColour(148, 148, 148)}{card}\033[0m'
+
+    def getHandValueColour(value):
+        if value < BLACKJACK_TARGET-6:
+            return f' {GREEN}{value}\033[0m'
+        elif value < BLACKJACK_TARGET-1:
+            return f' {YELLOW}{value}\033[0m'
+        elif value < BLACKJACK_TARGET+1:
+            return f' {ORANGE}{value}\033[0m'
+        else:
+            return f' {RED}{value}\033[0m'
+    
+    def findValue(card):
+        card = card.replace(' of ', '')
+        card = card.replace('Hearts', '')
+        card = card.replace('Diamonds', '')
+        card = card.replace('Spades', '')
+        card = card.replace('Clubs', '')
+        try:
+            value = int(card)
+        except:
+            if card == 'Ace':
+                value = 11
+            else:
+                value = 10
+        return value
+
+    def sayHand(person='player'):
+        if person == 'dealer':
+            print(f'{CYAN}The Dealer\'s hand is:{CLEAR}')
+            for card in dealerhand:
+                print(getCardColour(card))
+            print(f'Dealer hand value is{getHandValueColour(dealerhandValue)}\n')
+        if person == 'player':
+            print(f'{CYAN}Your hand is:{CLEAR}')
+            for card in hand:
+                print(getCardColour(card))
+            print(f'Your hand value is{getHandValueColour(handValue)}\n')
+    
+    def sayMostRecentCard():
+        print(f'{CYAN}You drew a: {getCardColour(hand[-1])}{CLEAR}')
+        print(f'Your hand value is now{getHandValueColour(handValue)}\n')
+
+    suits = ['Hearts', 'Diamonds', 'Spades', 'Clubs']
+    cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
+
+    bet = 0
+    print(f'How much would you like to bet? (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+    while bet == 0:
+        bet = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', playerGolds[currentPlayer]))
+        if bet == 0:
+            print(f'{ERROR}You cannot bet 0!{CLEAR}')
+
+    youBusted = None
+    dealerBusted = None
+
+    acesInHand = 0
+    card1 = f'{random.choice(cards)} of {random.choice(suits)}'
+    card1Value = findValue(card1)
+    if 'Ace' in card1:
+        acesInHand += 1
+    card2 = f'{random.choice(cards)} of {random.choice(suits)}'
+    card2Value = findValue(card2)
+    if 'Ace' in card2:
+        acesInHand += 1
+    cardAmount = 2
+    hand = [card1, card2]
+    handValue = card1Value + card2Value
+    if handValue == BLACKJACK_TARGET+1:
+        handValue -= 10
+        acesInHand -= 1
+
+    #set up dealer stuff
+    dealeracesInHand = 0
+    dealercard1 = f'{random.choice(cards)} of {random.choice(suits)}'
+    dealercard1Value = findValue(dealercard1)
+    if 'Ace' in dealercard1:
+        dealeracesInHand += 1
+    dealercard2 = f'{random.choice(cards)} of {random.choice(suits)}'
+    dealercard2Value = findValue(dealercard2)
+    if 'Ace' in dealercard2:
+        dealeracesInHand += 1
+    dealercardAmount = 2
+    dealerhand = [dealercard1, dealercard2]
+    dealerhandValue = dealercard1Value + dealercard2Value
+    if dealerhandValue == BLACKJACK_TARGET+1:
+        dealerhandValue -= 10
+        dealeracesInHand -= 1
+
+    #let dealer simulate game
+    dealerdoneDrawing = False
+    while dealerdoneDrawing == False:
+        if dealerhandValue <= BLACKJACK_TARGET-5:
+            dealercardAmount += 1
+            globals()[f'dealercard{dealercardAmount}'] = f'{random.choice(cards)} of {random.choice(suits)}'
+            if 'Ace' in globals()[f'dealercard{dealercardAmount}']:
+                dealeracesInHand += 1
+            globals()[f'dealercard{dealercardAmount}Value'] = findValue(globals()[f'dealercard{dealercardAmount}'])
+            dealerhand.append(globals()[f'dealercard{dealercardAmount}'])
+            dealerhandValue += globals()[f'dealercard{dealercardAmount}Value']
+            if dealerhandValue > BLACKJACK_TARGET-5:
+                if dealerhandValue > BLACKJACK_TARGET:
+                    if dealeracesInHand != 0:
+                        dealerhandValue -= 10
+                        dealeracesInHand -= 1
+                    else:
+                        dealerdoneDrawing = True
+                        dealerBusted = True
+                elif dealerhandValue <= BLACKJACK_TARGET:
+                    dealerdoneDrawing = True
+                    dealerBusted = False
+        else:
+            dealerdoneDrawing = True
+            dealerBusted = False
+    dealerShownCard = random.choice(dealerhand)
+    print(f'{ORANGE}The dealer has {dealercardAmount} cards{CLEAR}')
+    print(f'One of the dealer\'s cards is: {getCardColour(dealerShownCard)}{CLEAR}\n')
+    
+    doneDrawing = False
+    while doneDrawing == False:
+        if len(hand) == 2:
+            sayHand()
+        else:
+            sayMostRecentCard()
+        draw = ''
+        if handValue == BLACKJACK_TARGET:
+            doneDrawing = True
+            youBusted = False
+            print(f'{GREEN}You scored Blackjack!{CLEAR}')
+            input('Press Enter to see the results')
+        else:
+            print(f'Would you like to {GREEN}draw{CLEAR}?')
+            print('0: Yes')
+            print('1: No')
+            draw = askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', 1)
+            if draw == '0':
+                #draw
+                cardAmount += 1
+                globals()[f'card{cardAmount}'] = f'{random.choice(cards)} of {random.choice(suits)}'
+                if 'Ace' in globals()[f'card{cardAmount}']:
+                    acesInHand += 1
+                globals()[f'card{cardAmount}Value'] = findValue(globals()[f'card{cardAmount}'])
+                hand.append(globals()[f'card{cardAmount}'])
+                handValue += globals()[f'card{cardAmount}Value']
+                print('')
+                if handValue > BLACKJACK_TARGET:
+                    if acesInHand != 0:
+                        handValue -= 10
+                        acesInHand -= 1
+                    else:
+                        doneDrawing = True
+                        youBusted = True
+                        sayMostRecentCard()
+                        print(f'{ORANGE}You busted!{CLEAR}')
+                        time.sleep(0.5)
+                elif handValue == BLACKJACK_TARGET:
+                    doneDrawing = True
+                    youBusted = False
+                    sayMostRecentCard()
+                    print(f'{GREEN}You scored Blackjack!{CLEAR}')
+                    time.sleep(0.5)
+            elif draw == '1':
+                doneDrawing = True
+                if handValue <= BLACKJACK_TARGET:
+                    youBusted = False
+    
+    print(f'{CLEAR}\n---RESULTS---\n')
+    sayHand('player')
+    sayHand('dealer')
+
+    if youBusted == True and dealerBusted == True:
+        print(f'{YELLOW}Both of you busted, so no one wins!{CLEAR}')
+    elif youBusted == True and dealerBusted == False:
+        print(f'{RED}You busted! That means the dealer wins!{CLEAR}')
+        playerGolds[currentPlayer] -= bet
+        print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+    elif youBusted == False and dealerBusted == True:
+        print(f'{GREEN}The dealer busted! That means you win!{CLEAR}')
+        playerGolds[currentPlayer] += bet
+        print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+    elif youBusted == False and dealerBusted == False:
+        print('No one busted, so the person with the highest number wins...')
+        if handValue > dealerhandValue:
+            print(f'{GREEN}You win!{CLEAR}')
+            playerGolds[currentPlayer] += bet
+            print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+        else:
+            print(f'{RED}Dealer wins!{CLEAR}')
+            playerGolds[currentPlayer] -= bet
+            print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+    
+    print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+
 def selectRandomSpace(board):
     validSpace = False
     while not validSpace:
@@ -876,6 +1079,13 @@ while running:
                 print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
                 player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', False))
                 playerPositions[player] = selectRandomSpace(board)
+            if spaceType == 'gambling':
+                print(f'You landed on a {GAMBLING_SPACE}gambling{CLEAR} space.')
+                if playerGolds[currentPlayer] > 0:
+                    print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
+                    playBlackjack()
+                else:
+                    print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} to gamble!')
     #ask for item use
     if running == True:
         if len(playerInventories[currentPlayer]) > 0:
