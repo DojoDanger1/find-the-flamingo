@@ -211,7 +211,7 @@ def generateBoard():
                         else:
                             paths += possiblePaths
     #add highways
-    for _ in range((GRID_SIZE//2)+2):
+    for _ in range((GRID_SIZE // 2)):
         paths.append(generateAValidHighway(board, paths))
     #generate additional highways to shadow realm
     cellsWithLessThan4Paths = []
