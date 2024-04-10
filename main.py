@@ -563,7 +563,7 @@ def spinTheShadowWheel():
     options = [
         f'You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!',
         f'You can now spin the {GREEN}Good Wheel{CLEAR}!',
-        f'You must return to {HOME_SPACE}Home{CLEAR} space.',
+        f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
         'Nothing happens.',
         f'All other players gain {YELLOW}2 gold{CLEAR}',
         f'You loose {YELLOW}1 gold{CLEAR}',
@@ -589,7 +589,7 @@ def spinTheShadowWheel():
     if result == f'You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
         playerPositions[player] = findShadowRealm(board)
-    if result == f'You can now spin {GREEN}Good Wheel{CLEAR}!':
+    if result == f'You can now spin the {GREEN}Good Wheel{CLEAR}!':
         spinTheGoodWheel()
     if result == f'You must return to the {HOME_SPACE}Home{CLEAR} space.':
         playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
