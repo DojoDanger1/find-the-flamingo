@@ -469,6 +469,13 @@ def spinTheBadWheel():
         playerPositions[currentPlayer] = findShadowRealm(board)
     if result == f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.':
         playerPositions[currentPlayer] = selectRandomSpace(board)
+    if result == f'You {TELEPORT_SPACE}swap places{CLEAR} with a random player.':
+        players = list(range(1,NUM_PLAYERS+1))
+        players.remove(currentPlayer)
+        player = random.choice(players)
+        temp = playerPositions[player]
+        playerPositions[player] = playerPositions[currentPlayer]
+        playerPositions[playecurrentPlayerr2] = temp
     if result == f'You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
         playerGolds[player] += playerGolds[currentPlayer]
