@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageColor
 #bord paramaters
 GRID_SIZE = 7
 PERCENTAGE_SQUARES = 0.7
-PERCENTAGE_PATHS = 0.8
+PERCENTAGE_PATHS = 0.5
 PROBABILITY_ONE_WAY = 0.1
 
 #game settings
@@ -182,41 +182,51 @@ def generateBoard():
             if cell == 'shadow realm':
                 shadowRealmPos = {"row": n, "col": m}
     homePos = {"row": midpoint, "col": midpoint}
-    #initialise paths
-    paths = []
-    allDirections = ['up', 'down', 'left', 'right']
-    #add path to flamingo
-    possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, allDirections) if path['start'] != shadowRealmPos]
-    paths.append(random.choice(possiblePaths))
-    #add paths to shadow realm
-    possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, allDirections) if path['start'] != flamingoPos]
-    paths += possiblePaths
-    #add paths from home
-    possiblePaths = [path for path in findPossiblePaths(board, homePos, False, allDirections) if path['start'] != shadowRealmPos and path['start'] != flamingoPos]
-    paths += possiblePaths
-    #add internal paths
-    for row in range(GRID_SIZE):
-        for col in range(GRID_SIZE):
-            pos = {"row": row, "col": col}
-            if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
-                #down
-                if random.random() < PERCENTAGE_PATHS:
-                    possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['down']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
-                    if len(possiblePaths) != 0:
-                        if possiblePaths[0]['oneWay'] == True:
-                            newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                            paths.append(random.choice(newPossiblePaths))
-                        else:
-                            paths += possiblePaths
-                #right
-                if random.random() < PERCENTAGE_PATHS:
-                    possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['right']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
-                    if len(possiblePaths) != 0:
-                        if possiblePaths[0]['oneWay'] == True:
-                            newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                            paths.append(random.choice(newPossiblePaths))
-                        else:
-                            paths += possiblePaths
+    #repeat until game is possible
+    possible = False
+    bias = 0
+    while not possible:
+        #initialise paths
+        paths = []
+        allDirections = ['up', 'down', 'left', 'right']
+        #add path to flamingo
+        possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, allDirections) if path['start'] != shadowRealmPos]
+        paths.append(random.choice(possiblePaths))
+        #add paths to shadow realm
+        possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, allDirections) if path['start'] != flamingoPos]
+        paths += possiblePaths
+        #add paths from home
+        possiblePaths = [path for path in findPossiblePaths(board, homePos, False, allDirections) if path['start'] != shadowRealmPos and path['start'] != flamingoPos]
+        paths += possiblePaths
+        #add internal paths
+        for row in range(GRID_SIZE):
+            for col in range(GRID_SIZE):
+                pos = {"row": row, "col": col}
+                if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
+                    #down
+                    if random.random() < (PERCENTAGE_PATHS + bias):
+                        possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['down']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
+                        if len(possiblePaths) != 0:
+                            if possiblePaths[0]['oneWay'] == True:
+                                newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
+                                paths.append(random.choice(newPossiblePaths))
+                            else:
+                                paths += possiblePaths
+                    #right
+                    if random.random() < (PERCENTAGE_PATHS + bias):
+                        possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['right']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
+                        if len(possiblePaths) != 0:
+                            if possiblePaths[0]['oneWay'] == True:
+                                newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
+                                paths.append(random.choice(newPossiblePaths))
+                            else:
+                                paths += possiblePaths
+        highwayInformation = decideHighwayInformation(board, paths)
+        shortestPath = findShortestPathToFlamingo(board, paths, homePos, highwayInformation)
+        if shortestPath != 'impossible':
+            possible = True
+        else:
+            bias += 0.1
     #add highways
     for _ in range((GRID_SIZE // 2)):
         paths.append(generateAValidHighway(board, paths))
@@ -235,16 +245,6 @@ def generateBoard():
     connectingCells = random.sample(cellsWithLessThan4Paths, numNewPaths)
     for cell in connectingCells:
         paths.append({"start": cell, "end": shadowRealmPos, "oneWay": False})
-    highwayInformation = decideHighwayInformation(board, paths)
-    #keep generating paths until game is possible
-    possible = False
-    while not possible:
-        shortestPath = findShortestPathToFlamingo(board, paths, homePos, highwayInformation)
-        if shortestPath != 'impossible':
-            possible = True
-        else:
-            paths.append(generateAValidHighway(board, paths))
-            highwayInformation = decideHighwayInformation(board, paths)
     #return
     return board, paths, decorators
 
