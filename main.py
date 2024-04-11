@@ -751,6 +751,8 @@ def useItem():
                             return 'continue'
                         else:
                             print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                    if item == 'safeword':
+                        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
                     return 'dont continue'
 
 def playBlackjack():
@@ -996,19 +998,21 @@ itemDescriptions = {
     "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
     "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
     "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
-    "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.'
+    "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
+    "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.'
 }
 
 itemPrices = {
-    "compass": 2,
+    "compass": 3,
     "swap": 2,
     "trap": 2,
-    "gold potion": 1,
+    "gold potion": 2,
     "knife": 2,
-    "red potion": 2,
-    "goblin": 4,
+    "red potion": 3,
+    "goblin": 2,
     "wand": 2,
-    "time machine": 3
+    "time machine": 3,
+    "safeword": 2
 }
 
 playerPositions = [None]
