@@ -529,7 +529,8 @@ def spinTheGoodWheel():
         f'You must spin the {RED}Bad Wheel{CLEAR}.',
         f'You have {YELLOW}doubled{CLEAR} your gold!',
         f'You gain {YELLOW}5 gold{CLEAR}',
-        f'You gain {CYAN}a compass{CLEAR}'
+        f'You gain {CYAN}a compass{CLEAR}',
+        f'You can visit the {SHOP_SPACE}shop{CLEAR}!'
     ]
     print('')
     for _ in range(20):
@@ -567,6 +568,11 @@ def spinTheGoodWheel():
         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
     if result == f'You gain {CYAN}a compass{CLEAR}':
         playerInventories[currentPlayer].append('compass')
+    if result == f'You can visit the {SHOP_SPACE}shop{CLEAR}!':
+        if playerGolds[currentPlayer] < min(itemPrices.values()):
+            print(f'Unfortunately, You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+        else:
+            goToTheShop()
 
 def spinTheShadowWheel():
     options = [
