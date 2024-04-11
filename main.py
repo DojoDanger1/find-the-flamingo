@@ -13,6 +13,7 @@ PROBABILITY_ONE_WAY = 0.1
 #game settings
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
+STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
@@ -44,10 +45,10 @@ TELEPORT_SPACE = getColour(255, 162, 0)
 GAMBLING_SPACE = getColour(148, 14, 4)
 TIMEWARP_SPACE = getColour(0, 97, 112)
 
-def fillSpaces(board, fillWith, howMany):
+def fillSpaces(board, fillWith, howMany, initialState):
     linearBoard = sum(board, [])
-    emptyIndexes = [n for n, x in enumerate(linearBoard) if x == 'empty']
-    chosenSpaces = random.sample(emptyIndexes, howMany)
+    initialIndexes = [n for n, x in enumerate(linearBoard) if x == initialState]
+    chosenSpaces = random.sample(initialIndexes, howMany)
     for n, _ in enumerate(linearBoard):
         if n in chosenSpaces:
             linearBoard[n] = fillWith
@@ -164,14 +165,14 @@ def generateBoard():
     midpoint = GRID_SIZE // 2
     board[midpoint][midpoint] = 'home'
     #add other spaces
-    board = fillSpaces(board, 'shadow realm', 1)
-    board = fillSpaces(board, 'flamingo', 1)
-    board = fillSpaces(board, 'good', numEmpties // 10)
-    board = fillSpaces(board, 'bad', numEmpties // 10)
-    board = fillSpaces(board, 'shop', numEmpties // 8)
-    board = fillSpaces(board, 'teleport', numEmpties // 20)
-    board = fillSpaces(board, 'gambling', numEmpties // 20)
-    board = fillSpaces(board, 'timewarp', numEmpties // 20)
+    board = fillSpaces(board, 'shadow realm', 1, 'empty')
+    board = fillSpaces(board, 'flamingo', 1, 'empty')
+    board = fillSpaces(board, 'good', numEmpties // 10, 'empty')
+    board = fillSpaces(board, 'bad', numEmpties // 10, 'empty')
+    board = fillSpaces(board, 'shop', numEmpties // 8, 'empty')
+    board = fillSpaces(board, 'teleport', numEmpties // 20, 'empty')
+    board = fillSpaces(board, 'gambling', numEmpties // 20, 'empty')
+    board = fillSpaces(board, 'timewarp', numEmpties // 20, 'empty')
     #get positions of flamingo and shadow realm and home
     for n, row in enumerate(board):
         for m, cell in enumerate(row):
@@ -432,6 +433,7 @@ def askForPlayer(prompt, includeSelf):
     
 
 def spinTheBadWheel():
+    global board
     options = [
         f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
         f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
@@ -441,23 +443,24 @@ def spinTheBadWheel():
         f'You must give away {YELLOW}3 gold{CLEAR}.',
         f'You must give away {CYAN}an item{CLEAR}.',
         f'You must spin the {RED}Bad Wheel{CLEAR} twice more.',
-        f'You can now spin {GREEN}Good Wheel{CLEAR}!'
+        f'You can now spin {GREEN}Good Wheel{CLEAR}!',
+        f'One {RED}random change{CLEAR} will be made to the board.'
     ]
     print('')
     for _ in range(20):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A                                               \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A                                               \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A                                               \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.1)
-    print('\033[A                                          \033[A')
-    result =  random.choice(options)
+    print('\033[A                                               \033[A')
+    result = random.choice(options)
     print(result)
     time.sleep(1)
     if result == f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.':
@@ -506,7 +509,18 @@ def spinTheBadWheel():
             spinTheBadWheel()
     if result == f'You can now spin {GREEN}Good Wheel{CLEAR}!':
         spinTheGoodWheel()
-
+    if result == f'One {RED}random change{CLEAR} will be made to the board.':
+        changeType = random.choice(['goodToBad', 'badToGood', 'addSpecialSpace', 'addShop'])
+        if changeType == 'goodToBad':
+            board = fillSpaces(board, 'bad', 1, 'good')
+        if changeType == 'badToGood':
+            board = fillSpaces(board, 'good', 1, 'bad')
+        if changeType == 'addSpecialSpace':
+            board = fillSpaces(board, random.choice(['teleport', 'gambling', 'timewarp']), 1, 'empty')
+        if changeType == 'addShop':
+            board = fillSpaces(board, 'shop', 1, 'empty')
+        generateImage(board, paths)
+                    
 def spinTheGoodWheel():
     options = [
         f'You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!',
@@ -639,6 +653,7 @@ def useItem():
     global playerWaitingForWheelSpins
     global itemPrices
     global decorators
+    global board
     done = False
     while not done:
         if len(playerInventories[currentPlayer]) == 0:
@@ -719,6 +734,9 @@ def useItem():
                             ]
                             if firstPath in possiblePaths:
                                 print(f'To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
+                    if item == 'green potion':
+                        shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+                        print(f'The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
                     if item == 'goblin':
                         decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer})
                         print(f'Successfully placed a goblin on {GREEN}This Space{CLEAR}!')
@@ -733,6 +751,7 @@ def useItem():
                             playerWaitingForWheelSpins = prevPlayerWaitingForWheelSpins[-4]
                             itemPrices = prevItemPrices[-4]
                             decorators = prevDecorators[-4]
+                            board = prevBoards[-4]
                             for _ in range(3):
                                 prevPlayerPositions.pop(-1)
                                 prevPlayerInventories.pop(-1)
@@ -740,9 +759,11 @@ def useItem():
                                 prevPlayerWaitingForWheelSpins.pop(-1)
                                 prevItemPrices.pop(-1)
                                 prevDecorators.pop(-1)
+                                prevBoards.pop(-1)
                             if len(playerInventories[currentPlayer]) >= int(choice):
                                 if playerInventories[currentPlayer][int(choice)-1] == 'time machine':
                                     playerInventories[currentPlayer].remove(item)
+                            generateImage(board, paths)
                             return 'continue'
                         else:
                             print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
@@ -991,6 +1012,7 @@ itemDescriptions = {
     "gold potion": f'Places {YELLOW}3 gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space',
     "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you',
     "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+    "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
     "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
     "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
     "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
@@ -1004,6 +1026,7 @@ itemPrices = {
     "gold potion": 2,
     "knife": 2,
     "red potion": 3,
+    "green potion": 3,
     "goblin": 2,
     "wand": 2,
     "time machine": 3,
@@ -1016,7 +1039,7 @@ playerGolds = [None]
 playerWaitingForWheelSpins = [None]
 for _ in range(NUM_PLAYERS):
     playerPositions.append({"row": GRID_SIZE // 2, "col": GRID_SIZE // 2})
-    playerInventories.append([])
+    playerInventories.append(copy.copy(STARTING_HAND))
     playerGolds.append(STARTING_GOLD)
     playerWaitingForWheelSpins.append(False)
 
@@ -1026,6 +1049,7 @@ prevPlayerGolds = [copy.copy(playerGolds)]
 prevPlayerWaitingForWheelSpins = [copy.copy(playerWaitingForWheelSpins)]
 prevItemPrices = [copy.copy(itemPrices)]
 prevDecorators = [copy.copy(decorators)]
+prevBoards = [copy.copy(board)]
 
 running = True
 currentPlayer = 1
@@ -1176,6 +1200,7 @@ while running:
         prevPlayerWaitingForWheelSpins.append(copy.copy(playerWaitingForWheelSpins))
         prevItemPrices.append(copy.copy(itemPrices))
         prevDecorators.append(copy.copy(decorators))
+        prevBoards.append(copy.copy(board))
         #change turn order
         currentPlayer += 1
         if currentPlayer > NUM_PLAYERS:
