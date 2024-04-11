@@ -294,7 +294,6 @@ def decideHighwayInformation(board, paths):
     highwayInformation = []
     for highway in highways:
         thisHighwaysInformation = []
-        #print(f'highway: {highway}')
         for startEnd in ['start', 'end']:
             moves = findPossibleMoves(paths, highway[startEnd], False, highwayInformation)
             if board[highway[startEnd]['row']][highway[startEnd]['col']] == 'shadow realm':
@@ -316,15 +315,11 @@ def findPossibleMoves(paths, position, includeHighways, highwayInformation):
     possibleDirections = ['up', 'down', 'left', 'right']
     possiblePaths = [(n, path) for n, path in enumerate(paths) if path['start'] == position or (path['end'] == position and path['oneWay'] == False)]
     numNonHighways = len([path for path in paths if path['start']['row'] == path['end']['row'] or path['start']['col'] == path['end']['col']])
-    #pprint(possiblePaths)
-    #pprint(board)
-    #pprint(paths)
     for (n, path) in possiblePaths:
         if path['start'] == position:
             destination = path['end']
         else:
             destination = path['start']
-        #print(f'path: {path}, position: {position}')
         if destination['row'] > position['row'] and destination['col'] == position['col']:
             direction = 'down'
             possibleDirections.remove('down')
