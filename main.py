@@ -2,6 +2,7 @@ import random
 import time
 import os
 import copy
+import math
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
@@ -259,6 +260,14 @@ def generateImage(board, paths):
     for n, path in enumerate(paths):
         if path['oneWay']:
             draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#696969', 'RGBA'), width=10)
+            if path['end']['col'] > path['start']['col'] and path['end']['row'] == path['start']['row']: #right
+                draw.regular_polygon((math.ceil((path['end']['col']+path['start']['col'])/2)*100, path['start']['row']*100+50, 15), 3, 270, fill=ImageColor.getcolor('#696969', 'RGBA'))
+            if path['end']['col'] < path['start']['col'] and path['end']['row'] == path['start']['row']: #left
+                draw.regular_polygon((math.ceil((path['end']['col']+path['start']['col'])/2)*100, path['start']['row']*100+50, 15), 3, 90, fill=ImageColor.getcolor('#696969', 'RGBA'))
+            if path['end']['col'] == path['start']['col'] and path['end']['row'] > path['start']['row']: #down
+                draw.regular_polygon((path['start']['col']*100+50, math.ceil((path['end']['row']+path['start']['row'])/2)*100, 15), 3, 180, fill=ImageColor.getcolor('#696969', 'RGBA'))
+            if path['end']['col'] == path['start']['col'] and path['end']['row'] < path['start']['row']: #up
+                draw.regular_polygon((path['start']['col']*100+50, math.ceil((path['end']['row']+path['start']['row'])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
         elif path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row']:
             draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
         else:
