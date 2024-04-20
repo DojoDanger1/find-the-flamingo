@@ -14,7 +14,7 @@ PROBABILITY_ONE_WAY = 0.1
 #game settings
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
-STARTING_HAND = []
+STARTING_HAND = ['information']
 CHANCE_OF_INFLATION = 0.5
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
@@ -784,6 +784,18 @@ def useItem():
                             print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
                     if item == 'safeword':
                         playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+                    if item == 'information':
+                        for n, row in enumerate(board):
+                            for m, cell in enumerate(row):
+                                if cell == 'flamingo':
+                                    flamingoPos = (n+1, m+1)
+                        rowOrCol = random.choice(['row', 'col'])
+                        if rowOrCol == 'row':
+                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
+                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+                        else:
+                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
+                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
                     return 'dont continue'
 
 def playBlackjack():
@@ -1031,7 +1043,8 @@ itemDescriptions = {
     "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
     "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
     "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
-    "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.'
+    "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
+    "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.'
 }
 
 itemPrices = {
@@ -1045,7 +1058,8 @@ itemPrices = {
     "goblin": 2,
     "wand": 2,
     "time machine": 3,
-    "safeword": 2
+    "safeword": 2,
+    "information": 2
 }
 
 playerPositions = [None]
