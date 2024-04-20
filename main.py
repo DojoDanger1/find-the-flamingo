@@ -798,6 +798,11 @@ def useItem():
                         else:
                             choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
                             print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+                    if item == 'portable shop':
+                        if playerGolds[currentPlayer] < min(itemPrices.values()):
+                            print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                        else:
+                            goToTheShop()
                     return 'dont continue'
 
 def playBlackjack():
@@ -1046,7 +1051,8 @@ itemDescriptions = {
     "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
     "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
     "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
-    "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.'
+    "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
+    "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.'
 }
 
 itemPrices = {
@@ -1061,7 +1067,8 @@ itemPrices = {
     "wand": 2,
     "time machine": 3,
     "safeword": 2,
-    "information": 2
+    "information": 2,
+    "portable shop": 3
 }
 
 playerPositions = [None]
