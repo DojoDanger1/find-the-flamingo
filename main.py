@@ -806,7 +806,7 @@ def useItem():
                     if item == 'flamingo':
                         decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer})
                         print(f'Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
-                    return 'dont continue'
+    return 'dont continue'
 
 def playBlackjack():
     def getCardColour(card):
