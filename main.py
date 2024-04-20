@@ -10,6 +10,7 @@ GRID_SIZE = 7
 PERCENTAGE_SQUARES = 0.7
 PERCENTAGE_PATHS = 0.5
 PROBABILITY_ONE_WAY = 0.1
+BIAS = 0.05
 
 #game settings
 NUM_PLAYERS = 3
@@ -225,10 +226,10 @@ def generateBoard():
                                 paths += possiblePaths
         highwayInformation = decideHighwayInformation(board, paths)
         shortestPath = findShortestPathToFlamingo(board, paths, homePos, highwayInformation)
-        if shortestPath != 'impossible':
+        if shortestPath != 'impossible' and isPossibleToGetEverywhere(board, paths, homePos, highwayInformation):
             possible = True
         else:
-            bias += 0.1
+            bias += BIAS
     #add highways
     for _ in range((GRID_SIZE // 2)):
         paths.append(generateAValidHighway(board, paths))
@@ -403,6 +404,26 @@ def findShortestPathToFlamingo(board, paths, startPos, highwayInformation):
                 done = True
                 return 'impossible'
             allPathChains = newPathChains
+
+def isPossibleToGetEverywhere(board, paths, startPos, highwayInformation):
+    previouslySearched = []
+    currentlySearching = [startPos]
+    nextSearching = ['something is in here']
+    while len(nextSearching) > 0:
+        nextSearching = []
+        for space in currentlySearching:
+            if board[space['row']][space['col']] != 'shadow realm':
+                possibleMoves = findPossibleMoves(paths, space, True, highwayInformation)
+                for move in possibleMoves:
+                    destination = move['destination']
+                    if destination not in previouslySearched and destination not in nextSearching and destination not in currentlySearching:
+                        nextSearching.append(destination)
+            if space not in previouslySearched:
+                previouslySearched.append(space)
+        currentlySearching = copy.copy(nextSearching)
+    numPossibleSpaces = len(previouslySearched)
+    numSpaces = sum([sum([(0 if cell == None else 1) for cell in row]) for row in board])
+    return numPossibleSpaces == numSpaces
 
 def askOptions(prompt, numOptions):
     option = input(prompt)
