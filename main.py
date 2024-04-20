@@ -14,7 +14,7 @@ PROBABILITY_ONE_WAY = 0.1
 #game settings
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
-STARTING_HAND = ['information']
+STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
@@ -457,18 +457,18 @@ def spinTheBadWheel():
     ]
     print('')
     for _ in range(20):
-        print(f'\033[A                                               \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\033[A                                               \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\033[A                                               \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.1)
-    print('\033[A                                               \033[A')
+    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
     result = random.choice(options)
     print(result)
     time.sleep(1)
@@ -543,18 +543,18 @@ def spinTheGoodWheel():
     ]
     print('')
     for _ in range(20):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\033[A                                          \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.1)
-    print('\033[A                                          \033[A')
+    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
     result =  random.choice(options)
     print(result)
     time.sleep(1)
@@ -588,6 +588,8 @@ def spinTheShadowWheel():
         f'You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!',
         f'You can now spin the {GREEN}Good Wheel{CLEAR}!',
         f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
+        f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
+        f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
         'Nothing happens.',
         f'All other players gain {YELLOW}2 gold{CLEAR}',
         f'You loose {YELLOW}1 gold{CLEAR}',
@@ -595,18 +597,18 @@ def spinTheShadowWheel():
     ]
     print('')
     for _ in range(20):
-        print(f'\033[A                                                     \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\033[A                                                     \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\033[A                                                     \033[A')
+        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
         print(f'{random.choice(options)}')
         time.sleep(0.1)
-    print(f'\033[A                                                     \033[A')
+    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
     result =  random.choice(options)
     print(result)
     time.sleep(1)
