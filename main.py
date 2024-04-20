@@ -1050,13 +1050,13 @@ itemDescriptions = {
     "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you',
     "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
     "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
-    "goblin": f'Randomly moves around the map at the end of the {RED}last player\'s{CLEAR} turn. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
+    "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
     "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
     "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
     "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
     "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
     "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
-    "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn. You will be notified when you land on a space with a {FLAMINGO_SPACE}flamingo{CLEAR} on it.'
+    "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.'
 }
 
 itemPrices = {
