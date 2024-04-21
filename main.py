@@ -17,6 +17,7 @@ NUM_PLAYERS = 3
 STARTING_GOLD = 3
 STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
+CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
 
@@ -715,7 +716,9 @@ def goToTheShop():
         else:
             playerGolds[currentPlayer] -= price
             playerInventories[currentPlayer].append(item)
-            if random.random() < CHANCE_OF_INFLATION:
+            if random.random() < CHANCE_OF_SUPER_INFLATION:
+                itemPrices[item] *= 2
+            elif random.random() < CHANCE_OF_INFLATION:
                 itemPrices[item] += 1
 
 def useItem():
