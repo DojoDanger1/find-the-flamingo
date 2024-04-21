@@ -840,6 +840,8 @@ def useItem():
                     if item == 'flamingo':
                         decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer})
                         print(f'Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
+                    if item == 'f3 menu':
+                        print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
     return 'dont continue'
 
 def playBlackjack():
@@ -1090,7 +1092,8 @@ itemDescriptions = {
     "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
     "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
     "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
-    "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.'
+    "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
+    "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
 }
 
 itemPrices = {
@@ -1108,6 +1111,7 @@ itemPrices = {
     "information": 2,
     "portable shop": 3,
     "flamingo": 4,
+    "f3 menu": 2
 }
 
 playerPositions = [None]
