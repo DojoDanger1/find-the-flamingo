@@ -560,7 +560,8 @@ def spinTheGoodWheel():
         f'You have {YELLOW}doubled{CLEAR} your gold!',
         f'You gain {YELLOW}5 gold{CLEAR}',
         f'You gain {CYAN}a compass{CLEAR}',
-        f'You can visit the {SHOP_SPACE}shop{CLEAR}!'
+        f'You can visit the {SHOP_SPACE}shop{CLEAR}!',
+        f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!'
     ]
     print('')
     for _ in range(20):
@@ -603,6 +604,18 @@ def spinTheGoodWheel():
             print(f'Unfortunately, You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
         else:
             goToTheShop()
+    if result == f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = (n+1, m+1)
+        rowOrCol = random.choice(['row', 'col'])
+        if rowOrCol == 'row':
+            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
+            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+        else:
+            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
+            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
 
 def spinTheShadowWheel():
     options = [
