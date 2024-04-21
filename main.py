@@ -15,7 +15,7 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
-STARTING_HAND = ['compass', 'swap', 'trap', 'gold potion', 'knife', 'red potion', 'green potion', 'goblin', 'wand', 'time machine', 'safeword', 'information', 'portable shop', 'flamingo', 'f3 menu']
+STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
@@ -147,7 +147,9 @@ def generateAValidHighway(board, paths):
             return path
 
 def generateBoard():
+    print('generating board...')
     #initialise board
+    print(' creating board array...')
     board = []
     decorators = []
     for _ in range(GRID_SIZE):
@@ -157,6 +159,7 @@ def generateBoard():
             decoratorsRow.append([])
         decorators.append(decoratorsRow)
     #add empty spaces
+    print(' adding empty spaces...')
     numEmpties = 0
     for n, row in enumerate(board):
         for m, _ in enumerate(row):
@@ -164,76 +167,92 @@ def generateBoard():
                 board[n][m] = 'empty'
                 numEmpties += 1
     #add home space
+    print(' adding home space...')
     midpoint = GRID_SIZE // 2
     board[midpoint][midpoint] = 'home'
     #add other spaces
-    board = fillSpaces(board, 'shadow realm', 1, 'empty')
-    board = fillSpaces(board, 'flamingo', 1, 'empty')
-    board = fillSpaces(board, 'good', numEmpties // 10, 'empty')
-    board = fillSpaces(board, 'bad', numEmpties // 10, 'empty')
-    board = fillSpaces(board, 'shop', numEmpties // 8, 'empty')
-    board = fillSpaces(board, 'teleport', numEmpties // 20, 'empty')
-    board = fillSpaces(board, 'gambling', numEmpties // 20, 'empty')
-    board = fillSpaces(board, 'timewarp', numEmpties // 20, 'empty')
-    #get positions of flamingo and shadow realm and home
-    for n, row in enumerate(board):
-        for m, cell in enumerate(row):
-            if cell == 'flamingo':
-                flamingoPos = {"row": n, "col": m}
-    for n, row in enumerate(board):
-        for m, cell in enumerate(row):
-            if cell == 'shadow realm':
-                shadowRealmPos = {"row": n, "col": m}
-    homePos = {"row": midpoint, "col": midpoint}
-    #repeat until game is possible
-    possible = False
-    bias = 0
-    while not possible:
-        #initialise paths
-        paths = []
-        allDirections = ['up', 'down', 'left', 'right']
-        #add path to flamingo
-        possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, allDirections) if path['start'] != shadowRealmPos]
-        paths.append(random.choice(possiblePaths))
-        #add paths to shadow realm
-        possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, allDirections) if path['start'] != flamingoPos]
-        paths += possiblePaths
-        #add paths from home
-        possiblePaths = [path for path in findPossiblePaths(board, homePos, False, allDirections) if path['start'] != shadowRealmPos and path['start'] != flamingoPos]
-        paths += possiblePaths
-        #add internal paths
-        for row in range(GRID_SIZE):
-            for col in range(GRID_SIZE):
-                pos = {"row": row, "col": col}
-                if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
-                    #down
-                    if random.random() < (PERCENTAGE_PATHS + bias):
-                        possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['down']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
-                        if len(possiblePaths) != 0:
-                            if possiblePaths[0]['oneWay'] == True:
-                                newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                                paths.append(random.choice(newPossiblePaths))
-                            else:
-                                paths += possiblePaths
-                    #right
-                    if random.random() < (PERCENTAGE_PATHS + bias):
-                        possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['right']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
-                        if len(possiblePaths) != 0:
-                            if possiblePaths[0]['oneWay'] == True:
-                                newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                                paths.append(random.choice(newPossiblePaths))
-                            else:
-                                paths += possiblePaths
-        highwayInformation = decideHighwayInformation(board, paths)
-        shortestPath = findShortestPathToFlamingo(board, paths, homePos, highwayInformation)
-        if shortestPath != 'impossible' and isPossibleToGetEverywhere(board, paths, homePos, highwayInformation):
-            possible = True
-        else:
-            bias += BIAS
+    print(' attemtpting to fill in the rest of the map...')
+    reallyPossible = False
+    while not reallyPossible:
+        print('  adding other spaces...')
+        board = fillSpaces(board, 'shadow realm', 1, 'empty')
+        board = fillSpaces(board, 'flamingo', 1, 'empty')
+        board = fillSpaces(board, 'good', numEmpties // 10, 'empty')
+        board = fillSpaces(board, 'bad', numEmpties // 10, 'empty')
+        board = fillSpaces(board, 'shop', numEmpties // 8, 'empty')
+        board = fillSpaces(board, 'teleport', numEmpties // 20, 'empty')
+        board = fillSpaces(board, 'gambling', numEmpties // 20, 'empty')
+        board = fillSpaces(board, 'timewarp', numEmpties // 20, 'empty')
+        #get positions of flamingo and shadow realm and home
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = {"row": n, "col": m}
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'shadow realm':
+                    shadowRealmPos = {"row": n, "col": m}
+        homePos = {"row": midpoint, "col": midpoint}
+        #repeat until game is possible
+        print('  attempting to add pathways...')
+        possible = False
+        bias = 0
+        while not possible:
+            print('   adding paths to flamingo, home, shadow realm...')
+            #initialise paths
+            paths = []
+            allDirections = ['up', 'down', 'left', 'right']
+            #add path to flamingo
+            possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, allDirections) if path['start'] != shadowRealmPos]
+            paths.append(random.choice(possiblePaths))
+            #add paths to shadow realm
+            possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, allDirections) if path['start'] != flamingoPos]
+            paths += possiblePaths
+            #add paths from home
+            possiblePaths = [path for path in findPossiblePaths(board, homePos, False, allDirections) if path['start'] != shadowRealmPos and path['start'] != flamingoPos]
+            paths += possiblePaths
+            #add internal paths
+            print(f'   adding internal paths with chance {PERCENTAGE_PATHS + bias}...')
+            for row in range(GRID_SIZE):
+                for col in range(GRID_SIZE):
+                    pos = {"row": row, "col": col}
+                    if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
+                        #down
+                        if random.random() < (PERCENTAGE_PATHS + bias):
+                            possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['down']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
+                            if len(possiblePaths) != 0:
+                                if possiblePaths[0]['oneWay'] == True:
+                                    newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
+                                    paths.append(random.choice(newPossiblePaths))
+                                else:
+                                    paths += possiblePaths
+                        #right
+                        if random.random() < (PERCENTAGE_PATHS + bias):
+                            possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['right']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
+                            if len(possiblePaths) != 0:
+                                if possiblePaths[0]['oneWay'] == True:
+                                    newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
+                                    paths.append(random.choice(newPossiblePaths))
+                                else:
+                                    paths += possiblePaths
+            print('   checking if this is possible...')
+            highwayInformation = decideHighwayInformation(board, paths)
+            if isPossibleToGetEverywhere(board, paths, homePos, highwayInformation):
+                print('    it is!')
+                possible = True
+                reallyPossible = True
+            else:
+                bias += BIAS
+                print(f'    its not... try again with path chance {PERCENTAGE_PATHS + bias}.')
+                if bias > 1:
+                    print('    path chance now above 1, so scrap the whole thing and try again...')
+                    possible = True #this is a lie, it is to break out of the while loop to scrap this map and try again
     #add highways
+    print(' adding highways...')
     for _ in range((GRID_SIZE // 2)):
         paths.append(generateAValidHighway(board, paths))
     #generate additional highways to shadow realm
+    print(' adding additional highways to the shadow realm...')
     cellsWithLessThan4Paths = []
     for n, row in enumerate(board):
         for m, col in enumerate(row):
@@ -249,6 +268,8 @@ def generateBoard():
     for cell in connectingCells:
         paths.append({"start": cell, "end": shadowRealmPos, "oneWay": False})
     #return
+    print('done!')
+    print('generating image...')
     return board, paths, decorators
 
 def generateImage(board, paths):
