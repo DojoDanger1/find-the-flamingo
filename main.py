@@ -244,7 +244,7 @@ def generateBoard():
             else:
                 bias += BIAS
                 print(f'    its not... try again with path chance {PERCENTAGE_PATHS + bias}.')
-                if bias > 1:
+                if PERCENTAGE_PATHS + bias > 1:
                     print('    path chance now above 1, so scrap the whole thing and try again...')
                     possible = True #this is a lie, it is to break out of the while loop to scrap this map and try again
     #add highways
@@ -753,6 +753,13 @@ def useItem():
                         else:
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                             print(f'Here is all of the information about the {ORANGE}Adjacent Spaces{CLEAR}:')
+                            message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]])}.'
+                            for player, playerPosition in enumerate(playerPositions):
+                                if playerPosition == playerPositions[currentPlayer] and player != currentPlayer:
+                                    message += f' {RED}Player {player}{CLEAR} is also on this space.'
+                            for decorator in decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]:
+                                message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
+                            print(message)
                             for move in possibleMoves:
                                 destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
                                 message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType)}.'
