@@ -1345,6 +1345,7 @@ while running:
                 prevPlayerWaitingForWheelSpins = data["prevPlayerWaitingForWheelSpins"]
                 prevItemPrices = data["prevItemPrices"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
+                generateImage(board, paths)
         os.system('clear')
         #store backups
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
