@@ -1350,7 +1350,7 @@ while running:
             for n, filename in enumerate(dir):
                 print(f'{n+1}: {filename}')
             choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
-            if choice != 0:
+            if choice != '0':
                 with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
                 	data = json.load(f)
                 board = data["board"]
