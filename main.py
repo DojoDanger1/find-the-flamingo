@@ -1350,9 +1350,7 @@ while running:
             for n, filename in enumerate(dir):
                 print(f'{n+1}: {filename}')
             choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
-            print(choice, type(choice))
             if choice != '0':
-                print(hello)
                 with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
                 	data = json.load(f)
                 board = data["board"]
@@ -1372,7 +1370,6 @@ while running:
                 prevPlayerWaitingForWheelSpins = data["prevPlayerWaitingForWheelSpins"]
                 prevItemPrices = data["prevItemPrices"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
-        	input('')
         os.system('clear')
         #store backups
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
