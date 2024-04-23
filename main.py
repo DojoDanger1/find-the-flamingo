@@ -1322,6 +1322,7 @@ while running:
         if next == "SAVE":
             #save to json
             data = {
+                "currentPlayer": currentPlayer,
                 "board": board,
                 "paths": paths,
                 "highwayInformation": highwayInformation,
@@ -1353,6 +1354,7 @@ while running:
             if choice != '0':
                 with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
                 	data = json.load(f)
+                currentPlayer = data["currentPlayer"]
                 board = data["board"]
                 paths = data["paths"]
                 highwayInformation = data["highwayInformation"]
