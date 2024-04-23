@@ -484,21 +484,7 @@ def askForPlayer(prompt, includeSelf):
         option = askForPlayer(prompt, includeSelf)
     return str(option)
     
-
-def spinTheBadWheel():
-    global board
-    options = [
-        f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
-        f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
-        f'You {TELEPORT_SPACE}swap places{CLEAR} with a random player.',
-        f'You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}',
-        f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
-        f'You must give away {YELLOW}3 gold{CLEAR}.',
-        f'You must give away {CYAN}an item{CLEAR}.',
-        f'You must spin the {RED}Bad Wheel{CLEAR} twice more.',
-        f'You can now spin {GREEN}Good Wheel{CLEAR}!',
-        f'One {RED}random change{CLEAR} will be made to the board.'
-    ]
+def spinWheelVisually(options):
     print('')
     for _ in range(20):
         print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
@@ -515,6 +501,23 @@ def spinTheBadWheel():
     print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
     result = random.choice(options)
     print(result)
+    return result
+
+def spinTheBadWheel():
+    global board
+    options = [
+        f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
+        f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
+        f'You {TELEPORT_SPACE}swap places{CLEAR} with a random player.',
+        f'You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}',
+        f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
+        f'You must give away {YELLOW}3 gold{CLEAR}.',
+        f'You must give away {CYAN}an item{CLEAR}.',
+        f'You must spin the {RED}Bad Wheel{CLEAR} twice more.',
+        f'You can now spin {GREEN}Good Wheel{CLEAR}!',
+        f'One {RED}random change{CLEAR} will be made to the board.'
+    ]
+    result = spinWheelVisually(options)
     time.sleep(1)
     if result == f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.':
         playerPositions[currentPlayer] = findShadowRealm(board)
@@ -586,22 +589,7 @@ def spinTheGoodWheel():
         f'You can visit the {SHOP_SPACE}shop{CLEAR}!',
         f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!'
     ]
-    print('')
-    for _ in range(20):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.02)
-    for _ in range(5):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.05)
-    for _ in range(2):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.1)
-    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-    result =  random.choice(options)
-    print(result)
+    result = spinWheelVisually(options)
     time.sleep(1)
     if result == f'You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
@@ -652,22 +640,7 @@ def spinTheShadowWheel():
         f'You loose {YELLOW}1 gold{CLEAR}',
         f'You must spin the {RED}Bad Wheel{CLEAR}.'
     ]
-    print('')
-    for _ in range(20):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.02)
-    for _ in range(5):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.05)
-    for _ in range(2):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-        print(f'{random.choice(options)}')
-        time.sleep(0.1)
-    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
-    result =  random.choice(options)
-    print(result)
+    result = spinWheelVisually(options)
     time.sleep(1)
     if result == f'You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
