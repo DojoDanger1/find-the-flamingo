@@ -1353,7 +1353,7 @@ while running:
             choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
             if choice != '0':
                 with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
-                	data = json.load(f)
+                    data = json.load(f)
                 currentPlayer = data["currentPlayer"]
                 board = data["board"]
                 paths = data["paths"]
