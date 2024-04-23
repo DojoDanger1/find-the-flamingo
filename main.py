@@ -1340,7 +1340,7 @@ while running:
                 "prevItemPrices": prevItemPrices,
             }
             filename = input(f'{TURQUOISE}Enter the file name of the save file: {CLEAR}')
-            with open(f'{filename}.json', 'w') as f:
+            with open(f'saves/{filename}.json', 'w') as f:
                 json.dump(data,f)
         if next == "LOAD":
             #load from json
