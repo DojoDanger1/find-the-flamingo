@@ -3,6 +3,7 @@ import time
 import os
 import copy
 import math
+import json
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
@@ -1320,7 +1321,27 @@ while running:
         next = input(f'{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
         if next == "SAVE":
             #save to json
-            pass
+            data = {
+                "board": board,
+                "paths": paths,
+                "highwayInformation": highwayInformation,
+                "decorators": decorators,
+                "playerPositions": playerPositions,
+                "playerInventories": playerInventories,
+                "playerGolds": playerGolds,
+                "playerWaitingForWheelSpins": playerWaitingForWheelSpins,
+                "itemPrices": itemPrices,
+                "prevBoards": prevBoards,
+                "prevDecorators": prevDecorators,
+                "prevPlayerPositions": prevPlayerPositions,
+                "prevPlayerInventories": prevPlayerInventories,
+                "prevPlayerGolds": prevPlayerGolds,
+                "prevPlayerWaitingForWheelSpins": prevPlayerWaitingForWheelSpins,
+                "prevItemPrices": prevItemPrices,
+            }
+            filename = input(f'{TURQUOISE}Enter the file name of the save file: {CLEAR}')
+            with open(f'{filename}.json', 'w') as f:
+                json.dump(data,f)
         if next == "LOAD":
             #load from json
             pass
