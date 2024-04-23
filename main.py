@@ -1346,7 +1346,7 @@ while running:
             #load from json
             print('Which file would you like to load?')
             print('0: Nothing')
-            dir = os.listdir('savesk')
+            dir = os.listdir('saves')
             for n, filename in enumerate(dir):
                 print(f'{n+1}: {filename}')
             choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
