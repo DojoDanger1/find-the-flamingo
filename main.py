@@ -1344,7 +1344,32 @@ while running:
                 json.dump(data,f)
         if next == "LOAD":
             #load from json
-            pass
+            print('Which file would you like to load?')
+            print('0: Nothing')
+            dir = os.listdir('savesk')
+            for n, filename in enumerate(dir):
+                print(f'{n+1}: {filename}')
+            choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
+            if choice != 0:
+                with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
+                	data = json.load(f)
+                board = data["board"]
+                paths = data["paths"]
+                highwayInformation = data["highwayInformation"]
+                decorators = data["decorators"]
+                playerPositions = data["playerPositions"]
+                playerInventories = data["playerInventories"]
+                playerGolds = data["playerGolds"]
+                playerWaitingForWheelSpins = data["playerWaitingForWheelSpins"]
+                itemPrices = data["itemPrices"]
+                prevBoards = data["prevBoards"]
+                prevDecorators = data["prevDecorators"]
+                prevPlayerPositions = data["prevPlayerPositions"]
+                prevPlayerInventories = data["prevPlayerInventories"]
+                prevPlayerGolds = data["prevPlayerGolds"]
+                prevPlayerWaitingForWheelSpins = data["prevPlayerWaitingForWheelSpins"]
+                prevItemPrices = data["prevItemPrices"]
+                os.remove(f'saves/{dir[int(choice)-1]}')
         os.system('clear')
         #store backups
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
