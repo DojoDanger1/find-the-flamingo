@@ -1317,7 +1317,13 @@ while running:
     #change turn order
     print('-'*50)
     if running == True:
-        input(f'{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
+        next = input(f'{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
+        if next == "SAVE":
+            #save to json
+            pass
+        if next == "LOAD":
+            #load from json
+            pass
         os.system('clear')
         #store backups
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
