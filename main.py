@@ -15,8 +15,8 @@ BIAS = 0.05
 
 #game settings
 NUM_PLAYERS = 3
-STARTING_GOLD = 3
-STARTING_HAND = ['goblin']
+STARTING_GOLD = 0
+STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
@@ -587,7 +587,8 @@ def spinTheGoodWheel():
         f'You gain {YELLOW}5 gold{CLEAR}',
         f'You gain {CYAN}a compass{CLEAR}',
         f'You can visit the {SHOP_SPACE}shop{CLEAR}!',
-        f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!'
+        f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!',
+        f'You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.'
     ]
     result = spinWheelVisually(options)
     time.sleep(1)
@@ -627,6 +628,16 @@ def spinTheGoodWheel():
         else:
             choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
             print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+    if result == f'You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.':
+        print('What would you like to do?')
+        print('0: Gamble')
+        print(f'1: Make another player gamble half of their {YELLOW}gold{CLEAR}')
+        choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
+        if choice == '0':
+            playBlackjack()
+        if choice == '1':
+            player = int(askForPlayer(f'{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', False))
+            playerWaitingForEvents[player].append('gamble')
 
 def spinTheShadowWheel():
     options = [
@@ -699,7 +710,7 @@ def useItem():
     global playerPositions
     global playerInventories
     global playerGolds
-    global playerWaitingForWheelSpins
+    global playerWaitingForEvents
     global itemPrices
     global decorators
     global board
@@ -809,13 +820,13 @@ def useItem():
                             decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer})
                     if item == 'wand':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        playerWaitingForWheelSpins[player] = True
+                        playerWaitingForEvents[player].append('bad wheel')
                     if item == 'time machine':
                         if len(prevPlayerPositions) >= 4:
                             playerPositions = prevPlayerPositions[-4]
                             playerInventories = prevPlayerInventories[-4]
                             playerGolds = prevPlayerGolds[-4]
-                            playerWaitingForWheelSpins = prevPlayerWaitingForWheelSpins[-4]
+                            playerWaitingForEvents = prevplayerWaitingForEvents[-4]
                             itemPrices = prevItemPrices[-4]
                             decorators = prevDecorators[-4]
                             board = prevBoards[-4]
@@ -823,7 +834,7 @@ def useItem():
                                 prevPlayerPositions.pop(-1)
                                 prevPlayerInventories.pop(-1)
                                 prevPlayerGolds.pop(-1)
-                                prevPlayerWaitingForWheelSpins.pop(-1)
+                                prevplayerWaitingForEvents.pop(-1)
                                 prevItemPrices.pop(-1)
                                 prevDecorators.pop(-1)
                                 prevBoards.pop(-1)
@@ -861,7 +872,7 @@ def useItem():
                         print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
     return 'dont continue'
 
-def playBlackjack():
+def playBlackjack(bet=0):
     def getCardColour(card):
         if 'Hearts' in card or 'Diamonds' in card:
             return f'{getColour(219, 72, 72)}{card}\033[0m'
@@ -912,12 +923,12 @@ def playBlackjack():
     suits = ['Hearts', 'Diamonds', 'Spades', 'Clubs']
     cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
 
-    bet = 0
-    print(f'How much would you like to bet? (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
-    while bet == 0:
-        bet = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', playerGolds[currentPlayer]))
-        if bet == 0:
-            print(f'{ERROR}You cannot bet 0!{CLEAR}')
+    if bet == 0:
+        print(f'How much would you like to bet? (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+        while bet == 0:
+            bet = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', playerGolds[currentPlayer]))
+            if bet == 0:
+                print(f'{ERROR}You cannot bet 0!{CLEAR}')
 
     youBusted = None
     dealerBusted = None
@@ -1134,17 +1145,17 @@ itemPrices = {
 playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
-playerWaitingForWheelSpins = [None]
+playerWaitingForEvents = [None]
 for _ in range(NUM_PLAYERS):
     playerPositions.append({"row": GRID_SIZE // 2, "col": GRID_SIZE // 2})
     playerInventories.append(copy.deepcopy(STARTING_HAND))
     playerGolds.append(STARTING_GOLD)
-    playerWaitingForWheelSpins.append(False)
+    playerWaitingForEvents.append([])
 
 prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
-prevPlayerWaitingForWheelSpins = [copy.deepcopy(playerWaitingForWheelSpins)]
+prevplayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevDecorators = [copy.deepcopy(decorators)]
 prevBoards = [copy.deepcopy(board)]
@@ -1155,11 +1166,18 @@ os.system('clear')
 while running:
     print('-'*50)
     print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
-    #check for waiting for wheel spins
-    if playerWaitingForWheelSpins[currentPlayer]:
-        print(f'You must spin the {RED}Bad Wheel{CLEAR}.')
-        playerWaitingForWheelSpins[currentPlayer] = False
-        spinTheBadWheel()
+    #check for waiting events
+    for event in playerWaitingForEvents[currentPlayer]:
+        if event == 'bad wheel':
+            print(f'You must spin the {RED}Bad Wheel{CLEAR}.')
+            spinTheBadWheel()
+        if event == 'gamble':
+            print(f'You must {GAMBLING_SPACE}gamble{CLEAR} half of your {YELLOW}gold ({playerGolds[currentPlayer]//2}){CLEAR}.')
+            if playerGolds[currentPlayer]//2 < 1:
+                print(f'Luckily, {GREEN}You only have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}!')
+            else:
+                playBlackjack(playerGolds[currentPlayer]//2)
+    playerWaitingForEvents[currentPlayer] = []
     #ask for item use
     if len(playerInventories[currentPlayer]) > 0:
         if useItem() == 'continue':
@@ -1277,13 +1295,13 @@ while running:
                 playerPositions[player] = prevPlayerPositions[-targetTime][player]
                 playerInventories[player] = prevPlayerInventories[-targetTime][player]
                 playerGolds[player] = prevPlayerGolds[-targetTime][player]
-                playerWaitingForWheelSpins[player] = prevPlayerWaitingForWheelSpins[-targetTime][player]
+                playerWaitingForEvents[player] = prevplayerWaitingForEvents[-targetTime][player]
                 for _ in range(targetTime-1):
                     for i in range(1, len(prevPlayerPositions)):
                         prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
                         prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
                         prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
-                        prevPlayerWaitingForWheelSpins[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForWheelSpins[(-1)*(i+1)][player])
+                        prevplayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevplayerWaitingForEvents[(-1)*(i+1)][player])
                     
     #ask for item use
     if running == True:
@@ -1306,14 +1324,14 @@ while running:
                 "playerPositions": playerPositions,
                 "playerInventories": playerInventories,
                 "playerGolds": playerGolds,
-                "playerWaitingForWheelSpins": playerWaitingForWheelSpins,
+                "playerWaitingForEvents": playerWaitingForEvents,
                 "itemPrices": itemPrices,
                 "prevBoards": prevBoards,
                 "prevDecorators": prevDecorators,
                 "prevPlayerPositions": prevPlayerPositions,
                 "prevPlayerInventories": prevPlayerInventories,
                 "prevPlayerGolds": prevPlayerGolds,
-                "prevPlayerWaitingForWheelSpins": prevPlayerWaitingForWheelSpins,
+                "prevplayerWaitingForEvents": prevplayerWaitingForEvents,
                 "prevItemPrices": prevItemPrices,
             }
             filename = input(f'{TURQUOISE}Enter the file name of the save file: {CLEAR}')
@@ -1338,14 +1356,14 @@ while running:
                 playerPositions = data["playerPositions"]
                 playerInventories = data["playerInventories"]
                 playerGolds = data["playerGolds"]
-                playerWaitingForWheelSpins = data["playerWaitingForWheelSpins"]
+                playerWaitingForEvents = data["playerWaitingForEvents"]
                 itemPrices = data["itemPrices"]
                 prevBoards = data["prevBoards"]
                 prevDecorators = data["prevDecorators"]
                 prevPlayerPositions = data["prevPlayerPositions"]
                 prevPlayerInventories = data["prevPlayerInventories"]
                 prevPlayerGolds = data["prevPlayerGolds"]
-                prevPlayerWaitingForWheelSpins = data["prevPlayerWaitingForWheelSpins"]
+                prevplayerWaitingForEvents = data["prevplayerWaitingForEvents"]
                 prevItemPrices = data["prevItemPrices"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
                 generateImage(board, paths)
@@ -1354,7 +1372,7 @@ while running:
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
         prevPlayerInventories.append(copy.deepcopy(playerInventories))
         prevPlayerGolds.append(copy.deepcopy(playerGolds))
-        prevPlayerWaitingForWheelSpins.append(copy.deepcopy(playerWaitingForWheelSpins))
+        prevplayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
         prevBoards.append(copy.deepcopy(board))
