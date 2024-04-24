@@ -15,7 +15,7 @@ BIAS = 0.05
 
 #game settings
 NUM_PLAYERS = 3
-STARTING_GOLD = 0
+STARTING_GOLD = 3
 STARTING_HAND = []
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
@@ -785,11 +785,57 @@ def useItem():
                         if len(playersOnCurrentSpot) == 0:
                             print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                         else:
-                            player = random.choice(playersOnCurrentSpot)
-                            playerGolds[player] -= 4
-                            playerGolds[currentPlayer] += 4
-                            print(f'Stolen {YELLOW}4 gold{CLEAR} from {GREEN}Player {player}{CLEAR}')
-                            print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                            for player in playersOnCurrentSpot:
+                                playerGolds[player] -= 4
+                                playerGolds[currentPlayer] += 4
+                                print(f'Stolen {YELLOW}4 gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                    if item == 'gun':
+                        print('Which direction would you like to shoot?')
+                        print('0: Down')
+                        print('1: Left')
+                        print('2: Right')
+                        print('3: Up')
+                        direction = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 3)
+                        if direction == '0':
+                            changing = 'row'
+                            same = 'col'
+                            plusOrMinus = 1
+                        if direction == '1':
+                            changing = 'col'
+                            same = 'row'
+                            plusOrMinus = -1
+                        if direction == '2':
+                            changing = 'col'
+                            same = 'row'
+                            plusOrMinus = 1
+                        if direction == '3':
+                            changing = 'row'
+                            same = 'col'
+                            plusOrMinus = 1
+                        foundSomeone = False
+                        currentPos = playerPositions[currentPlayer][changing]
+                        possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same]]
+                        while not foundSomeone:
+                            currentPos += plusOrMinus
+                            if currentPos >= GRID_SIZE:
+                                currentPos = 0
+                            if currentPos <= -1:
+                                currentPos = GRID_SIZE-1
+                            for player, playerPosition in possibleTargets:
+                                if playerPosition[changing] == currentPos:
+                                    foundSomeone = True
+                                    if player != currentPlayer:
+                                        print(f'You hit {RED}Player {player}{CLEAR}!')
+                                        playerGolds[player] -= 3
+                                        playerGolds[currentPlayer] += 3
+                                        print(f'Stolen {YELLOW}3 gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                    else:
+                                        print(f'The bullet wrapped around the map and {RED}hit you{CLEAR}!')
+                                        playerGolds[currentPlayer] -= 3
+                                        print(f'You lost {YELLOW}3 gold{CLEAR}.')
+                                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                     if item == 'red potion':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
@@ -1107,15 +1153,16 @@ generateImage(board, paths)
 highwayInformation = decideHighwayInformation(board, paths)
 
 itemDescriptions = {
-    "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players',
-    "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players',
-    "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}2 gold{CLEAR} when landed on',
-    "gold potion": f'Places {YELLOW}3 gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space',
-    "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you',
+    "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
+    "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
+    "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}2 gold{CLEAR} when landed on.',
+    "gold potion": f'Places {YELLOW}3 gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
+    "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you.',
+    "gun": f'Shoot in a direction and steal {YELLOW}3 gold{CLEAR} if it hits someone.',
     "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
     "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
     "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
-    "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn',
+    "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
     "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
     "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
     "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
@@ -1130,6 +1177,7 @@ itemPrices = {
     "trap": 2,
     "gold potion": 2,
     "knife": 2,
+    "gun": 2,
     "red potion": 3,
     "green potion": 3,
     "goblin": 2,
