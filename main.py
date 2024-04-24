@@ -17,6 +17,7 @@ BIAS = 0.05
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
 STARTING_HAND = []
+SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
@@ -672,7 +673,8 @@ def spinTheShadowWheel():
         spinTheBadWheel()
 
 def goToTheShop():
-    for _ in range(3):
+    global itemDescriptions
+    for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
         print(f'You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}. What would you like to buy?')
@@ -703,8 +705,14 @@ def goToTheShop():
             playerInventories[currentPlayer].append(item)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
                 itemPrices[item] *= 2
+                if item in itemRewards.keys():
+                    itemRewards[item] *= 2
+                    itemDescriptions = redefineItemDescriptions()
             elif random.random() < CHANCE_OF_INFLATION:
                 itemPrices[item] += 1
+                if item in itemRewards.keys():
+                    itemRewards[item] += 1
+                    itemDescriptions = redefineItemDescriptions()
 
 def useItem():
     global playerPositions
@@ -712,6 +720,8 @@ def useItem():
     global playerGolds
     global playerWaitingForEvents
     global itemPrices
+    global itemRewards
+    global itemDescriptions
     global decorators
     global board
     done = False
@@ -779,16 +789,16 @@ def useItem():
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                             chosenSpace = random.choice(possibleMoves)['destination']
                             decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer})
-                            print(f'Successfully placed 3 gold on a random {ORANGE}Adjacent Space{CLEAR}!')
+                            print(f'Successfully placed {itemRewards["gold potion"]} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
                     if item == 'knife':
                         playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
                         if len(playersOnCurrentSpot) == 0:
                             print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                         else:
                             for player in playersOnCurrentSpot:
-                                playerGolds[player] -= 4
-                                playerGolds[currentPlayer] += 4
-                                print(f'Stolen {YELLOW}4 gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                playerGolds[player] -= itemRewards["knife"]
+                                playerGolds[currentPlayer] += itemRewards["knife"]
+                                print(f'Stolen {YELLOW}{itemRewards["knife"]} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
                                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
                     if item == 'gun':
                         print('Which direction would you like to shoot?')
@@ -827,14 +837,14 @@ def useItem():
                                     foundSomeone = True
                                     if player != currentPlayer:
                                         print(f'You hit {RED}Player {player}{CLEAR}!')
-                                        playerGolds[player] -= 3
-                                        playerGolds[currentPlayer] += 3
-                                        print(f'Stolen {YELLOW}3 gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                        playerGolds[player] -= itemRewards["gun"]
+                                        playerGolds[currentPlayer] += itemRewards["gun"]
+                                        print(f'Stolen {YELLOW}{itemRewards["gun"]} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
                                     else:
                                         print(f'The bullet wrapped around the map and {RED}hit you{CLEAR}!')
-                                        playerGolds[currentPlayer] -= 3
-                                        print(f'You lost {YELLOW}3 gold{CLEAR}.')
+                                        playerGolds[currentPlayer] -= itemRewards["gun"]
+                                        print(f'You lost {YELLOW}{itemRewards["gun"]} gold{CLEAR}.')
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                     if item == 'red potion':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
@@ -874,6 +884,7 @@ def useItem():
                             playerGolds = prevPlayerGolds[-4]
                             playerWaitingForEvents = prevplayerWaitingForEvents[-4]
                             itemPrices = prevItemPrices[-4]
+                            itemRewards = prevItemRewards[-4]
                             decorators = prevDecorators[-4]
                             board = prevBoards[-4]
                             for _ in range(3):
@@ -882,9 +893,13 @@ def useItem():
                                 prevPlayerGolds.pop(-1)
                                 prevplayerWaitingForEvents.pop(-1)
                                 prevItemPrices.pop(-1)
+                                prevItemRewards.pop(-1)
                                 prevDecorators.pop(-1)
                                 prevBoards.pop(-1)
-                            playerInventories[currentPlayer].remove(item)
+                            if len(playerInventories) >= int(choice):
+                                if playerInventories[int(choice)-1] == 'time machine':
+                                    playerInventories[currentPlayer].remove(item)
+                            itemDescriptions = redefineItemDescriptions()
                             generateImage(board, paths)
                             return 'continue'
                         else:
@@ -1152,25 +1167,6 @@ board, paths, decorators = generateBoard()
 generateImage(board, paths)
 highwayInformation = decideHighwayInformation(board, paths)
 
-itemDescriptions = {
-    "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
-    "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
-    "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}2 gold{CLEAR} when landed on.',
-    "gold potion": f'Places {YELLOW}3 gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
-    "knife": f'Steal {YELLOW}4 gold{CLEAR} from another player if they are on the same space as you.',
-    "gun": f'Shoot in a direction and steal {YELLOW}3 gold{CLEAR} if it hits someone.',
-    "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-    "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
-    "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}1 gold{CLEAR}.',
-    "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
-    "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
-    "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
-    "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
-    "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
-    "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
-    "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
-}
-
 itemPrices = {
     "compass": 3,
     "swap": 2,
@@ -1190,6 +1186,37 @@ itemPrices = {
     "f3 menu": 2
 }
 
+itemRewards = {
+    "trap": itemPrices['trap'] + 1,
+    "gold potion": itemPrices['gold potion'] + 1,
+    "knife": itemPrices['knife'] + 1,
+    "gun": itemPrices['gun'] + 1,
+    "goblin": itemPrices['goblin'] - 1
+}
+
+def redefineItemDescriptions():
+    itemDescriptions = {
+        "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
+        "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
+        "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}{itemRewards["trap"]} gold{CLEAR} when landed on.',
+        "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
+        "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
+        "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
+        "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
+        "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
+        "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
+        "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
+        "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
+        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
+        "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
+        "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
+        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
+    }
+    return itemDescriptions
+
+itemDescriptions = redefineItemDescriptions()
+
 playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
@@ -1205,6 +1232,7 @@ prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
 prevplayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
+prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
 prevBoards = [copy.deepcopy(board)]
 
@@ -1256,23 +1284,23 @@ while running:
         for n, decorator in enumerate(decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]):
             if decorator['type'] == 'trap' and decorator['placedBy'] != currentPlayer:
                 print(f'Unfortunately, you landed on {RED}Player {decorator["placedBy"]}\'s trap{CLEAR}!')
-                print(f'You must give them {YELLOW}2 gold{CLEAR}.')
-                playerGolds[currentPlayer] -= 2
-                playerGolds[decorator['placedBy']] += 2
+                print(f'You must give them {YELLOW}{itemRewards["trap"]} gold{CLEAR}.')
+                playerGolds[currentPlayer] -= itemRewards["trap"]
+                playerGolds[decorator['placedBy']] += itemRewards["trap"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
                 time.sleep(0.5)
             if decorator['type'] == 'gold':
-                print(f'There is {YELLOW}3 gold{CLEAR} on this space!')
-                print(f'You gain {YELLOW}3 gold{CLEAR}!')
+                print(f'There is {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on this space!')
+                print(f'You gain {YELLOW}{itemRewards["gold potion"]} gold{CLEAR}!')
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                playerGolds[currentPlayer] += 3
+                playerGolds[currentPlayer] += itemRewards["gold potion"]
                 decoratorsToRemove.append(n)
                 time.sleep(0.5)
             if decorator['type'] == 'goblin' and decorator['placedBy'] != currentPlayer:
                 print(f'Unfortunately, you have ran into {RED}Player {decorator["placedBy"]}\'s goblin{CLEAR}!')
-                print(f'It steals {YELLOW}1 gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
-                playerGolds[currentPlayer] -= 1
-                playerGolds[decorator['placedBy']] += 1
+                print(f'It steals {YELLOW}{itemRewards["goblin"]} gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
+                playerGolds[currentPlayer] -= itemRewards["goblin"]
+                playerGolds[decorator['placedBy']] += itemRewards["goblin"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
                 possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
                 chosenDestination = random.choice(possibleMoves)['destination']
@@ -1374,6 +1402,7 @@ while running:
                 "playerGolds": playerGolds,
                 "playerWaitingForEvents": playerWaitingForEvents,
                 "itemPrices": itemPrices,
+                "itemRewards": itemRewards,
                 "prevBoards": prevBoards,
                 "prevDecorators": prevDecorators,
                 "prevPlayerPositions": prevPlayerPositions,
@@ -1381,6 +1410,7 @@ while running:
                 "prevPlayerGolds": prevPlayerGolds,
                 "prevplayerWaitingForEvents": prevplayerWaitingForEvents,
                 "prevItemPrices": prevItemPrices,
+                "prevItemRewards": prevItemRewards
             }
             filename = input(f'{TURQUOISE}Enter the file name of the save file: {CLEAR}')
             with open(f'saves/{filename}.json', 'w') as f:
@@ -1406,6 +1436,7 @@ while running:
                 playerGolds = data["playerGolds"]
                 playerWaitingForEvents = data["playerWaitingForEvents"]
                 itemPrices = data["itemPrices"]
+                itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
                 prevDecorators = data["prevDecorators"]
                 prevPlayerPositions = data["prevPlayerPositions"]
@@ -1413,6 +1444,7 @@ while running:
                 prevPlayerGolds = data["prevPlayerGolds"]
                 prevplayerWaitingForEvents = data["prevplayerWaitingForEvents"]
                 prevItemPrices = data["prevItemPrices"]
+                prevItemRewards = data["prevItemRewards"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
                 generateImage(board, paths)
         os.system('clear')
@@ -1422,6 +1454,7 @@ while running:
         prevPlayerGolds.append(copy.deepcopy(playerGolds))
         prevplayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
         prevItemPrices.append(copy.deepcopy(itemPrices))
+        prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
         prevBoards.append(copy.deepcopy(board))
         #change turn order
