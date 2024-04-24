@@ -16,7 +16,7 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 3
 STARTING_GOLD = 3
-STARTING_HAND = []
+STARTING_HAND = ['goblin']
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
@@ -150,32 +150,32 @@ def generateAValidHighway(board, paths):
 
 def generateBoard():
     print('generating board...')
-    #initialise board
-    print(' creating board array...')
-    board = []
-    decorators = []
-    for _ in range(GRID_SIZE):
-        board.append([None]*GRID_SIZE)
-        decoratorsRow = []
-        for _ in range(GRID_SIZE):
-            decoratorsRow.append([])
-        decorators.append(decoratorsRow)
-    #add empty spaces
-    print(' adding empty spaces...')
-    numEmpties = 0
-    for n, row in enumerate(board):
-        for m, _ in enumerate(row):
-            if random.random() < PERCENTAGE_SQUARES:
-                board[n][m] = 'empty'
-                numEmpties += 1
-    #add home space
-    print(' adding home space...')
-    midpoint = GRID_SIZE // 2
-    board[midpoint][midpoint] = 'home'
-    #add other spaces
-    print(' attemtpting to fill in the rest of the map...')
+    print(' attemtpting to fill in the the map...')
     reallyPossible = False
     while not reallyPossible:
+        #initialise board
+        print('  creating board array...')
+        board = []
+        decorators = []
+        for _ in range(GRID_SIZE):
+            board.append([None]*GRID_SIZE)
+            decoratorsRow = []
+            for _ in range(GRID_SIZE):
+                decoratorsRow.append([])
+            decorators.append(decoratorsRow)
+        #add empty spaces
+        print('  adding empty spaces...')
+        numEmpties = 0
+        for n, row in enumerate(board):
+            for m, _ in enumerate(row):
+                if random.random() < PERCENTAGE_SQUARES:
+                    board[n][m] = 'empty'
+                    numEmpties += 1
+        #add home space
+        print('  adding home space...')
+        midpoint = GRID_SIZE // 2
+        board[midpoint][midpoint] = 'home'
+        #add other spaces
         print('  adding other spaces...')
         board = fillSpaces(board, 'shadow realm', 1, 'empty')
         board = fillSpaces(board, 'flamingo', 1, 'empty')
