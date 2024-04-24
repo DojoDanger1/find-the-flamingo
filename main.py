@@ -702,7 +702,10 @@ def goToTheShop():
             break
         else:
             playerGolds[currentPlayer] -= price
-            playerInventories[currentPlayer].append(item)
+            if item in itemRewards.keys():
+                playerInventories[currentPlayer].append(f'{item};{itemRewards[item]}')
+            else:
+                playerInventories[currentPlayer].append(item)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
                 itemPrices[item] *= 2
                 if item in itemRewards.keys():
@@ -740,11 +743,24 @@ def useItem():
                 options = 0
                 print(f'{options}: Nothing')
                 for item in playerInventories[currentPlayer]:
+                    actualItemRewards = copy.deepcopy(itemRewards)
+                    if ';' in item:
+                        split = item.split(';')
+                        item = split[0]
+                        reward = int(split[1])
+                        itemRewards[item] = reward
+                        itemDescriptions = redefineItemDescriptions()
                     options += 1
                     print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
+                    itemRewards = copy.deepcopy(actualItemRewards)
+                    itemDescriptions = redefineItemDescriptions()
                 choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
                 if int(choice) != 0:
                     item = playerInventories[currentPlayer].pop(int(choice)-1)
+                    if ';' in item:
+                        split = item.split(';')
+                        item = split[0]
+                        reward = int(split[1])
                     if item == 'compass':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The compass is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
@@ -780,7 +796,7 @@ def useItem():
                         playerPositions[player1] = playerPositions[player2]
                         playerPositions[player2] = temp
                     if item == 'trap':
-                        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer})
+                        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
                         print(f'Successfully placed a trap on {GREEN}This Space{CLEAR}!')
                     if item == 'gold potion':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
@@ -788,7 +804,7 @@ def useItem():
                         else:
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                             chosenSpace = random.choice(possibleMoves)['destination']
-                            decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer})
+                            decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
                             print(f'Successfully placed {itemRewards["gold potion"]} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
                     if item == 'knife':
                         playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
@@ -796,9 +812,9 @@ def useItem():
                             print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                         else:
                             for player in playersOnCurrentSpot:
-                                playerGolds[player] -= itemRewards["knife"]
-                                playerGolds[currentPlayer] += itemRewards["knife"]
-                                print(f'Stolen {YELLOW}{itemRewards["knife"]} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                playerGolds[player] -= reward
+                                playerGolds[currentPlayer] += reward
+                                print(f'Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
                                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
                     if item == 'gun':
                         print('Which direction would you like to shoot?')
@@ -837,14 +853,14 @@ def useItem():
                                     foundSomeone = True
                                     if player != currentPlayer:
                                         print(f'You hit {RED}Player {player}{CLEAR}!')
-                                        playerGolds[player] -= itemRewards["gun"]
-                                        playerGolds[currentPlayer] += itemRewards["gun"]
-                                        print(f'Stolen {YELLOW}{itemRewards["gun"]} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                        playerGolds[player] -= reward
+                                        playerGolds[currentPlayer] += reward
+                                        print(f'Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
                                     else:
                                         print(f'The bullet wrapped around the map and {RED}hit you{CLEAR}!')
-                                        playerGolds[currentPlayer] -= itemRewards["gun"]
-                                        print(f'You lost {YELLOW}{itemRewards["gun"]} gold{CLEAR}.')
+                                        playerGolds[currentPlayer] -= reward
+                                        print(f'You lost {YELLOW}{reward} gold{CLEAR}.')
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                     if item == 'red potion':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
@@ -873,7 +889,7 @@ def useItem():
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                         else:
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer})
+                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
                     if item == 'wand':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerWaitingForEvents[player].append('bad wheel')
@@ -928,7 +944,7 @@ def useItem():
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                         else:
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer})
+                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
                     if item == 'f3 menu':
                         print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
     return 'dont continue'
@@ -1284,23 +1300,23 @@ while running:
         for n, decorator in enumerate(decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]):
             if decorator['type'] == 'trap' and decorator['placedBy'] != currentPlayer:
                 print(f'Unfortunately, you landed on {RED}Player {decorator["placedBy"]}\'s trap{CLEAR}!')
-                print(f'You must give them {YELLOW}{itemRewards["trap"]} gold{CLEAR}.')
-                playerGolds[currentPlayer] -= itemRewards["trap"]
-                playerGolds[decorator['placedBy']] += itemRewards["trap"]
+                print(f'You must give them {YELLOW}{decorator["reward"]} gold{CLEAR}.')
+                playerGolds[currentPlayer] -= decorator["reward"]
+                playerGolds[decorator['placedBy']] += decorator["reward"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
                 time.sleep(0.5)
             if decorator['type'] == 'gold':
-                print(f'There is {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on this space!')
-                print(f'You gain {YELLOW}{itemRewards["gold potion"]} gold{CLEAR}!')
+                print(f'There is {YELLOW}{decorator["reward"]} gold{CLEAR} on this space!')
+                print(f'You gain {YELLOW}{decorator["reward"]} gold{CLEAR}!')
+                playerGolds[currentPlayer] += decorator["reward"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                playerGolds[currentPlayer] += itemRewards["gold potion"]
                 decoratorsToRemove.append(n)
                 time.sleep(0.5)
             if decorator['type'] == 'goblin' and decorator['placedBy'] != currentPlayer:
                 print(f'Unfortunately, you have ran into {RED}Player {decorator["placedBy"]}\'s goblin{CLEAR}!')
-                print(f'It steals {YELLOW}{itemRewards["goblin"]} gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
-                playerGolds[currentPlayer] -= itemRewards["goblin"]
-                playerGolds[decorator['placedBy']] += itemRewards["goblin"]
+                print(f'It steals {YELLOW}{decorator["reward"]} gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
+                playerGolds[currentPlayer] -= decorator["reward"]
+                playerGolds[decorator['placedBy']] += decorator["reward"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
                 possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
                 chosenDestination = random.choice(possibleMoves)['destination']
