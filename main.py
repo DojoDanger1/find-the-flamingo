@@ -1211,8 +1211,11 @@ while running:
                 possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
                 chosenDestination = random.choice(possibleMoves)['destination']
                 decoratorsToRemove.append(n)
-                goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
                 print(f'{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
+                if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
+                    print(f'The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                else:
+                    goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
                 time.sleep(0.5)
             if decorator['type'] == 'flamingo':
                 print(f'{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} is on this space!')
