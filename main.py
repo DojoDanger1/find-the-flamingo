@@ -642,11 +642,14 @@ def spinTheGoodWheel():
             print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
     if result == f'You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.':
         print('What would you like to do?')
-        print('0: Gamble')
+        print(f'0: Gamble (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
         print(f'1: Make another player gamble half of their {YELLOW}gold{CLEAR}')
         choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
         if choice == '0':
-            playBlackjack()
+            if playerGolds[currentPlayer] > 0 or len(playerInventories[currentPlayer]) > 0:
+                playBlackjack()
+            else:
+                print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} or {CYAN}items{CLEAR} to gamble!')
         if choice == '1':
             player = int(askForPlayer(f'{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', False))
             playerWaitingForEvents[player].append('gamble')
@@ -961,6 +964,8 @@ def useItem():
     return 'dont continue'
 
 def playBlackjack(bet=0):
+    global itemRewards
+    global itemDescriptions
     def getCardColour(card):
         if 'Hearts' in card or 'Diamonds' in card:
             return f'{getColour(219, 72, 72)}{card}\033[0m'
@@ -1008,15 +1013,59 @@ def playBlackjack(bet=0):
         print(f'{CYAN}You drew a: {getCardColour(hand[-1])}{CLEAR}')
         print(f'Your hand value is now{getHandValueColour(handValue)}\n')
 
+    def betGold():
+        if playerGolds[currentPlayer] > 0:
+            betType = 'gold'
+            print(f'How much would you like to bet? (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+            goldBet = int(askOptions(f'{TURQUOISE}Enter your choice (0 to bet an {CYAN}item{TURQUOISE}):{CLEAR} ', playerGolds[currentPlayer]))
+            if goldBet == 0:
+                return betItem()
+            return goldBet, betType
+        else:
+            print(f'Unfortunately, {RED}you do not have any {YELLOW}gold{RED} to gamble!{CLEAR} You must bet with {CYAN}items{CLEAR}.')
+            return betItem()
+    
+    def betItem():
+        global itemRewards
+        global itemDescriptions
+        if len(playerInventories[currentPlayer]) > 0:
+            betType = 'item'
+            print(f'Which item would you like to bet?')
+            options = 0
+            for item in playerInventories[currentPlayer]:
+                actualItemRewards = copy.deepcopy(itemRewards)
+                if ';' in item:
+                    split = item.split(';')
+                    item = split[0]
+                    reward = int(split[1])
+                    itemRewards[item] = reward
+                    itemDescriptions = redefineItemDescriptions()
+                options += 1
+                print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
+                itemRewards = copy.deepcopy(actualItemRewards)
+                itemDescriptions = redefineItemDescriptions()
+            itemBet = int(askOptions(f'{TURQUOISE}Enter your Choice (0 to bet {YELLOW}gold{TURQUOISE}):{CLEAR} ', options))
+            if itemBet == 0:
+                return betGold()
+            return itemBet-1, betType
+        else:
+            print(f'Unfortunately, {RED}you do not have any {CYAN}items{RED} to gamble!{CLEAR} You must bet with {YELLOW}gold{CLEAR}.')
+            return betGold()
+    
     suits = ['Hearts', 'Diamonds', 'Spades', 'Clubs']
     cards = ['Ace', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King']
 
-    if bet == 0:
-        print(f'How much would you like to bet? (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
-        while bet == 0:
-            bet = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', playerGolds[currentPlayer]))
-            if bet == 0:
-                print(f'{ERROR}You cannot bet 0!{CLEAR}')
+    if bet != 0:
+        betType = 'gold'
+    else:
+        print('How would you like to bet?')
+        print(f'0: With {YELLOW}gold{CLEAR}')
+        print(f'1: With an {CYAN}item{CLEAR}')
+        choice = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+        if choice == 0:
+            bet, betType = betGold()
+        else:
+            bet, betType = betItem()
 
     youBusted = None
     dealerBusted = None
@@ -1135,28 +1184,52 @@ def playBlackjack(bet=0):
     sayHand('player')
     sayHand('dealer')
 
+    if betType == 'item':
+        item = playerInventories[currentPlayer][bet]
+        if ';' in item:
+            itemName = item.split(';')[0].title()
+        else:
+            itemName = item.title()
+    
     if youBusted == True and dealerBusted == True:
         print(f'{YELLOW}Both of you busted, so no one wins!{CLEAR}')
     elif youBusted == True and dealerBusted == False:
         print(f'{RED}You busted! That means the dealer wins!{CLEAR}')
-        playerGolds[currentPlayer] -= bet
-        print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+        if betType == 'gold':
+            playerGolds[currentPlayer] -= bet
+            print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+        if betType == 'item':
+            playerInventories[currentPlayer].pop(bet)
+            print(f'You lost the {CYAN}{itemName}{CLEAR}!')
     elif youBusted == False and dealerBusted == True:
         print(f'{GREEN}The dealer busted! That means you win!{CLEAR}')
-        playerGolds[currentPlayer] += bet
-        print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+        if betType == 'gold':
+            playerGolds[currentPlayer] += bet
+            print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+        if betType == 'item':
+            playerInventories[currentPlayer].append(item)
+            print(f'You won another {CYAN}{itemName}{CLEAR}!')
     elif youBusted == False and dealerBusted == False:
         print('No one busted, so the person with the highest number wins...')
         if handValue > dealerhandValue:
             print(f'{GREEN}You win!{CLEAR}')
-            playerGolds[currentPlayer] += bet
-            print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+            if betType == 'gold':
+                playerGolds[currentPlayer] += bet
+                print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+            if betType == 'item':
+                playerInventories[currentPlayer].append(item)
+                print(f'You won another {CYAN}{itemName}{CLEAR}!')
         else:
             print(f'{RED}Dealer wins!{CLEAR}')
-            playerGolds[currentPlayer] -= bet
-            print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+            if betType == 'gold':
+                playerGolds[currentPlayer] -= bet
+                print(f'You lost {YELLOW}{bet} gold{CLEAR}!')
+            if betType == 'item':
+                playerInventories[currentPlayer].pop(bet)
+                print(f'You lost the {CYAN}{itemName}{CLEAR}!')
     
-    print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+    if betType == 'gold':
+        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
 
 def selectRandomSpace(board):
     validSpace = False
@@ -1386,11 +1459,11 @@ while running:
                 playerPositions[player] = selectRandomSpace(board)
             if spaceType == 'gambling':
                 print(f'You landed on {grammatiseSpaceType(spaceType)}.')
-                if playerGolds[currentPlayer] > 0:
+                if playerGolds[currentPlayer] > 0 or len(playerInventories[currentPlayer]) > 0:
                     print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
                     playBlackjack()
                 else:
-                    print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} to gamble!')
+                    print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} or {CYAN}items{CLEAR} to gamble!')
             if spaceType == 'timewarp':
                 print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                 print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
