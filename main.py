@@ -506,6 +506,8 @@ def spinWheelVisually(options):
 
 def spinTheBadWheel():
     global board
+    global itemRewards
+    global itemDescriptions
     options = [
         f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
         f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
@@ -550,8 +552,17 @@ def spinTheBadWheel():
             print(f'Which {CYAN}item{CLEAR} will you give away?')
             options = 0
             for item in playerInventories[currentPlayer]:
+                actualItemRewards = copy.deepcopy(itemRewards)
+                if ';' in item:
+                    split = item.split(';')
+                    item = split[0]
+                    reward = int(split[1])
+                    itemRewards[item] = reward
+                    itemDescriptions = redefineItemDescriptions()
                 options += 1
                 print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
+                itemRewards = copy.deepcopy(actualItemRewards)
+                itemDescriptions = redefineItemDescriptions()
             valid = False
             while not valid:
                 choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
