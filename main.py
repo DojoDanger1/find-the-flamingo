@@ -506,8 +506,6 @@ def spinWheelVisually(options):
 
 def spinTheBadWheel():
     global board
-    global itemRewards
-    global itemDescriptions
     options = [
         f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.',
         f'You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.',
@@ -550,22 +548,10 @@ def spinTheBadWheel():
             print(f'Luckily, {GREEN}You don\'t have any items{CLEAR}!')
         else:
             print(f'Which {CYAN}item{CLEAR} will you give away?')
-            options = 0
-            for item in playerInventories[currentPlayer]:
-                actualItemRewards = copy.deepcopy(itemRewards)
-                if ';' in item:
-                    split = item.split(';')
-                    item = split[0]
-                    reward = int(split[1])
-                    itemRewards[item] = reward
-                    itemDescriptions = redefineItemDescriptions()
-                options += 1
-                print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
-                itemRewards = copy.deepcopy(actualItemRewards)
-                itemDescriptions = redefineItemDescriptions()
+            printItemList(playerInventories[currentPlayer])
             valid = False
             while not valid:
-                choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(playerInventories[currentPlayer]))
                 if choice != '0':
                     valid = True
             item = playerInventories[currentPlayer][int(choice)-1]
@@ -731,6 +717,23 @@ def goToTheShop():
                     itemRewards[item] += 1
                     itemDescriptions = redefineItemDescriptions()
 
+def printItemList(itemList):
+    global itemRewards
+    global itemDescriptions
+    options = 0
+    for item in itemList:
+        actualItemRewards = copy.deepcopy(itemRewards)
+        if ';' in item:
+            split = item.split(';')
+            item = split[0]
+            reward = int(split[1])
+            itemRewards[item] = reward
+            itemDescriptions = redefineItemDescriptions()
+        options += 1
+        print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
+        itemRewards = copy.deepcopy(actualItemRewards)
+        itemDescriptions = redefineItemDescriptions()
+
 def useItem():
     global playerPositions
     global playerInventories
@@ -756,19 +759,8 @@ def useItem():
                 print(f'Which {CYAN}item{CLEAR} would you like to use?')
                 options = 0
                 print(f'{options}: Nothing')
-                for item in playerInventories[currentPlayer]:
-                    actualItemRewards = copy.deepcopy(itemRewards)
-                    if ';' in item:
-                        split = item.split(';')
-                        item = split[0]
-                        reward = int(split[1])
-                        itemRewards[item] = reward
-                        itemDescriptions = redefineItemDescriptions()
-                    options += 1
-                    print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
-                    itemRewards = copy.deepcopy(actualItemRewards)
-                    itemDescriptions = redefineItemDescriptions()
-                choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                printItemList(playerInventories[currentPlayer])
+                choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', len(playerInventories[currentPlayer]))
                 if int(choice) != 0:
                     item = playerInventories[currentPlayer].pop(int(choice)-1)
                     if ';' in item:
@@ -964,8 +956,6 @@ def useItem():
     return 'dont continue'
 
 def playBlackjack(bet=0):
-    global itemRewards
-    global itemDescriptions
     def getCardColour(card):
         if 'Hearts' in card or 'Diamonds' in card:
             return f'{getColour(219, 72, 72)}{card}\033[0m'
@@ -1026,25 +1016,11 @@ def playBlackjack(bet=0):
             return betItem()
     
     def betItem():
-        global itemRewards
-        global itemDescriptions
         if len(playerInventories[currentPlayer]) > 0:
             betType = 'item'
             print(f'Which item would you like to bet?')
-            options = 0
-            for item in playerInventories[currentPlayer]:
-                actualItemRewards = copy.deepcopy(itemRewards)
-                if ';' in item:
-                    split = item.split(';')
-                    item = split[0]
-                    reward = int(split[1])
-                    itemRewards[item] = reward
-                    itemDescriptions = redefineItemDescriptions()
-                options += 1
-                print(f'{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
-                itemRewards = copy.deepcopy(actualItemRewards)
-                itemDescriptions = redefineItemDescriptions()
-            itemBet = int(askOptions(f'{TURQUOISE}Enter your Choice (0 to bet {YELLOW}gold{TURQUOISE}):{CLEAR} ', options))
+            printItemList(playerInventories[currentPlayer])
+            itemBet = int(askOptions(f'{TURQUOISE}Enter your Choice (0 to bet {YELLOW}gold{TURQUOISE}):{CLEAR} ', len(playerInventories[currentPlayer])))
             if itemBet == 0:
                 return betGold()
             return itemBet-1, betType
@@ -1263,6 +1239,27 @@ def grammatiseSpaceType(spaceType):
     if spaceType == 'timewarp':
         return f'a {TIMEWARP_SPACE}time warp{CLEAR} space'
 
+def redefineItemDescriptions():
+    itemDescriptions = {
+        "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
+        "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
+        "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}{itemRewards["trap"]} gold{CLEAR} when landed on.',
+        "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
+        "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
+        "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
+        "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
+        "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
+        "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
+        "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
+        "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
+        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
+        "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
+        "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
+        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
+    }
+    return itemDescriptions
+
 board, paths, decorators = generateBoard()
 generateImage(board, paths)
 highwayInformation = decideHighwayInformation(board, paths)
@@ -1293,27 +1290,6 @@ itemRewards = {
     "gun": itemPrices['gun'] + 1,
     "goblin": itemPrices['goblin'] - 1
 }
-
-def redefineItemDescriptions():
-    itemDescriptions = {
-        "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
-        "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
-        "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}{itemRewards["trap"]} gold{CLEAR} when landed on.',
-        "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
-        "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
-        "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
-        "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-        "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
-        "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
-        "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
-        "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
-        "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
-        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
-        "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
-        "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
-        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
-    }
-    return itemDescriptions
 
 itemDescriptions = redefineItemDescriptions()
 
