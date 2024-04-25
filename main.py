@@ -1304,6 +1304,7 @@ while running:
                 playerGolds[currentPlayer] -= decorator["reward"]
                 playerGolds[decorator['placedBy']] += decorator["reward"]
                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
+                decoratorsToRemove.append(n)
                 time.sleep(0.5)
             if decorator['type'] == 'gold':
                 print(f'There is {YELLOW}{decorator["reward"]} gold{CLEAR} on this space!')
