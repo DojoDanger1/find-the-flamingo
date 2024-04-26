@@ -900,16 +900,16 @@ def useItem():
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerWaitingForEvents[player].append('bad wheel')
                     if item == 'time machine':
-                        if len(prevPlayerPositions) >= 4:
-                            playerPositions = prevPlayerPositions[-4]
-                            playerInventories = prevPlayerInventories[-4]
-                            playerGolds = prevPlayerGolds[-4]
-                            playerWaitingForEvents = prevplayerWaitingForEvents[-4]
-                            itemPrices = prevItemPrices[-4]
-                            itemRewards = prevItemRewards[-4]
-                            decorators = prevDecorators[-4]
-                            board = prevBoards[-4]
-                            for _ in range(3):
+                        if len(prevPlayerPositions) >= 1+NUM_PLAYERS:
+                            playerPositions = prevPlayerPositions[-1-NUM_PLAYERS]
+                            playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
+                            playerGolds = prevPlayerGolds[-1-NUM_PLAYERS]
+                            playerWaitingForEvents = prevplayerWaitingForEvents[-1-NUM_PLAYERS]
+                            itemPrices = prevItemPrices[-1-NUM_PLAYERS]
+                            itemRewards = prevItemRewards[-1-NUM_PLAYERS]
+                            decorators = prevDecorators[-1-NUM_PLAYERS]
+                            board = prevBoards[-1-NUM_PLAYERS]
+                            for _ in range(NUM_PLAYERS):
                                 prevPlayerPositions.pop(-1)
                                 prevPlayerInventories.pop(-1)
                                 prevPlayerGolds.pop(-1)
@@ -1431,7 +1431,7 @@ while running:
             if spaceType == 'teleport':
                 print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                 print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
-                player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', False))
+                player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', True))
                 playerPositions[player] = selectRandomSpace(board)
             if spaceType == 'gambling':
                 print(f'You landed on {grammatiseSpaceType(spaceType)}.')
@@ -1444,7 +1444,7 @@ while running:
                 print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                 print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
                 player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                targetTime = min(10,len(prevPlayerPositions))
+                targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
                 playerPositions[player] = prevPlayerPositions[-targetTime][player]
                 playerInventories[player] = prevPlayerInventories[-targetTime][player]
                 playerGolds[player] = prevPlayerGolds[-targetTime][player]
