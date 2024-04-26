@@ -516,7 +516,8 @@ def spinTheBadWheel():
         f'You must give away {CYAN}an item{CLEAR}.',
         f'You must spin the {RED}Bad Wheel{CLEAR} twice more.',
         f'You can now spin {GREEN}Good Wheel{CLEAR}!',
-        f'One {RED}random change{CLEAR} will be made to the board.'
+        f'One {RED}random change{CLEAR} will be made to the board.',
+        f'The sign of your {YELLOW}gold{CLEAR} has swapped!'
     ]
     result = spinWheelVisually(options)
     time.sleep(1)
@@ -574,6 +575,9 @@ def spinTheBadWheel():
         if changeType == 'addShop':
             board = fillSpaces(board, 'shop', 1, 'empty')
         generateImage(board, paths)
+    if result == f'The sign of your {YELLOW}gold{CLEAR} has swapped!':
+        playerGolds[currentPlayer] *= -1
+        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                     
 def spinTheGoodWheel():
     options = [
