@@ -1546,7 +1546,7 @@ while running:
                     print(f'You worked out for {GYM_SPACE}{workoutTime} hours{CLEAR}.')
                     playerSpeeds[currentPlayer] += workoutTime*0.0035
                     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-                    print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
+                    print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
             #ask for item use
             if running == True:
                 if len(playerInventories[currentPlayer]) > 0:
