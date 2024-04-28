@@ -15,8 +15,8 @@ BIAS = 0.05
 
 #game settings
 NUM_PLAYERS = 3
+STARTING_INVENTORY = []
 STARTING_GOLD = 3
-STARTING_HAND = []
 STARTING_SPEED = 1
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -1358,7 +1358,7 @@ playerSpeeds = [None]
 playerWaitingForEvents = [None]
 for _ in range(NUM_PLAYERS):
     playerPositions.append({"row": GRID_SIZE // 2, "col": GRID_SIZE // 2})
-    playerInventories.append(copy.deepcopy(STARTING_HAND))
+    playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
     playerWaitingForEvents.append([])
