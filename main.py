@@ -574,7 +574,7 @@ def spinTheBadWheel():
     if result == f'You can now spin {GREEN}Good Wheel{CLEAR}!':
         spinTheGoodWheel()
     if result == f'One {RED}random change{CLEAR} will be made to the board.':
-        changeType = random.choice(['goodToBad', 'badToGood', 'addSpecialSpace', 'addShop'])
+        changeType = random.choice(['goodToBad', 'badToGood', 'addSpecialSpace', 'addShop', 'addSpeedSpace'])
         if changeType == 'goodToBad':
             board = fillSpaces(board, 'bad', 1, 'good')
         if changeType == 'badToGood':
@@ -583,6 +583,8 @@ def spinTheBadWheel():
             board = fillSpaces(board, random.choice(['teleport', 'gambling', 'timewarp']), 1, 'empty')
         if changeType == 'addShop':
             board = fillSpaces(board, 'shop', 1, 'empty')
+        if changeType == 'addSpeedSpace':
+            board = fillSpaces(board, random.choice(['papas wingeria', 'gym']), 1, 'empty')
         generateImage(board, paths)
     if result == f'The sign of your {YELLOW}gold{CLEAR} has swapped!':
         playerGolds[currentPlayer] *= -1
@@ -1232,7 +1234,7 @@ def generateWingPlatter():
     sides = ingredients['allTime']['sides'] + holiday['sides']
     dips = ingredients['allTime']['dips'] + holiday['dips']
     
-    output = 'a Wing Platter with'
+    output = 'a Wing Platter with\n'
     cost = 0
     slots = 7
     numMeats = random.randint(1,3)
@@ -1254,9 +1256,9 @@ def generateWingPlatter():
         items.append(f'{GREEN}{random.randint(2,12)}{CLEAR} {RED}{random.choice(sides)}{CLEAR}{" " if side != "" else ""}{side}')
     for _ in range(numDips):
         items.append(f'{CYAN}{random.choice(dips)}{CLEAR}')
+    newline = '\n'
     for n, item in enumerate(items):
-        output += f' {item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}'
-    
+        output += f'  {item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}{newline if n != len(items)-1 else ""}'
     return output, cost
 
 def selectRandomSpace(board):
