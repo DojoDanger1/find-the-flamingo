@@ -1547,12 +1547,12 @@ while running:
                     playerSpeeds[currentPlayer] += workoutTime*0.0035
                     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                     print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
-        #ask for item use
-        if running == True:
-            if len(playerInventories[currentPlayer]) > 0:
-                if useItem() == 'continue':
-                    os.system('clear')
-                    continue
+            #ask for item use
+            if running == True:
+                if len(playerInventories[currentPlayer]) > 0:
+                    if useItem() == 'continue':
+                        os.system('clear')
+                        continue
     #change turn order
     print('-'*50)
     if running == True:
