@@ -1629,7 +1629,7 @@ while running:
                         playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
                         playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
                         playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
-                        playerFrozens[player] = prevPlayerFrozens[-targetTime][playerWaitingForEvents]
+                        playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
                         for _ in range(targetTime-1):
                             for i in range(1, len(prevPlayerPositions)):
                                 prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
