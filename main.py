@@ -245,7 +245,7 @@ def generateBoard():
                                     paths += possiblePaths
             print('   checking if this is possible...')
             highwayInformation = decideHighwayInformation(board, paths)
-            if isPossibleToGetEverywhere(board, paths, homePos, highwayInformation):
+            if isPossibleToGetEverywhere(board, paths, homePos, highwayInformation) and not areThereAnyPurgatories(board, paths, highwayInformation):
                 print('    it is!')
                 possible = True
                 reallyPossible = True
@@ -457,6 +457,16 @@ def isPossibleToGetEverywhere(board, paths, startPos, highwayInformation):
     numPossibleSpaces = len(previouslySearched)
     numSpaces = sum([sum([(0 if cell == None else 1) for cell in row]) for row in board])
     return numPossibleSpaces == numSpaces
+
+def areThereAnyPurgatories(board, paths, highwayInformation):
+    for n, row in enumerate(board):
+        for m, cell in enumerate(row):
+            space = {"row": n, "col": m}
+            if cell != None:
+                possibleMoves = findPossibleMoves(paths, space, True, highwayInformation)
+                if len(possibleMoves) == 0:
+                    return True
+    return False
 
 def askOptions(prompt, numOptions):
     option = input(prompt)
