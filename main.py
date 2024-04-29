@@ -984,6 +984,14 @@ def useItem():
                     if item == 'dumbells':
                         playerSpeeds[currentPlayer] += 0.1
                         print(f'Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
+                    if item == 'fat injection':
+                        playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                        if len(playersOnCurrentSpot) == 0:
+                            print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
+                        else:
+                            for player in playersOnCurrentSpot:
+                                playerSpeeds[player] = round(playerSpeeds[player] - 0.2, 4)
+                                print(f'{RED}Player {player}{CLEAR} now has {YELLOW}{playerSpeeds[player]} speed{CLEAR}.')
     return 'dont continue'
 
 def playBlackjack(bet=0):
@@ -1329,6 +1337,7 @@ def redefineItemDescriptions():
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
         "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.',
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
+        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR} if they are on the same space as you.'
     }
     return itemDescriptions
 
@@ -1354,6 +1363,7 @@ itemPrices = {
     "flamingo": 4,
     "f3 menu": 2,
     "dumbells": 2,
+    "fat injection": 3
 }
 
 itemRewards = {
