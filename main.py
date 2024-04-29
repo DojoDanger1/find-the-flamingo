@@ -981,6 +981,9 @@ def useItem():
                             decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
                     if item == 'f3 menu':
                         print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
+                    if item == 'dumbells':
+                        playerSpeeds[currentPlayer] += 0.1
+                        print(f'Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
     return 'dont continue'
 
 def playBlackjack(bet=0):
@@ -1324,7 +1327,8 @@ def redefineItemDescriptions():
         "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
         "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
-        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.'
+        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.',
+        "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
     }
     return itemDescriptions
 
@@ -1348,7 +1352,8 @@ itemPrices = {
     "information": 2,
     "portable shop": 3,
     "flamingo": 4,
-    "f3 menu": 2
+    "f3 menu": 2,
+    "dumbells": 2,
 }
 
 itemRewards = {
