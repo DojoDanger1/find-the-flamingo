@@ -709,6 +709,8 @@ def printShopList():
             itemRewards[item] += playerStealBonus[currentPlayer]
             itemDescriptions = redefineItemDescriptions()
         options += 1
+        if str(options) in itemSectionRanges.keys():
+            print(f'{GREEN}{"-"*5}{itemSectionRanges[str(options)].upper()}{"-"*5}{CLEAR}')
         if itemPrices[item] <= playerGolds[currentPlayer]:
             print(f'{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}{itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
         else:
@@ -721,8 +723,10 @@ def goToTheShop():
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
-        print(f'You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}. What would you like to buy?')
+        print('What would you like to buy?')
         printShopList()
+        print(f'{GREEN}{"-"*15}{CLEAR}')
+        print(f'You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         options = len(itemDescriptions.keys())
         valid = False
         while not valid:
@@ -810,6 +814,7 @@ def useItem():
                         split = item.split(';')
                         item = split[0]
                         reward = int(split[1])
+                    #help i'm lost
                     if item == 'compass':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The compass is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
@@ -832,29 +837,52 @@ def useItem():
                                 for decorator in decorators[move['destination']['row']][move['destination']['col']]:
                                     message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                 print(message)
-                    if item == 'swap':
-                        player1 = int(askForPlayer(f'{TURQUOISE}Enter the first player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        valid = False
-                        while not valid:
-                            player2 = int(askForPlayer(f'{TURQUOISE}Enter the second player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                            if player2 == player1:
-                                print(f'{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
-                            else:
-                                valid = True
-                        temp = playerPositions[player1]
-                        playerPositions[player1] = playerPositions[player2]
-                        playerPositions[player2] = temp
-                    if item == 'trap':
-                        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
-                        print(f'Successfully placed a trap on {GREEN}This Space{CLEAR}!')
-                    if item == 'gold potion':
+                    if item == 'f3 menu':
+                        print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
+                    if item == 'safeword':
+                        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+                    #where's the flamingo
+                    if item == 'red potion':
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'The gold potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No {YELLOW}gold{CLEAR} was placed.')
+                            print(f'The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
                         else:
+                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+                            firstPath = shortestPathToFlamingo[0]
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                            chosenSpace = random.choice(possibleMoves)['destination']
-                            decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
-                            print(f'Successfully placed {itemRewards["gold potion"]} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
+                            for move in possibleMoves:
+                                possiblePaths = [
+                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": False},
+                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": True},
+                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": False},
+                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": True},
+                                ]
+                                if firstPath in possiblePaths:
+                                    print(f'To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
+                    if item == 'green potion':
+                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            print(f'The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
+                        else:
+                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+                            print(f'The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+                    if item == 'flamingo':
+                        print(f'Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
+                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            print(f'The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                        else:
+                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
+                    if item == 'information':
+                        for n, row in enumerate(board):
+                            for m, cell in enumerate(row):
+                                if cell == 'flamingo':
+                                    flamingoPos = (n+1, m+1)
+                        rowOrCol = random.choice(['row', 'col'])
+                        if rowOrCol == 'row':
+                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
+                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+                        else:
+                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
+                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+                    #violence is always the answer
                     if item == 'knife':
                         playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
                         if len(playersOnCurrentSpot) == 0:
@@ -911,34 +939,51 @@ def useItem():
                                         playerGolds[currentPlayer] -= reward
                                         print(f'You lost {YELLOW}{reward} gold{CLEAR}.')
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                    if item == 'red potion':
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                        else:
-                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-                            firstPath = shortestPathToFlamingo[0]
-                            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                            for move in possibleMoves:
-                                possiblePaths = [
-                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": False},
-                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": True},
-                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": False},
-                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": True},
-                                ]
-                                if firstPath in possiblePaths:
-                                    print(f'To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
-                    if item == 'green potion':
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                        else:
-                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-                            print(f'The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+                    if item == 'trap':
+                        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
+                        print(f'Successfully placed a trap on {GREEN}This Space{CLEAR}!')
                     if item == 'goblin':
                         print(f'Successfully placed a goblin on {GREEN}This Space{CLEAR}!')
                         if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                             print(f'The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                         else:
                             decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
+                    #movement stuff
+                    if item == 'dumbells':
+                        playerSpeeds[currentPlayer] += 0.1
+                        print(f'Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
+                    if item == 'fat injection':
+                        playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                        if len(playersOnCurrentSpot) == 0:
+                            print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
+                        else:
+                            for player in playersOnCurrentSpot:
+                                playerSpeeds[player] = round(playerSpeeds[player] - 0.2, 4)
+                                print(f'{RED}Player {player}{CLEAR} now has {YELLOW}{playerSpeeds[player]} speed{CLEAR}.')
+                    if item == 'freeze ray':
+                        player = int(askForPlayer(f'{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
+                        playerFrozens[player] = True
+                    if item == 'swap':
+                        player1 = int(askForPlayer(f'{TURQUOISE}Enter the first player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                        valid = False
+                        while not valid:
+                            player2 = int(askForPlayer(f'{TURQUOISE}Enter the second player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            if player2 == player1:
+                                print(f'{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
+                            else:
+                                valid = True
+                        temp = playerPositions[player1]
+                        playerPositions[player1] = playerPositions[player2]
+                        playerPositions[player2] = temp
+                    #miscellaneous
+                    if item == 'gold potion':
+                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            print(f'The gold potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No {YELLOW}gold{CLEAR} was placed.')
+                        else:
+                            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                            chosenSpace = random.choice(possibleMoves)['destination']
+                            decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
+                            print(f'Successfully placed {itemRewards["gold potion"]} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
                     if item == 'wand':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerWaitingForEvents[player].append('bad wheel')
@@ -979,47 +1024,11 @@ def useItem():
                             return 'continue'
                         else:
                             print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
-                    if item == 'safeword':
-                        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
-                    if item == 'information':
-                        for n, row in enumerate(board):
-                            for m, cell in enumerate(row):
-                                if cell == 'flamingo':
-                                    flamingoPos = (n+1, m+1)
-                        rowOrCol = random.choice(['row', 'col'])
-                        if rowOrCol == 'row':
-                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
-                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-                        else:
-                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
-                            print(f'The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
                     if item == 'portable shop':
                         if playerGolds[currentPlayer] < min(itemPrices.values()):
                             print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
                         else:
                             goToTheShop()
-                    if item == 'flamingo':
-                        print(f'Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
-                        else:
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
-                    if item == 'f3 menu':
-                        print(f'Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
-                    if item == 'dumbells':
-                        playerSpeeds[currentPlayer] += 0.1
-                        print(f'Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
-                    if item == 'fat injection':
-                        playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
-                        if len(playersOnCurrentSpot) == 0:
-                            print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
-                        else:
-                            for player in playersOnCurrentSpot:
-                                playerSpeeds[player] = round(playerSpeeds[player] - 0.2, 4)
-                                print(f'{RED}Player {player}{CLEAR} now has {YELLOW}{playerSpeeds[player]} speed{CLEAR}.')
-                    if item == 'freeze ray':
-                        player = int(askForPlayer(f'{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
-                        playerFrozens[player] = True
     return 'dont continue'
 
 def playBlackjack(bet=0):
@@ -1348,25 +1357,30 @@ def grammatiseSpaceType(spaceType):
 
 def redefineItemDescriptions():
     itemDescriptions = {
+        #help i'm lost
         "compass": f'See all {ORANGE}adjacent{CLEAR} spaces and players.',
-        "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
-        "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}{itemRewards["trap"]} gold{CLEAR} when landed on.',
-        "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
-        "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
-        "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
+        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.',
+        "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
+        #where's the flamingo
         "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
         "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
-        "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
-        "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
-        "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
-        "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
-        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
-        "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.',
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
-        "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.',
+        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
+        #violence is always the answer
+        "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
+        "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
+        "trap": f'Sets a {RED}trap{CLEAR} that will steal {YELLOW}{itemRewards["trap"]} gold{CLEAR} when landed on.',
+        "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
+        #movement stuff
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
         "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.2{CLEAR} if they are on the same space as you.',
-        "freeze ray": f'Make another player loose the {ORANGE}ability to move{CLEAR} for 1 turn.'
+        "freeze ray": f'Make another player loose the {ORANGE}ability to move{CLEAR} for 1 turn.',
+        "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
+        #miscellaneous
+        "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
+        "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
+        "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
+        "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.'
     }
     return itemDescriptions
 
@@ -1375,33 +1389,48 @@ generateImage(board, paths)
 highwayInformation = decideHighwayInformation(board, paths)
 
 itemPrices = {
+    #help i'm lost
     "compass": 3,
-    "swap": 2,
-    "trap": 2,
-    "gold potion": 2,
-    "knife": 2,
-    "gun": 2,
+    "f3 menu": 2,
+    "safeword": 2,
+    #where's the flamingo
     "red potion": 3,
     "green potion": 3,
-    "goblin": 2,
-    "wand": 2,
-    "time machine": 3,
-    "safeword": 2,
+    "flamingo": 3,
     "information": 2,
-    "portable shop": 3,
-    "flamingo": 4,
-    "f3 menu": 2,
+    #violence is always the answer
+    "knife": 2,
+    "gun": 2,
+    "trap": 2,
+    "goblin": 2,
+    #movement stuff
     "dumbells": 2,
     "fat injection": 3,
-    "freeze ray": 3
+    "freeze ray": 3,
+    "swap": 2,
+    #miscellaneous
+    "gold potion": 2,
+    "wand": 2,
+    "time machine": 3,
+    "portable shop": 3,
 }
 
 itemRewards = {
-    "trap": itemPrices['trap'] + 1,
-    "gold potion": itemPrices['gold potion'] + 1,
+    #violence is always the answer
     "knife": itemPrices['knife'] + 1,
     "gun": itemPrices['gun'] + 1,
-    "goblin": itemPrices['goblin'] - 1
+    "trap": itemPrices['trap'] + 1,
+    "goblin": itemPrices['goblin'] - 1,
+    #miscellaneous
+    "gold potion": itemPrices['gold potion'] + 1
+}
+
+itemSectionRanges = {
+    "1": "help i'm lost",
+    "4": "where's the flamingo",
+    "8": "violence is always the answer",
+    "12": "movement stuff",
+    "16": "miscellaneous"
 }
 
 itemDescriptions = redefineItemDescriptions()
