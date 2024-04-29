@@ -16,7 +16,7 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 3
 STARTING_INVENTORY = []
-STARTING_GOLD = 300
+STARTING_GOLD = 3
 STARTING_SPEED = 1
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -1620,6 +1620,7 @@ while running:
                                 playerGolds[currentPlayer] -= bonus
                                 playerGolds[player] += bonus
                                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                time.sleep(0.5)
                         order, cost = generateWingPlatter()
                         print(f'You ordered {order}.')
                         playerSpeeds[currentPlayer] -= cost*0.0035
@@ -1628,6 +1629,7 @@ while running:
                         playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                         print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
                         if playerGolds[currentPlayer] > 0:
+                            time.sleep(0.5)
                             print(f'Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
                             print(f'Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
                             investment = int(askOptions(f'{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
