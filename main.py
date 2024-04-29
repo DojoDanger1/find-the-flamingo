@@ -16,7 +16,7 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 3
 STARTING_INVENTORY = []
-STARTING_GOLD = 3
+STARTING_GOLD = 300
 STARTING_SPEED = 1
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -24,6 +24,7 @@ CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
 GYM_PROGRESS_REQUIRED = 3
+WINGERIA_PROGRESS_REQUIRED = 6
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -776,6 +777,9 @@ def useItem():
     global playerInventories
     global playerGolds
     global playerSpeeds
+    global playerProgress
+    global playerStealBonus
+    global playerInvestmentBonus
     global playerWaitingForEvents
     global playerFrozens
     global itemPrices
@@ -946,6 +950,7 @@ def useItem():
                             playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS]
                             playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
                             playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
+                            playerInvestmentBonus = prevPlayerInvestmentBonus[-1-NUM_PLAYERS]
                             playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
                             playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
                             itemPrices = prevItemPrices[-1-NUM_PLAYERS]
@@ -959,6 +964,7 @@ def useItem():
                                 prevPlayerSpeeds.pop(-1)
                                 prevPlayerProgress.pop(-1)
                                 prevPlayerStealBonus.pop(-1)
+                                prevPlayerInvestmentBonus.pop(-1)
                                 prevPlayerWaitingForEvents.pop(-1)
                                 prevPlayerFrozens.pop(-1)
                                 prevItemPrices.pop(-1)
@@ -1406,6 +1412,7 @@ playerGolds = [None]
 playerSpeeds = [None]
 playerProgress = [None]
 playerStealBonus = [None]
+playerInvestmentBonus = [None]
 playerWaitingForEvents = [None]
 playerFrozens = [None]
 for _ in range(NUM_PLAYERS):
@@ -1413,8 +1420,9 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
-    playerProgress.append(copy.deepcopy({"gym": 0}))
+    playerProgress.append(copy.deepcopy({"gym": 0, "wingeria": 0}))
     playerStealBonus.append(0)
+    playerInvestmentBonus.append(0)
     playerWaitingForEvents.append(copy.deepcopy([]))
     playerFrozens.append(False)
 
@@ -1424,6 +1432,7 @@ prevPlayerGolds = [copy.deepcopy(playerGolds)]
 prevPlayerSpeeds = [copy.deepcopy(playerSpeeds)]
 prevPlayerProgress = [copy.deepcopy(playerProgress)]
 prevPlayerStealBonus = [copy.deepcopy(playerStealBonus)]
+prevPlayerInvestmentBonus = [copy.deepcopy(playerInvestmentBonus)]
 prevPlayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
@@ -1589,6 +1598,7 @@ while running:
                         playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
                         playerProgress[player] = prevPlayerProgress[-targetTime][player]
                         playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
+                        playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
                         playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
                         playerFrozens[player] = prevPlayerFrozens[-targetTime][playerWaitingForEvents]
                         for _ in range(targetTime-1):
@@ -1599,10 +1609,17 @@ while running:
                                 prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
                                 prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
                                 prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
+                                prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
                                 prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                                 prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     if spaceType == 'papas wingeria':
                         print(f'You landed on {grammatiseSpaceType(spaceType)}!')
+                        for player, bonus in enumerate(playerInvestmentBonus):
+                            if player != 0 and player != currentPlayer and bonus != 0:
+                                print(f'You must pay {RED}player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
+                                playerGolds[currentPlayer] -= bonus
+                                playerGolds[player] += bonus
+                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
                         order, cost = generateWingPlatter()
                         print(f'You ordered {order}.')
                         playerSpeeds[currentPlayer] -= cost*0.0035
@@ -1610,6 +1627,20 @@ while running:
                             playerSpeeds[currentPlayer] = 0
                         playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                         print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                        if playerGolds[currentPlayer] > 0:
+                            print(f'Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                            print(f'Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+                            investment = int(askOptions(f'{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
+                            playerGolds[currentPlayer] -= investment
+                            playerProgress[currentPlayer]["wingeria"] += investment
+                            print(f'You have invested {GREEN}{playerProgress[currentPlayer]["wingeria"]}{CLEAR} out of {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR}.')
+                            increased = False
+                            while playerProgress[currentPlayer]["wingeria"] >= WINGERIA_PROGRESS_REQUIRED:
+                                playerProgress[currentPlayer]["wingeria"] -= WINGERIA_PROGRESS_REQUIRED
+                                playerInvestmentBonus[currentPlayer] += 1
+                                increased = True
+                            if increased:
+                                print(f'{GREEN}Congratulations!{CLEAR} You now steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
                     if spaceType == 'gym':
                         print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print('Which workout would you like to do?')
@@ -1657,6 +1688,7 @@ while running:
                 "playerSpeeds": playerSpeeds,
                 "playerProgress": playerProgress,
                 "playerStealBonus": playerStealBonus,
+                "playerInvestmentBonus": playerInvestmentBonus,
                 "playerWaitingForEvents": playerWaitingForEvents,
                 "playerFrozens": playerFrozens,
                 "itemPrices": itemPrices,
@@ -1669,6 +1701,7 @@ while running:
                 "prevPlayerSpeeds": prevPlayerSpeeds,
                 "prevPlayerProgress": prevPlayerProgress,
                 "prevPlayerStealBonus": prevPlayerStealBonus,
+                "prevPlayerInvestmentBonus": prevPlayerInvestmentBonus,
                 "prevPlayerWaitingForEvents": prevPlayerWaitingForEvents,
                 "prevPlayerFrozens": prevPlayerFrozens,
                 "prevItemPrices": prevItemPrices,
@@ -1699,6 +1732,7 @@ while running:
                 playerSpeeds = data["playerSpeeds"]
                 playerProgress = data["playerProgress"]
                 playerStealBonus = data["playerStealBonus"]
+                playerInvestmentBonus = data["playerInvestmentBonus"]
                 playerWaitingForEvents = data["playerWaitingForEvents"]
                 playerFrozens = data["playerFrozens"]
                 itemPrices = data["itemPrices"]
@@ -1711,6 +1745,7 @@ while running:
                 prevPlayerSpeeds = data["prevPlayerSpeeds"]
                 prevPlayerProgress = data["prevPlayerProgress"]
                 prevPlayerStealBonus = data["prevPlayerStealBonus"]
+                prevPlayerInvestmentBonus = data["prevPlayerInvestmentBonus"]
                 prevPlayerWaitingForEvents = data["prevPlayerWaitingForEvents"]
                 prevPlayerFrozens = data["prevPlayerFrozens"]
                 prevItemPrices = data["prevItemPrices"]
@@ -1725,6 +1760,7 @@ while running:
         prevPlayerSpeeds.append(copy.deepcopy(playerSpeeds))
         prevPlayerProgress.append(copy.deepcopy(playerProgress))
         prevPlayerStealBonus.append(copy.deepcopy(playerStealBonus))
+        prevPlayerInvestmentBonus.append(copy.deepcopy(playerInvestmentBonus))
         prevPlayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
         prevPlayerFrozens.append(copy.deepcopy(playerFrozens))
         prevItemPrices.append(copy.deepcopy(itemPrices))
