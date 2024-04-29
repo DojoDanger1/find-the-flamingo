@@ -1548,6 +1548,8 @@ while running:
                     order, cost = generateWingPlatter()
                     print(f'You ordered {order}.')
                     playerSpeeds[currentPlayer] -= cost*0.0035
+                    if playerSpeeds[currentPlayer] < 0:
+                        playerSpeeds[currentPlayer] = 0
                     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                     print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
                 if spaceType == 'gym':
