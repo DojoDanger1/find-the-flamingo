@@ -23,6 +23,7 @@ CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
+GYM_PROGRESS_REQUIRED = 3
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -697,20 +698,31 @@ def spinTheShadowWheel():
     if result == f'You must spin the {RED}Bad Wheel{CLEAR}.':
         spinTheBadWheel()
 
+def printShopList():
+    global itemRewards
+    global itemDescriptions
+    options = 0
+    for item in itemDescriptions.keys():
+        actualItemRewards = copy.deepcopy(itemRewards)
+        if item in itemRewards.keys():
+            itemRewards[item] += playerStealBonus[currentPlayer]
+            itemDescriptions = redefineItemDescriptions()
+        options += 1
+        if itemPrices[item] <= playerGolds[currentPlayer]:
+            print(f'{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}{itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
+        else:
+            print(f'{GRAY}{options}: {item.title()} - {itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
+        itemRewards = copy.deepcopy(actualItemRewards)
+        itemDescriptions = redefineItemDescriptions()
+
 def goToTheShop():
     global itemDescriptions
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
         print(f'You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}. What would you like to buy?')
-        options = 0
-        print(f'{options}: {CYAN}Nothing{CLEAR}')
-        for item in itemDescriptions.keys():
-            options += 1
-            if itemPrices[item] <= playerGolds[currentPlayer]:
-                print(f'{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}{itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
-            else:
-                print(f'{GRAY}{options}: {item.title()} - {itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
+        printShopList()
+        options = len(itemDescriptions.keys())
         valid = False
         while not valid:
             choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
@@ -728,7 +740,7 @@ def goToTheShop():
         else:
             playerGolds[currentPlayer] -= price
             if item in itemRewards.keys():
-                playerInventories[currentPlayer].append(f'{item};{itemRewards[item]}')
+                playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
             else:
                 playerInventories[currentPlayer].append(item)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
@@ -932,6 +944,8 @@ def useItem():
                             playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
                             playerGolds = prevPlayerGolds[-1-NUM_PLAYERS]
                             playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS]
+                            playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
+                            playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
                             playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
                             playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
                             itemPrices = prevItemPrices[-1-NUM_PLAYERS]
@@ -943,6 +957,8 @@ def useItem():
                                 prevPlayerInventories.pop(-1)
                                 prevPlayerGolds.pop(-1)
                                 prevPlayerSpeeds.pop(-1)
+                                prevPlayerProgress.pop(-1)
+                                prevPlayerStealBonus.pop(-1)
                                 prevPlayerWaitingForEvents.pop(-1)
                                 prevPlayerFrozens.pop(-1)
                                 prevItemPrices.pop(-1)
@@ -1343,7 +1359,7 @@ def redefineItemDescriptions():
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
         "f3 menu": f'Tells you your current {ORANGE}coordinates{CLEAR}.',
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
-        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR} if they are on the same space as you.',
+        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.2{CLEAR} if they are on the same space as you.',
         "freeze ray": f'Make another player loose the {ORANGE}ability to move{CLEAR} for 1 turn.'
     }
     return itemDescriptions
@@ -1388,6 +1404,8 @@ playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
 playerSpeeds = [None]
+playerProgress = [None]
+playerStealBonus = [None]
 playerWaitingForEvents = [None]
 playerFrozens = [None]
 for _ in range(NUM_PLAYERS):
@@ -1395,13 +1413,17 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
-    playerWaitingForEvents.append([])
+    playerProgress.append(copy.deepcopy({"gym": 0}))
+    playerStealBonus.append(0)
+    playerWaitingForEvents.append(copy.deepcopy([]))
     playerFrozens.append(False)
 
 prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
 prevPlayerSpeeds = [copy.deepcopy(playerSpeeds)]
+prevPlayerProgress = [copy.deepcopy(playerProgress)]
+prevPlayerStealBonus = [copy.deepcopy(playerStealBonus)]
 prevPlayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
@@ -1565,6 +1587,8 @@ while running:
                         playerInventories[player] = prevPlayerInventories[-targetTime][player]
                         playerGolds[player] = prevPlayerGolds[-targetTime][player]
                         playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+                        playerProgress[player] = prevPlayerProgress[-targetTime][player]
+                        playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
                         playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
                         playerFrozens[player] = prevPlayerFrozens[-targetTime][playerWaitingForEvents]
                         for _ in range(targetTime-1):
@@ -1573,6 +1597,8 @@ while running:
                                 prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
                                 prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
                                 prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                                prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
+                                prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
                                 prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                                 prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     if spaceType == 'papas wingeria':
@@ -1586,11 +1612,27 @@ while running:
                         print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
                     if spaceType == 'gym':
                         print(f'You landed on {grammatiseSpaceType(spaceType)}!')
-                        workoutTime = random.randint(1, 24)
-                        print(f'You worked out for {GYM_SPACE}{workoutTime} hours{CLEAR}.')
-                        playerSpeeds[currentPlayer] += workoutTime*0.0035
-                        playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-                        print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                        print('Which workout would you like to do?')
+                        print(f'0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
+                        print(f'1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
+                        choice = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+                        if choice == 0:
+                            workoutTime = random.randint(1, 24)
+                            print(f'You worked out for {GYM_SPACE}{workoutTime} hour{"s" if workoutTime != 1 else ""}{CLEAR}.')
+                            playerSpeeds[currentPlayer] += workoutTime*0.0035
+                            playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+                            print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                        if choice == 1:
+                            playerProgress[currentPlayer]["gym"] += 1
+                            print(f'Your {GYM_SPACE}gym progress{CLEAR} is now {GREEN}{playerProgress[currentPlayer]["gym"]}{CLEAR} out of {GREEN}{GYM_PROGRESS_REQUIRED}{CLEAR}')
+                            if playerProgress[currentPlayer]["gym"] == GYM_PROGRESS_REQUIRED:
+                                print(f'{GREEN}Congratulations!{CLEAR} You now steal one more {YELLOW}gold{CLEAR}.')
+                                playerProgress[currentPlayer]["gym"] = 0
+                                playerStealBonus[currentPlayer] += 1
+                                for n, item in enumerate(playerInventories[currentPlayer]):
+                                    if ';' in item:
+                                        split = item.split(';')
+                                        playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
                 #ask for item use
                 if running == True:
                     if len(playerInventories[currentPlayer]) > 0:
@@ -1613,6 +1655,8 @@ while running:
                 "playerInventories": playerInventories,
                 "playerGolds": playerGolds,
                 "playerSpeeds": playerSpeeds,
+                "playerProgress": playerProgress,
+                "playerStealBonus": playerStealBonus,
                 "playerWaitingForEvents": playerWaitingForEvents,
                 "playerFrozens": playerFrozens,
                 "itemPrices": itemPrices,
@@ -1623,6 +1667,8 @@ while running:
                 "prevPlayerInventories": prevPlayerInventories,
                 "prevPlayerGolds": prevPlayerGolds,
                 "prevPlayerSpeeds": prevPlayerSpeeds,
+                "prevPlayerProgress": prevPlayerProgress,
+                "prevPlayerStealBonus": prevPlayerStealBonus,
                 "prevPlayerWaitingForEvents": prevPlayerWaitingForEvents,
                 "prevPlayerFrozens": prevPlayerFrozens,
                 "prevItemPrices": prevItemPrices,
@@ -1651,6 +1697,8 @@ while running:
                 playerInventories = data["playerInventories"]
                 playerGolds = data["playerGolds"]
                 playerSpeeds = data["playerSpeeds"]
+                playerProgress = data["playerProgress"]
+                playerStealBonus = data["playerStealBonus"]
                 playerWaitingForEvents = data["playerWaitingForEvents"]
                 playerFrozens = data["playerFrozens"]
                 itemPrices = data["itemPrices"]
@@ -1661,6 +1709,8 @@ while running:
                 prevPlayerInventories = data["prevPlayerInventories"]
                 prevPlayerGolds = data["prevPlayerGolds"]
                 prevPlayerSpeeds = data["prevPlayerSpeeds"]
+                prevPlayerProgress = data["prevPlayerProgress"]
+                prevPlayerStealBonus = data["prevPlayerStealBonus"]
                 prevPlayerWaitingForEvents = data["prevPlayerWaitingForEvents"]
                 prevPlayerFrozens = data["prevPlayerFrozens"]
                 prevItemPrices = data["prevItemPrices"]
@@ -1673,6 +1723,8 @@ while running:
         prevPlayerInventories.append(copy.deepcopy(playerInventories))
         prevPlayerGolds.append(copy.deepcopy(playerGolds))
         prevPlayerSpeeds.append(copy.deepcopy(playerSpeeds))
+        prevPlayerProgress.append(copy.deepcopy(playerProgress))
+        prevPlayerStealBonus.append(copy.deepcopy(playerStealBonus))
         prevPlayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
         prevPlayerFrozens.append(copy.deepcopy(playerFrozens))
         prevItemPrices.append(copy.deepcopy(itemPrices))
