@@ -54,6 +54,7 @@ GAMBLING_SPACE = getColour(148, 14, 4)
 TIMEWARP_SPACE = getColour(0, 97, 112)
 PAPAS_WINGERIA_SPACE = getColour(133, 60, 1)
 GYM_SPACE = getColour(0, 199, 192)
+QUEST_SPACE = getColour(176, 0, 230)
 
 def fillSpaces(board, fillWith, howMany, initialState):
     linearBoard = sum(board, [])
@@ -193,6 +194,7 @@ def generateBoard():
         board = fillSpaces(board, 'timewarp', numEmpties // 20, 'empty')
         board = fillSpaces(board, 'papas wingeria', numEmpties // 12, 'empty')
         board = fillSpaces(board, 'gym', numEmpties // 12, 'empty')
+        board = fillSpaces(board, 'quest', numEmpties // 10, 'empty')
         #get positions of flamingo and shadow realm and home
         for n, row in enumerate(board):
             for m, cell in enumerate(row):
@@ -330,6 +332,8 @@ def generateImage(board, paths):
                 colour = '#853c01'
             if cell == 'gym':
                 colour = '#00c7c0'
+            if cell == 'quest':
+                colour = '#b000e6'
             if cell != None:
                 draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
         
@@ -522,7 +526,6 @@ def spinWheelVisually(options):
         time.sleep(0.1)
     print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
     result = random.choice(options)
-    print(result)
     return result
 
 def spinTheBadWheel():
@@ -541,6 +544,7 @@ def spinTheBadWheel():
         f'The sign of your {YELLOW}gold{CLEAR} has swapped!'
     ]
     result = spinWheelVisually(options)
+    print(result)
     time.sleep(1)
     if result == f'You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.':
         playerPositions[currentPlayer] = findShadowRealm(board)
@@ -613,9 +617,11 @@ def spinTheGoodWheel():
         f'You gain {CYAN}a compass{CLEAR}',
         f'You can visit the {SHOP_SPACE}shop{CLEAR}!',
         f'You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!',
-        f'You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.'
+        f'You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.',
+        f'You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!',
     ]
     result = spinWheelVisually(options)
+    print(result)
     time.sleep(1)
     if result == f'You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
@@ -666,6 +672,8 @@ def spinTheGoodWheel():
         if choice == '1':
             player = int(askForPlayer(f'{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', False))
             playerWaitingForEvents[player].append('gamble')
+    if result == f'You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!':
+        spinTheQuestWheel()
 
 def spinTheShadowWheel():
     options = [
@@ -680,6 +688,7 @@ def spinTheShadowWheel():
         f'You must spin the {RED}Bad Wheel{CLEAR}.'
     ]
     result = spinWheelVisually(options)
+    print(result)
     time.sleep(1)
     if result == f'You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
@@ -698,6 +707,57 @@ def spinTheShadowWheel():
         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
     if result == f'You must spin the {RED}Bad Wheel{CLEAR}.':
         spinTheBadWheel()
+
+def questTextFromDict(quest):
+    if quest['type'] == 'goodSpace':
+        return f'You must land on the {GOOD_SPACE}good space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'badSpace':
+        return f'You must land on the {BAD_SPACE}bad space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'shadowRealm':
+        return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'workout':
+        return f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'eatChicken':
+        return f'You must eat {QUEST_SPACE}{quest["requirement"]}{CLEAR} {PAPAS_WINGERIA_SPACE}chicken wings{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'stabPeople':
+        return f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'gamble':
+        return f'You must win back {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} by playing {GAMBLING_SPACE}blackjack{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'spendMoney':
+        return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} at the {SHOP_SPACE}shop{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+
+def spinTheQuestWheel():
+    actualOptions = [
+        {"type": 'goodSpace', "requirement": (numGoodSpaces := random.randint(3, 5)), "reward": numGoodSpaces*2, "progress": 0},
+        {"type": 'badSpace', "requirement": (numBadSpaces := random.randint(3, 5)), "reward": numBadSpaces*4, "progress": 0},
+        {"type": 'shadowRealm', "requirement": (timeInShadowRealm := random.randint(6,10)), "reward": timeInShadowRealm*2, "progress": 0},
+        {"type": 'workout', "requirement": (workoutHours := random.randint(40,70)), "reward": workoutHours//4, "progress": 0},
+        {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0},
+        {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
+        {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
+        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0}
+    ]
+    options = [questTextFromDict(option) for option in actualOptions]
+    spinWheelVisually(options)
+    result = random.choice(actualOptions)
+    print(questTextFromDict(result))
+    time.sleep(0.75)
+    playerQuests[currentPlayer].append(result)
+
+def updateQuests(questType, qtyIncrease):
+    questsToRemove = []
+    for n, quest in enumerate(playerQuests[currentPlayer]):
+        if quest['type'] == questType:
+            quest['progress'] += qtyIncrease
+            print(f' {GRAY}(You have worked towards the quest: {CLEAR}{questTextFromDict(quest)} {getColourFromFraction(quest["progress"]/quest["requirement"])}({quest["progress"]}/{quest["requirement"]}){GRAY}){CLEAR}')
+            if quest['progress'] >= quest['requirement']:
+                print(f' {GREEN}Congratulations!{CLEAR} You have completed this {QUEST_SPACE}quest{CLEAR}!')
+                questsToRemove.append(n)
+                print(f' You gain {YELLOW}{quest["reward"]} gold{CLEAR}!')
+                playerGolds[currentPlayer] += quest['reward']
+                print(f' You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+    for quest in sorted(questsToRemove, reverse=True):
+        playerQuests[currentPlayer].pop(quest)
 
 def printShopList():
     global itemRewards
@@ -720,6 +780,7 @@ def printShopList():
 
 def goToTheShop():
     global itemDescriptions
+    tab = 0
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
@@ -743,6 +804,7 @@ def goToTheShop():
         if choice == '0':
             break
         else:
+            tab += price
             playerGolds[currentPlayer] -= price
             if item in itemRewards.keys():
                 playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
@@ -758,6 +820,7 @@ def goToTheShop():
                 if item in itemRewards.keys():
                     itemRewards[item] += 1
                     itemDescriptions = redefineItemDescriptions()
+    updateQuests('spendMoney', tab)
 
 def printItemList(itemList):
     global itemRewards
@@ -784,6 +847,7 @@ def useItem():
     global playerProgress
     global playerStealBonus
     global playerInvestmentBonus
+    global playerQuests
     global playerWaitingForEvents
     global playerFrozens
     global itemPrices
@@ -893,6 +957,7 @@ def useItem():
                                 playerGolds[currentPlayer] += reward
                                 print(f'Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
                                 print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                updateQuests('stabPeople', 1)
                     if item == 'gun':
                         print('Which direction would you like to shoot?')
                         print('0: Down')
@@ -998,6 +1063,7 @@ def useItem():
                             playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
                             playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
                             playerInvestmentBonus = prevPlayerInvestmentBonus[-1-NUM_PLAYERS]
+                            playerQuests = prevPlayerQuests[-1-NUM_PLAYERS]
                             playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
                             playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
                             itemPrices = prevItemPrices[-1-NUM_PLAYERS]
@@ -1012,6 +1078,7 @@ def useItem():
                                 prevPlayerProgress.pop(-1)
                                 prevPlayerStealBonus.pop(-1)
                                 prevPlayerInvestmentBonus.pop(-1)
+                                prevPlayerQuests.pop(-1)
                                 prevPlayerWaitingForEvents.pop(-1)
                                 prevPlayerFrozens.pop(-1)
                                 prevItemPrices.pop(-1)
@@ -1260,6 +1327,7 @@ def playBlackjack(bet=0):
         if betType == 'gold':
             playerGolds[currentPlayer] += bet
             print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+            updateQuests('gamble', bet)
         if betType == 'item':
             playerInventories[currentPlayer].append(item)
             print(f'You won another {CYAN}{itemName}{CLEAR}!')
@@ -1270,6 +1338,7 @@ def playBlackjack(bet=0):
             if betType == 'gold':
                 playerGolds[currentPlayer] += bet
                 print(f'You won {YELLOW}{bet} gold{CLEAR}!')
+                updateQuests('gamble', bet)
             if betType == 'item':
                 playerInventories[currentPlayer].append(item)
                 print(f'You won another {CYAN}{itemName}{CLEAR}!')
@@ -1356,6 +1425,18 @@ def grammatiseSpaceType(spaceType, punctuation=False):
         return f'{PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}{"!" if punctuation else ""}'
     if spaceType == 'gym':
         return f'a {GYM_SPACE}gym{CLEAR} space{"!" if punctuation else ""}'
+    if spaceType == 'quest':
+        return f'a {QUEST_SPACE}quest{CLEAR} space{"!" if punctuation else ""}'
+
+def getColourFromFraction(fraction):
+    if fraction == 0:
+        return RED
+    elif fraction < 0.4:
+        return ORANGE
+    elif fraction < 0.7:
+        return YELLOW
+    else:
+        return GREEN
 
 def redefineItemDescriptions():
     itemDescriptions = {
@@ -1444,6 +1525,7 @@ playerSpeeds = [None]
 playerProgress = [None]
 playerStealBonus = [None]
 playerInvestmentBonus = [None]
+playerQuests = [None]
 playerWaitingForEvents = [None]
 playerFrozens = [None]
 for _ in range(NUM_PLAYERS):
@@ -1454,6 +1536,7 @@ for _ in range(NUM_PLAYERS):
     playerProgress.append(copy.deepcopy({"gym": 0, "wingeria": 0}))
     playerStealBonus.append(0)
     playerInvestmentBonus.append(0)
+    playerQuests.append(copy.deepcopy([]))
     playerWaitingForEvents.append(copy.deepcopy([]))
     playerFrozens.append(False)
 
@@ -1464,6 +1547,7 @@ prevPlayerSpeeds = [copy.deepcopy(playerSpeeds)]
 prevPlayerProgress = [copy.deepcopy(playerProgress)]
 prevPlayerStealBonus = [copy.deepcopy(playerStealBonus)]
 prevPlayerInvestmentBonus = [copy.deepcopy(playerInvestmentBonus)]
+prevPlayerQuests = [copy.deepcopy(playerQuests)]
 prevPlayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
@@ -1477,6 +1561,10 @@ os.system('clear')
 while running:
     print('-'*50)
     print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
+    if len(playerQuests[currentPlayer]) > 0:
+        print(f'Your current {QUEST_SPACE}quests{CLEAR} are:')
+        for quest in playerQuests[currentPlayer]:
+            print(f'  {questTextFromDict(quest)} {getColourFromFraction(quest["progress"]/quest["requirement"])}({quest["progress"]}/{quest["requirement"]}){CLEAR}')
     #check for waiting events
     for event in playerWaitingForEvents[currentPlayer]:
         if event == 'bad wheel':
@@ -1499,6 +1587,7 @@ while running:
     if currentSpaceType == 'shadow realm':
         print(f'You must spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
         spinTheShadowWheel()
+        updateQuests('shadowRealm', 1)
         #ask for item use
         if running == True:
             if len(playerInventories[currentPlayer]) > 0:
@@ -1591,9 +1680,11 @@ while running:
                     if spaceType == 'good':
                         print(f'You get to spin the {GREEN}Good Wheel{CLEAR}!')
                         spinTheGoodWheel()
+                        updateQuests('goodSpace', 1)
                     if spaceType == 'bad':
                         print(f'You get to spin the {RED}Bad Wheel{CLEAR}.')
                         spinTheBadWheel()
+                        updateQuests('badSpace', 1)
                     if spaceType == 'shop':
                         print(f'You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
                         if playerGolds[currentPlayer] < min(itemPrices.values()):
@@ -1621,6 +1712,7 @@ while running:
                         playerProgress[player] = prevPlayerProgress[-targetTime][player]
                         playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
                         playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
+                        playerQuests[player] = prevPlayerQuests[-targetTime][player]
                         playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
                         playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
                         for _ in range(targetTime-1):
@@ -1632,6 +1724,7 @@ while running:
                                 prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
                                 prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
                                 prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
+                                prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
                                 prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                                 prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     if spaceType == 'papas wingeria':
@@ -1649,6 +1742,7 @@ while running:
                             playerSpeeds[currentPlayer] = 0
                         playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                         print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                        updateQuests('eatChicken', cost)
                         if playerGolds[currentPlayer] > 0:
                             time.sleep(0.5)
                             print(f'Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
@@ -1675,6 +1769,7 @@ while running:
                             playerSpeeds[currentPlayer] += workoutTime*0.0035
                             playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                             print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                            updateQuests('workout', workoutTime)
                         if choice == 1:
                             playerProgress[currentPlayer]["gym"] += 1
                             print(f'Your {GYM_SPACE}gym progress{CLEAR} is now {GREEN}{playerProgress[currentPlayer]["gym"]}{CLEAR} out of {GREEN}{GYM_PROGRESS_REQUIRED}{CLEAR}')
@@ -1686,6 +1781,9 @@ while running:
                                     if ';' in item:
                                         split = item.split(';')
                                         playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
+                    if spaceType == 'quest':
+                        print(f'You must spin the {QUEST_SPACE}quest wheel{CLEAR} to recieve a random {QUEST_SPACE}quest{CLEAR}!')
+                        spinTheQuestWheel()
                 #ask for item use
                 if running == True:
                     if len(playerInventories[currentPlayer]) > 0:
@@ -1711,6 +1809,7 @@ while running:
                 "playerProgress": playerProgress,
                 "playerStealBonus": playerStealBonus,
                 "playerInvestmentBonus": playerInvestmentBonus,
+                "playerQuests": playerQuests,
                 "playerWaitingForEvents": playerWaitingForEvents,
                 "playerFrozens": playerFrozens,
                 "itemPrices": itemPrices,
@@ -1724,6 +1823,7 @@ while running:
                 "prevPlayerProgress": prevPlayerProgress,
                 "prevPlayerStealBonus": prevPlayerStealBonus,
                 "prevPlayerInvestmentBonus": prevPlayerInvestmentBonus,
+                "prevPlayerQuests": prevPlayerQuests,
                 "prevPlayerWaitingForEvents": prevPlayerWaitingForEvents,
                 "prevPlayerFrozens": prevPlayerFrozens,
                 "prevItemPrices": prevItemPrices,
@@ -1755,6 +1855,7 @@ while running:
                 playerProgress = data["playerProgress"]
                 playerStealBonus = data["playerStealBonus"]
                 playerInvestmentBonus = data["playerInvestmentBonus"]
+                playerQuests = data["playerQuests"]
                 playerWaitingForEvents = data["playerWaitingForEvents"]
                 playerFrozens = data["playerFrozens"]
                 itemPrices = data["itemPrices"]
@@ -1768,6 +1869,7 @@ while running:
                 prevPlayerProgress = data["prevPlayerProgress"]
                 prevPlayerStealBonus = data["prevPlayerStealBonus"]
                 prevPlayerInvestmentBonus = data["prevPlayerInvestmentBonus"]
+                prevPlayerQuests = data["prevPlayerQuests"]
                 prevPlayerWaitingForEvents = data["prevPlayerWaitingForEvents"]
                 prevPlayerFrozens = data["prevPlayerFrozens"]
                 prevItemPrices = data["prevItemPrices"]
@@ -1783,6 +1885,7 @@ while running:
         prevPlayerProgress.append(copy.deepcopy(playerProgress))
         prevPlayerStealBonus.append(copy.deepcopy(playerStealBonus))
         prevPlayerInvestmentBonus.append(copy.deepcopy(playerInvestmentBonus))
+        prevPlayerQuests.append(copy.deepcopy(playerQuests))
         prevPlayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
         prevPlayerFrozens.append(copy.deepcopy(playerFrozens))
         prevItemPrices.append(copy.deepcopy(itemPrices))
