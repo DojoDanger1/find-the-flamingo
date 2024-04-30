@@ -821,7 +821,7 @@ def useItem():
                         else:
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                             print(f'Here is all of the information about the {ORANGE}Adjacent Spaces{CLEAR}:')
-                            message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]])}.'
+                            message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]], punctuation=False)}.'
                             for player, playerPosition in enumerate(playerPositions):
                                 if playerPosition == playerPositions[currentPlayer] and player != currentPlayer:
                                     message += f' {RED}Player {player}{CLEAR} is also on this space.'
@@ -830,7 +830,7 @@ def useItem():
                             print(message)
                             for move in possibleMoves:
                                 destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
-                                message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType)}.'
+                                message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
                                 for player, playerPosition in enumerate(playerPositions):
                                     if playerPosition == move['destination']:
                                         message += f' {RED}Player {player}{CLEAR} is on this space.'
@@ -1331,31 +1331,31 @@ def selectRandomSpace(board):
             validSpace = True
     return space
 
-def grammatiseSpaceType(spaceType):
+def grammatiseSpaceType(spaceType, punctuation=False):
     if spaceType == 'empty':
-        return f'an {EMPTY_SPACE}empty{CLEAR} space'
+        return f'an {EMPTY_SPACE}empty{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'flamingo':
-        return f'the {FLAMINGO_SPACE}flamingo{CLEAR} space'
+        return f'the {FLAMINGO_SPACE}flamingo{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'home':
-        return f'the {HOME_SPACE}home{CLEAR} space'
+        return f'the {HOME_SPACE}home{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shadow realm':
-        return f'the {SHADOW_REALM_SPACE}shadow realm{CLEAR} space'
+        return f'the {SHADOW_REALM_SPACE}shadow realm{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'good':
-        return f'a {GOOD_SPACE}good{CLEAR} space'
+        return f'a {GOOD_SPACE}good{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'bad':
-        return f'a {BAD_SPACE}bad{CLEAR} space'
+        return f'a {BAD_SPACE}bad{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shop':
-        return f'a {SHOP_SPACE}shop{CLEAR} space'
+        return f'a {SHOP_SPACE}shop{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'teleport':
-        return f'a {TELEPORT_SPACE}teleport{CLEAR} space'
+        return f'a {TELEPORT_SPACE}teleport{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'gambling':
-        return f'a {GAMBLING_SPACE}gambling{CLEAR} space'
+        return f'a {GAMBLING_SPACE}gambling{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'timewarp':
-        return f'a {TIMEWARP_SPACE}time warp{CLEAR} space'
+        return f'a {TIMEWARP_SPACE}time warp{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'papas wingeria':
-        return f'{PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}'
+        return f'{PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}{"!" if punctuation else ""}'
     if spaceType == 'gym':
-        return f'a {GYM_SPACE}gym{CLEAR} space'
+        return f'a {GYM_SPACE}gym{CLEAR} space{"!" if punctuation else ""}'
 
 def redefineItemDescriptions():
     itemDescriptions = {
@@ -1575,51 +1575,42 @@ while running:
                 if int(choice) != 0:
                     #evaluate space type
                     spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
+                    print(f'You landed on {grammatiseSpaceType(spaceType, punctuation=True)}')
                     if spaceType == 'empty':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         print('Nothing Happens.')
                     if spaceType == 'flamingo':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print(f'You {GREEN}win the game{CLEAR}!')
                         running = False
                         winner = currentPlayer
                     if spaceType == 'home':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         print(f'You gain {YELLOW}1 gold{CLEAR}!')
                         playerGolds[currentPlayer] += 1
                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                     if spaceType == 'shadow realm':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         print(f'You are stuck here until you escape. Instead of moving, you will spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
                     if spaceType == 'good':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print(f'You get to spin the {GREEN}Good Wheel{CLEAR}!')
                         spinTheGoodWheel()
                     if spaceType == 'bad':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         print(f'You get to spin the {RED}Bad Wheel{CLEAR}.')
                         spinTheBadWheel()
                     if spaceType == 'shop':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print(f'You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
                         if playerGolds[currentPlayer] < min(itemPrices.values()):
                             print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
                         else:
                             goToTheShop()
                     if spaceType == 'teleport':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         playerPositions[player] = selectRandomSpace(board)
                     if spaceType == 'gambling':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}.')
                         if playerGolds[currentPlayer] > 0 or len(playerInventories[currentPlayer]) > 0:
                             print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
                             playBlackjack()
                         else:
                             print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} or {CYAN}items{CLEAR} to gamble!')
                     if spaceType == 'timewarp':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
                         player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
@@ -1644,7 +1635,6 @@ while running:
                                 prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                                 prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     if spaceType == 'papas wingeria':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         for player, bonus in enumerate(playerInvestmentBonus):
                             if player != 0 and player != currentPlayer and bonus != 0:
                                 print(f'You must pay {RED}player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
@@ -1675,7 +1665,6 @@ while running:
                             if increased:
                                 print(f'{GREEN}Congratulations!{CLEAR} You now steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
                     if spaceType == 'gym':
-                        print(f'You landed on {grammatiseSpaceType(spaceType)}!')
                         print('Which workout would you like to do?')
                         print(f'0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
                         print(f'1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
