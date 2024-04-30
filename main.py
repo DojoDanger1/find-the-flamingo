@@ -959,6 +959,8 @@ def useItem():
                         else:
                             for player in playersOnCurrentSpot:
                                 playerSpeeds[player] = round(playerSpeeds[player] - 0.2, 4)
+                                if playerSpeeds[player] < 0:
+                                    playerSpeeds[player] = 0
                                 print(f'{RED}Player {player}{CLEAR} now has {YELLOW}{playerSpeeds[player]} speed{CLEAR}.')
                     if item == 'freeze ray':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
