@@ -26,6 +26,22 @@ BLACKJACK_DEALER_CAUTION = 5
 GYM_PROGRESS_REQUIRED = 3
 WINGERIA_PROGRESS_REQUIRED = 4
 
+#assertions
+assert GRID_SIZE > 3, 'grid size must be greater than 3!'
+assert 0 < PERCENTAGE_SQUARES and PERCENTAGE_SQUARES <= 1, 'percentage squares must be between 0 and 1!'
+assert 0 < PERCENTAGE_PATHS and PERCENTAGE_PATHS <= 1, 'percentage paths must be between 0 and 1!'
+assert 0 < PROBABILITY_ONE_WAY and PROBABILITY_ONE_WAY <= 1, 'probability one way must be between 0 and 1!'
+assert 0 < BIAS and BIAS <= 1-PERCENTAGE_PATHS, f'bias must be between 0 and {1-PERCENTAGE_PATHS}'
+assert NUM_PLAYERS > 1, 'number of players must be more than 1!'
+assert STARTING_SPEED > 0, 'starting speed must be positive!'
+assert SHOP_PURCHACE_LIMIT > 0, 'shop purchase limit must be positive!'
+assert 0 <= CHANCE_OF_INFLATION and CHANCE_OF_INFLATION <= 1, 'chance of inflation must be between 0 and 1!'
+assert 0 <= CHANCE_OF_SUPER_INFLATION and CHANCE_OF_SUPER_INFLATION <= 1, 'chance of super inflation must be between 0 and 1!'
+assert BLACKJACK_TARGET >= 21, 'blackjack target must be greater than or equal to 21!'
+assert 0 <= BLACKJACK_DEALER_CAUTION and BLACKJACK_DEALER_CAUTION <= BLACKJACK_TARGET, f'blackjack dealer caution must be in between 0 and {BLACKJACK_TARGET}!'
+assert GYM_PROGRESS_REQUIRED > 0, 'gym progress required must be positive!'
+assert WINGERIA_PROGRESS_REQUIRED > 0, 'wingeria progress required must be positive!'
+
 #colourings
 def getColour(r, g, b, background=False):
     return f'\033[{48 if background else 38};2;{r};{g};{b}m'
