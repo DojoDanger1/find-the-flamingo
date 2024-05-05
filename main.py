@@ -295,10 +295,14 @@ def generateBoard():
     connectingCells = random.sample(cellsWithLessThan4Paths, numNewPaths)
     for cell in connectingCells:
         paths.append({"start": cell, "end": shadowRealmPos, "oneWay": False})
+    #add pathDecorators
+    pathDecorators = []
+    for _ in paths:
+        pathDecorators.append(copy.deepcopy([]))
     #return
     print('done!')
     print('generating image...')
-    return board, paths, decorators
+    return board, paths, decorators, pathDecorators
 
 def generateImage(board, paths):
     width = GRID_SIZE*100
@@ -870,6 +874,7 @@ def useItem():
     global itemRewards
     global itemDescriptions
     global decorators
+    global pathDecorators
     global board
     done = False
     while not done:
@@ -1085,6 +1090,7 @@ def useItem():
                             itemPrices = prevItemPrices[-1-NUM_PLAYERS]
                             itemRewards = prevItemRewards[-1-NUM_PLAYERS]
                             decorators = prevDecorators[-1-NUM_PLAYERS]
+                            pathDecorators = prevPathDecorators[-1-NUM_PLAYERS]
                             board = prevBoards[-1-NUM_PLAYERS]
                             for _ in range(NUM_PLAYERS):
                                 prevPlayerPositions.pop(-1)
@@ -1100,6 +1106,7 @@ def useItem():
                                 prevItemPrices.pop(-1)
                                 prevItemRewards.pop(-1)
                                 prevDecorators.pop(-1)
+                                prevPathDecorators.pop(-1)
                                 prevBoards.pop(-1)
                             if len(playerInventories) >= int(choice):
                                 if playerInventories[int(choice)-1] == 'time machine':
@@ -1109,6 +1116,22 @@ def useItem():
                             return 'continue'
                         else:
                             print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                    if item == 'padlock':
+                        code = int(askOptions(f'{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE}: (0-9999){CLEAR} ', 9999))
+                        print(f'Where would you like to place the {CYAN}padlock{CLEAR}?')
+                        possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                        options = 0
+                        for move in possibleMoves:
+                            options += 1
+                            print(f'{options}: {move["direction"].title()}')
+                        choice = '0'
+                        while choice == '0':
+                            choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                        chosenPath = possibleMoves[int(choice)-1]['path']
+                        for n, path in enumerate(paths):
+                            if path == chosenPath:
+                                pathDecorators[n].append({'type': 'padlock', 'code': code})
+                        print(f'Successfully placed a {CYAN}padlock{CLEAR} on {GREEN}That Path{CLEAR}!')
                     if item == 'portable shop':
                         if playerGolds[currentPlayer] < min(itemPrices.values()):
                             print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
@@ -1479,11 +1502,12 @@ def redefineItemDescriptions():
         "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
         "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
         "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
+        'padlock': f'Place this on an adjacent path. When travelling along this path, you must enter a {RED}4-digit{CLEAR} code.',
         "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.'
     }
     return itemDescriptions
 
-board, paths, decorators = generateBoard()
+board, paths, decorators, pathDecorators = generateBoard()
 generateImage(board, paths)
 highwayInformation = decideHighwayInformation(board, paths)
 
@@ -1511,6 +1535,7 @@ itemPrices = {
     "gold potion": 2,
     "wand": 2,
     "time machine": 3,
+    'padlock': 3,
     "portable shop": 3,
 }
 
@@ -1569,6 +1594,7 @@ prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
+prevPathDecorators = [copy.deepcopy(pathDecorators)]
 prevBoards = [copy.deepcopy(board)]
 
 running = True
@@ -1635,171 +1661,195 @@ while running:
                 choice = askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', options)
                 #evaluate option
                 if int(choice) != 0:
-                    #move
-                    playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
-                #evaluate decorators
-                decoratorsToRemove = []
-                goblinsToAdd = []
-                for n, decorator in enumerate(decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]):
-                    if decorator['type'] == 'trap' and decorator['placedBy'] != currentPlayer:
-                        print(f'Unfortunately, you landed on {RED}Player {decorator["placedBy"]}\'s trap{CLEAR}!')
-                        print(f'You must give them {YELLOW}{decorator["reward"]} gold{CLEAR}.')
-                        playerGolds[currentPlayer] -= decorator["reward"]
-                        playerGolds[decorator['placedBy']] += decorator["reward"]
-                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
-                        decoratorsToRemove.append(n)
-                        time.sleep(0.5)
-                    if decorator['type'] == 'gold':
-                        print(f'There is {YELLOW}{decorator["reward"]} gold{CLEAR} on this space!')
-                        print(f'You gain {YELLOW}{decorator["reward"]} gold{CLEAR}!')
-                        playerGolds[currentPlayer] += decorator["reward"]
-                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                        decoratorsToRemove.append(n)
-                        time.sleep(0.5)
-                    if decorator['type'] == 'goblin' and decorator['placedBy'] != currentPlayer:
-                        print(f'Unfortunately, you have ran into {RED}Player {decorator["placedBy"]}\'s goblin{CLEAR}!')
-                        print(f'It steals {YELLOW}{decorator["reward"]} gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
-                        playerGolds[currentPlayer] -= decorator["reward"]
-                        playerGolds[decorator['placedBy']] += decorator["reward"]
-                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
-                        possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
-                        chosenDestination = random.choice(possibleMoves)['destination']
-                        decoratorsToRemove.append(n)
-                        print(f'{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
-                        if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
-                            print(f'The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
-                        else:
-                            goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
-                        time.sleep(0.5)
-                    if decorator['type'] == 'flamingo':
-                        print(f'{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} is on this space!')
-                for decorator in sorted(decoratorsToRemove, reverse=True):
-                    decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].pop(decorator)
-                for goblin in goblinsToAdd:
-                    decorators[goblin[0]][goblin[1]].append(goblin[2])
-                if int(choice) != 0:
-                    #evaluate space type
-                    spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
-                    print(f'You landed on {grammatiseSpaceType(spaceType, punctuation=True)}')
-                    if spaceType == 'empty':
-                        print('Nothing Happens.')
-                    if spaceType == 'flamingo':
-                        print(f'You {GREEN}win the game{CLEAR}!')
-                        running = False
-                        winner = currentPlayer
-                    if spaceType == 'home':
-                        print(f'You gain {YELLOW}1 gold{CLEAR}!')
-                        playerGolds[currentPlayer] += 1
-                        print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                    if spaceType == 'shadow realm':
-                        print(f'You are stuck here until you escape. Instead of moving, you will spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
-                    if spaceType == 'good':
-                        print(f'You get to spin the {GREEN}Good Wheel{CLEAR}!')
-                        spinTheGoodWheel()
-                        updateQuests('goodSpace', 1)
-                    if spaceType == 'bad':
-                        print(f'You get to spin the {RED}Bad Wheel{CLEAR}.')
-                        spinTheBadWheel()
-                        updateQuests('badSpace', 1)
-                    if spaceType == 'shop':
-                        print(f'You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
-                        if playerGolds[currentPlayer] < min(itemPrices.values()):
-                            print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
-                        else:
-                            goToTheShop()
-                    if spaceType == 'teleport':
-                        print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
-                        player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        playerPositions[player] = selectRandomSpace(board)
-                    if spaceType == 'gambling':
-                        if playerGolds[currentPlayer] > 0 or len(playerInventories[currentPlayer]) > 0:
-                            print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
-                            playBlackjack()
-                        else:
-                            print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} or {CYAN}items{CLEAR} to gamble!')
-                    if spaceType == 'timewarp':
-                        print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
-                        player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
-                        playerPositions[player] = prevPlayerPositions[-targetTime][player]
-                        playerInventories[player] = prevPlayerInventories[-targetTime][player]
-                        playerGolds[player] = prevPlayerGolds[-targetTime][player]
-                        playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
-                        playerProgress[player] = prevPlayerProgress[-targetTime][player]
-                        playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
-                        playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
-                        playerQuests[player] = prevPlayerQuests[-targetTime][player]
-                        playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
-                        playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
-                        for _ in range(targetTime-1):
-                            for i in range(1, len(prevPlayerPositions)):
-                                prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
-                                prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
-                                prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
-                                prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
-                                prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
-                                prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
-                                prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
-                                prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
-                                prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
-                                prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
-                    if spaceType == 'papas wingeria':
-                        for player, bonus in enumerate(playerInvestmentBonus):
-                            if player != 0 and player != currentPlayer and bonus != 0:
-                                print(f'You must pay {RED}player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
-                                playerGolds[currentPlayer] -= bonus
-                                playerGolds[player] += bonus
-                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                    allowedToMove = True
+                    #evaluate path decorators
+                    chosenPath = possibleMoves[int(choice)-1]['path']
+                    for n, path in enumerate(paths):
+                        if path == chosenPath:
+                            for decorator in pathDecorators[n]:
+                                if allowedToMove:
+                                    if decorator['type'] == 'padlock':
+                                        allowedToMove = False
+                                        print(f'There is a {CYAN}padlock{CLEAR} on this path! You have 3 tries to guess the code.')
+                                        attempts = 3
+                                        done = False
+                                        while not done:
+                                            code = int(askOptions(f'{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE} ({getColourFromFraction(attempts/3)}{attempts} attempt{"s" if attempts != 1 else ""}{TURQUOISE} remaining): (0-9999){CLEAR} ', 9999))
+                                            if code == decorator['code']:
+                                                print(f'{GREEN}Successfuly entered code!{CLEAR}')
+                                                done = True
+                                                allowedToMove = True
+                                            else:
+                                                print(f'{RED}Incorrect code!{CLEAR}')
+                                                attempts -= 1
+                                                if attempts == 0:
+                                                    print(f'Unfortunately, you have {RED}ran out of attempts{CLEAR} and cannot move this turn.')
+                                                    done = True
+                    if allowedToMove:
+                        #move
+                        playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
+                        #evaluate decorators
+                        decoratorsToRemove = []
+                        goblinsToAdd = []
+                        for n, decorator in enumerate(decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]):
+                            if decorator['type'] == 'trap' and decorator['placedBy'] != currentPlayer:
+                                print(f'Unfortunately, you landed on {RED}Player {decorator["placedBy"]}\'s trap{CLEAR}!')
+                                print(f'You must give them {YELLOW}{decorator["reward"]} gold{CLEAR}.')
+                                playerGolds[currentPlayer] -= decorator["reward"]
+                                playerGolds[decorator['placedBy']] += decorator["reward"]
+                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
+                                decoratorsToRemove.append(n)
                                 time.sleep(0.5)
-                        order, cost = generateWingPlatter()
-                        print(f'You ordered {order}.')
-                        playerSpeeds[currentPlayer] -= cost*0.0035
-                        if playerSpeeds[currentPlayer] < 0:
-                            playerSpeeds[currentPlayer] = 0
-                        playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-                        print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
-                        updateQuests('eatChicken', cost)
-                        if playerGolds[currentPlayer] > 0:
-                            time.sleep(0.5)
-                            print(f'Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
-                            print(f'Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
-                            investment = int(askOptions(f'{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
-                            playerGolds[currentPlayer] -= investment
-                            playerProgress[currentPlayer]["wingeria"] += investment
-                            print(f'You have invested {GREEN}{playerProgress[currentPlayer]["wingeria"]}{CLEAR} out of {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR}.')
-                            increased = False
-                            while playerProgress[currentPlayer]["wingeria"] >= WINGERIA_PROGRESS_REQUIRED:
-                                playerProgress[currentPlayer]["wingeria"] -= WINGERIA_PROGRESS_REQUIRED
-                                playerInvestmentBonus[currentPlayer] += 1
-                                increased = True
-                            if increased:
-                                print(f'{GREEN}Congratulations!{CLEAR} You now steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
-                    if spaceType == 'gym':
-                        print('Which workout would you like to do?')
-                        print(f'0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
-                        print(f'1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
-                        choice = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', 1))
-                        if choice == 0:
-                            workoutTime = random.randint(1, 24)
-                            print(f'You worked out for {GYM_SPACE}{workoutTime} hour{"s" if workoutTime != 1 else ""}{CLEAR}.')
-                            playerSpeeds[currentPlayer] += workoutTime*0.0035
+                            if decorator['type'] == 'gold':
+                                print(f'There is {YELLOW}{decorator["reward"]} gold{CLEAR} on this space!')
+                                print(f'You gain {YELLOW}{decorator["reward"]} gold{CLEAR}!')
+                                playerGolds[currentPlayer] += decorator["reward"]
+                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+                                decoratorsToRemove.append(n)
+                                time.sleep(0.5)
+                            if decorator['type'] == 'goblin' and decorator['placedBy'] != currentPlayer:
+                                print(f'Unfortunately, you have ran into {RED}Player {decorator["placedBy"]}\'s goblin{CLEAR}!')
+                                print(f'It steals {YELLOW}{decorator["reward"]} gold{CLEAR} for {RED}Player {decorator["placedBy"]}{CLEAR} and runs away {GREEN}1 space{CLEAR}.')
+                                playerGolds[currentPlayer] -= decorator["reward"]
+                                playerGolds[decorator['placedBy']] += decorator["reward"]
+                                print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
+                                possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
+                                chosenDestination = random.choice(possibleMoves)['destination']
+                                decoratorsToRemove.append(n)
+                                print(f'{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
+                                if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
+                                    print(f'The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                                else:
+                                    goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
+                                time.sleep(0.5)
+                            if decorator['type'] == 'flamingo':
+                                print(f'{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} is on this space!')
+                        for decorator in sorted(decoratorsToRemove, reverse=True):
+                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].pop(decorator)
+                        for goblin in goblinsToAdd:
+                            decorators[goblin[0]][goblin[1]].append(goblin[2])
+                        #evaluate space type
+                        spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
+                        print(f'You landed on {grammatiseSpaceType(spaceType, punctuation=True)}')
+                        if spaceType == 'empty':
+                            print('Nothing Happens.')
+                        if spaceType == 'flamingo':
+                            print(f'You {GREEN}win the game{CLEAR}!')
+                            running = False
+                            winner = currentPlayer
+                        if spaceType == 'home':
+                            print(f'You gain {YELLOW}1 gold{CLEAR}!')
+                            playerGolds[currentPlayer] += 1
+                            print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+                        if spaceType == 'shadow realm':
+                            print(f'You are stuck here until you escape. Instead of moving, you will spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
+                        if spaceType == 'good':
+                            print(f'You get to spin the {GREEN}Good Wheel{CLEAR}!')
+                            spinTheGoodWheel()
+                            updateQuests('goodSpace', 1)
+                        if spaceType == 'bad':
+                            print(f'You get to spin the {RED}Bad Wheel{CLEAR}.')
+                            spinTheBadWheel()
+                            updateQuests('badSpace', 1)
+                        if spaceType == 'shop':
+                            print(f'You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
+                            if playerGolds[currentPlayer] < min(itemPrices.values()):
+                                print(f'You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                            else:
+                                goToTheShop()
+                        if spaceType == 'teleport':
+                            print(f'You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
+                            player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            playerPositions[player] = selectRandomSpace(board)
+                        if spaceType == 'gambling':
+                            if playerGolds[currentPlayer] > 0 or len(playerInventories[currentPlayer]) > 0:
+                                print(f'You must play {ORANGE}Blackjack{CLEAR} with the computer (but up to {GREEN}{BLACKJACK_TARGET}{CLEAR} instead of {GREEN}21{CLEAR}).')
+                                playBlackjack()
+                            else:
+                                print(f'Unfortunately, you do not have any {YELLOW}gold{CLEAR} or {CYAN}items{CLEAR} to gamble!')
+                        if spaceType == 'timewarp':
+                            print(f'You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
+                            player = int(askForPlayer(f'{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
+                            playerPositions[player] = prevPlayerPositions[-targetTime][player]
+                            playerInventories[player] = prevPlayerInventories[-targetTime][player]
+                            playerGolds[player] = prevPlayerGolds[-targetTime][player]
+                            playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+                            playerProgress[player] = prevPlayerProgress[-targetTime][player]
+                            playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
+                            playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
+                            playerQuests[player] = prevPlayerQuests[-targetTime][player]
+                            playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
+                            playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
+                            for _ in range(targetTime-1):
+                                for i in range(1, len(prevPlayerPositions)):
+                                    prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
+                                    prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
+                                    prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
+                                    prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                                    prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
+                                    prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
+                                    prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
+                                    prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
+                                    prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
+                                    prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
+                        if spaceType == 'papas wingeria':
+                            for player, bonus in enumerate(playerInvestmentBonus):
+                                if player != 0 and player != currentPlayer and bonus != 0:
+                                    print(f'You must pay {RED}player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
+                                    playerGolds[currentPlayer] -= bonus
+                                    playerGolds[player] += bonus
+                                    print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                    time.sleep(0.5)
+                            order, cost = generateWingPlatter()
+                            print(f'You ordered {order}.')
+                            playerSpeeds[currentPlayer] -= cost*0.0035
+                            if playerSpeeds[currentPlayer] < 0:
+                                playerSpeeds[currentPlayer] = 0
                             playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-                            print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
-                            updateQuests('workout', workoutTime)
-                        if choice == 1:
-                            playerProgress[currentPlayer]["gym"] += 1
-                            print(f'Your {GYM_SPACE}gym progress{CLEAR} is now {GREEN}{playerProgress[currentPlayer]["gym"]}{CLEAR} out of {GREEN}{GYM_PROGRESS_REQUIRED}{CLEAR}')
-                            if playerProgress[currentPlayer]["gym"] == GYM_PROGRESS_REQUIRED:
-                                print(f'{GREEN}Congratulations!{CLEAR} You now steal one more {YELLOW}gold{CLEAR}.')
-                                playerProgress[currentPlayer]["gym"] = 0
-                                playerStealBonus[currentPlayer] += 1
-                                for n, item in enumerate(playerInventories[currentPlayer]):
-                                    if ';' in item:
-                                        split = item.split(';')
-                                        playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
-                    if spaceType == 'quest':
-                        print(f'You must spin the {QUEST_SPACE}quest wheel{CLEAR} to recieve a random {QUEST_SPACE}quest{CLEAR}!')
-                        spinTheQuestWheel()
+                            print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                            updateQuests('eatChicken', cost)
+                            if playerGolds[currentPlayer] > 0:
+                                time.sleep(0.5)
+                                print(f'Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                                print(f'Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+                                investment = int(askOptions(f'{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
+                                playerGolds[currentPlayer] -= investment
+                                playerProgress[currentPlayer]["wingeria"] += investment
+                                print(f'You have invested {GREEN}{playerProgress[currentPlayer]["wingeria"]}{CLEAR} out of {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR}.')
+                                increased = False
+                                while playerProgress[currentPlayer]["wingeria"] >= WINGERIA_PROGRESS_REQUIRED:
+                                    playerProgress[currentPlayer]["wingeria"] -= WINGERIA_PROGRESS_REQUIRED
+                                    playerInvestmentBonus[currentPlayer] += 1
+                                    increased = True
+                                if increased:
+                                    print(f'{GREEN}Congratulations!{CLEAR} You now steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+                        if spaceType == 'gym':
+                            print('Which workout would you like to do?')
+                            print(f'0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
+                            print(f'1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
+                            choice = int(askOptions(f'{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+                            if choice == 0:
+                                workoutTime = random.randint(1, 24)
+                                print(f'You worked out for {GYM_SPACE}{workoutTime} hour{"s" if workoutTime != 1 else ""}{CLEAR}.')
+                                playerSpeeds[currentPlayer] += workoutTime*0.0035
+                                playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+                                print(f'You {GREEN}lost some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+                                updateQuests('workout', workoutTime)
+                            if choice == 1:
+                                playerProgress[currentPlayer]["gym"] += 1
+                                print(f'Your {GYM_SPACE}gym progress{CLEAR} is now {GREEN}{playerProgress[currentPlayer]["gym"]}{CLEAR} out of {GREEN}{GYM_PROGRESS_REQUIRED}{CLEAR}')
+                                if playerProgress[currentPlayer]["gym"] == GYM_PROGRESS_REQUIRED:
+                                    print(f'{GREEN}Congratulations!{CLEAR} You now steal one more {YELLOW}gold{CLEAR}.')
+                                    playerProgress[currentPlayer]["gym"] = 0
+                                    playerStealBonus[currentPlayer] += 1
+                                    for n, item in enumerate(playerInventories[currentPlayer]):
+                                        if ';' in item:
+                                            split = item.split(';')
+                                            playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
+                        if spaceType == 'quest':
+                            print(f'You must spin the {QUEST_SPACE}quest wheel{CLEAR} to recieve a random {QUEST_SPACE}quest{CLEAR}!')
+                            spinTheQuestWheel()
                 #ask for item use
                 if running == True:
                     if len(playerInventories[currentPlayer]) > 0:
@@ -1818,6 +1868,7 @@ while running:
                 "paths": paths,
                 "highwayInformation": highwayInformation,
                 "decorators": decorators,
+                "pathDecorators": pathDecorators,
                 "playerPositions": playerPositions,
                 "playerInventories": playerInventories,
                 "playerGolds": playerGolds,
@@ -1832,6 +1883,7 @@ while running:
                 "itemRewards": itemRewards,
                 "prevBoards": prevBoards,
                 "prevDecorators": prevDecorators,
+                "prevPathDecorators": prevPathDecorators,
                 "prevPlayerPositions": prevPlayerPositions,
                 "prevPlayerInventories": prevPlayerInventories,
                 "prevPlayerGolds": prevPlayerGolds,
@@ -1864,6 +1916,7 @@ while running:
                 paths = data["paths"]
                 highwayInformation = data["highwayInformation"]
                 decorators = data["decorators"]
+                pathDecorators = data["pathDecorators"]
                 playerPositions = data["playerPositions"]
                 playerInventories = data["playerInventories"]
                 playerGolds = data["playerGolds"]
@@ -1878,6 +1931,7 @@ while running:
                 itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
                 prevDecorators = data["prevDecorators"]
+                prevPathDecorators = data["prevPathDecorators"]
                 prevPlayerPositions = data["prevPlayerPositions"]
                 prevPlayerInventories = data["prevPlayerInventories"]
                 prevPlayerGolds = data["prevPlayerGolds"]
@@ -1907,6 +1961,7 @@ while running:
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
+        prevPathDecorators.append(copy.deepcopy(pathDecorators))
         prevBoards.append(copy.deepcopy(board))
         #change turn order
         currentPlayer += 1
