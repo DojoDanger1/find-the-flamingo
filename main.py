@@ -23,7 +23,7 @@ CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
-GYM_PROGRESS_REQUIRED = 3
+GYM_PROGRESS_REQUIRED = 2
 WINGERIA_PROGRESS_REQUIRED = 4
 
 #assertions
@@ -2005,7 +2005,7 @@ try:
                     decorators[flamingo[0]][flamingo[1]].append(flamingo[2])
 
     print(f'{GREEN}Player {winner} wins!{CLEAR}')
-except Exception as e:
+except Exception as e: #i know this is bad practice shut up ok
     print(f'{ERROR}uh oh! something went wrong...{CLEAR}')
     print(f'Creating a save with the name {GREEN}quicksave{CLEAR}...')
     saveToFile('quicksave')
