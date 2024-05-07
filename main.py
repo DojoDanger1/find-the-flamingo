@@ -1899,6 +1899,7 @@ try:
         #change turn order
         print('-'*50)
         if running == True:
+            saveToFile('current')
             next = input(f'{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
             if next == "SAVE":
                 #save to json
