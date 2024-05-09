@@ -1523,20 +1523,17 @@ def playNumberGame(gameUnit, gameStop):
                 failReasonDefined = False
                 if str(gameUnit) in str(ans):
                     failReason = f'{humanAnswer} contains {gameUnit}'
-                    failReasonDefined = True
-                if ans % gameUnit == 0:
+                elif ans % gameUnit == 0:
                     failReason = f'{humanAnswer} is divisible by {gameUnit}'
-                    failReasonDefined = True
-                if len(str(ans)) == gameUnit:
+                elif len(str(ans)) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Digits'
-                    failReasonDefined = True
-                if len(numWordCleansed) == gameUnit:
+                elif len(numWordCleansed) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Letters'
-                    failReasonDefined = True
-                if numWordSyllables == gameUnit:
+                elif numWordSyllables == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Syllables'
-                    failReasonDefined = True
-                if failReasonDefined == False:
+                elif nextNumber > humanAnswer:
+                    failReason = f'That was so stupid i\'m not even going to say what was wrong'
+                else:
                     failReason = f'There is a correct answer ({nextNumber}) before {humanAnswer}'
                 print(f'{RED}Incorrect! {failReason}.{CLEAR}')
                 correct = False
