@@ -4,6 +4,8 @@ import os
 import copy
 import math
 import json
+import traceback
+import datetime
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
@@ -704,7 +706,7 @@ def spinTheShadowWheel():
         f'You must return to the {HOME_SPACE}Home{CLEAR} space.',
         'Nothing happens.',
         f'All other players gain {YELLOW}2 gold{CLEAR}',
-        f'You loose {YELLOW}1 gold{CLEAR}',
+        f'You lose {YELLOW}1 gold{CLEAR}',
         f'You must spin the {RED}Bad Wheel{CLEAR}.'
     ]
     result = spinWheelVisually(options)
@@ -722,7 +724,7 @@ def spinTheShadowWheel():
             if player != currentPlayer:
                 playerGolds[player] += 2
                 print(f'{RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
-    if result == f'You loose {YELLOW}1 gold{CLEAR}':
+    if result == f'You lose {YELLOW}1 gold{CLEAR}':
         playerGolds[currentPlayer] -= 1
         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
     if result == f'You must spin the {RED}Bad Wheel{CLEAR}.':
@@ -778,6 +780,32 @@ def updateQuests(questType, qtyIncrease):
                 print(f' You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
     for quest in sorted(questsToRemove, reverse=True):
         playerQuests[currentPlayer].pop(quest)
+
+def spinTheFlamingoWheel():
+    options = [
+        f'The {FLAMINGO_SPACE}Number Game{CLEAR}',
+        f'The {FLAMINGO_SPACE}Board Quiz{CLEAR}',
+        f'The {FLAMINGO_SPACE}Logic Game{CLEAR}',
+        f'The {FLAMINGO_SPACE}Date Quiz{CLEAR}'
+    ]
+    result = spinWheelVisually(options)
+    print(result)
+    time.sleep(1)
+    if result == f'The {FLAMINGO_SPACE}Number Game{CLEAR}':
+        unit = random.randint(2,9)
+        limit = random.randint(50,200)
+        print(f'You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n {RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n {RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n {RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n {RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n {RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}')
+        return playNumberGame(unit, limit)
+    if result == f'The {FLAMINGO_SPACE}Board Quiz{CLEAR}':
+        questions = random.randint(5,10)
+        print(f'You must answer {GREEN}{questions}{CLEAR} questions about the board in {RED}increasing difficulty{CLEAR}.')
+        return playBoardQuiz(questions)
+    if result == f'The {FLAMINGO_SPACE}Logic Game{CLEAR}':
+        print(f'You must simplify {GREEN}5{CLEAR} logic expressions in {RED}increasing difficulty{CLEAR}.')
+        return playLogicGame(5)
+    if result == f'The {FLAMINGO_SPACE}Date Quiz{CLEAR}':
+        print(f'You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
+        return playDateQuiz()
 
 def printShopList():
     global itemRewards
@@ -1037,6 +1065,7 @@ def useItem():
                     #movement stuff
                     if item == 'dumbells':
                         playerSpeeds[currentPlayer] += 0.1
+                        playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                         print(f'Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
                     if item == 'fat injection':
                         playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
@@ -1052,10 +1081,10 @@ def useItem():
                         player = int(askForPlayer(f'{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
                         playerFrozens[player] = True
                     if item == 'swap':
-                        player1 = int(askForPlayer(f'{TURQUOISE}Enter the first player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                        player1 = int(askForPlayer(f'{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
                         valid = False
                         while not valid:
-                            player2 = int(askForPlayer(f'{TURQUOISE}Enter the second player to be {ORANGE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            player2 = int(askForPlayer(f'{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
                             if player2 == player1:
                                 print(f'{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
                             else:
@@ -1351,7 +1380,7 @@ def playBlackjack(bet=0):
         else:
             itemName = item.title()
     
-    if youBusted == True and dealerBusted == True:
+    if youBusted == True and dealerBusted == True:    
         print(f'{YELLOW}Both of you busted, so no one wins!{CLEAR}')
     elif youBusted == True and dealerBusted == False:
         print(f'{RED}You busted! That means the dealer wins!{CLEAR}')
@@ -1392,6 +1421,253 @@ def playBlackjack(bet=0):
     
     if betType == 'gold':
         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+
+def playNumberGame(gameUnit, gameStop):
+    def numToWords(num):
+        d = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten', 11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen', 19: 'nine-teen', 20: 'twenty', 30: 'thirty', 40: 'forty', 50: 'fifty', 60: 'sixty', 70: 'seventy', 80: 'eighty', 90: 'ninety'}
+        if (num < 20):
+            return d[num]
+        if (num < 100):
+            if num % 10 == 0: 
+                return d[num]
+            else: 
+                return d[num // 10 * 10] + '-' + d[num % 10]
+        if num % 100 == 0: 
+            return d[num // 100] + ' hundred'
+        else: 
+            return d[num // 100] + ' hundred and ' + numToWords(num % 100)
+
+    def syllable_count(word):
+        word = word.lower()
+        count = 0
+        vowels = "aeiouy"
+        if word[0] in vowels:
+            count += 1
+        for index in range(1, len(word)):
+            if word[index] in vowels and word[index - 1] not in vowels:
+                count += 1
+        if word.endswith("e"):
+            count -= 1
+        if count == 0:
+            count += 1
+        return count
+
+    def getSyllables(word):
+        word = word.replace('-', ' ')
+        if ' ' in word:
+            count = 0
+            words = word.split(' ')
+            for subWord in words:
+                count += syllable_count(subWord)
+        else:
+            count = syllable_count(word)
+        return count
+    
+    def findNextNumber(num):
+        numWord = numToWords(num)
+        numWordCleansed = numWord.replace(' ', '')
+        numWordCleansed = numWord.replace('-', '')
+        numWordSyllables = getSyllables(numWord)
+        numberPass = True
+        foundNextNumber = False
+        while foundNextNumber == False:
+            num += 1
+            numWord = numToWords(num)
+            numWordCleansed = numWord.replace(' ', '')
+            numWordCleansed = numWord.replace('-', '')
+            numWordSyllables = getSyllables(numWord)
+            numberPass = True
+            if str(gameUnit) in str(num):
+                numberPass = False
+            if num % gameUnit == 0:
+                numberPass = False
+            if len(str(num)) == gameUnit:
+                numberPass = False
+            if len(numWordCleansed) == gameUnit:
+                numberPass = False
+            if numWordSyllables == gameUnit:
+                numberPass = False
+            if numberPass == True:
+                foundNextNumber = True
+                nextNumber = num
+        return nextNumber
+
+    def askNumber():
+        ans = input(f'What is the {ORANGE}{"next" if internalClock != 0 else "first"} number{CLEAR}? ')
+        try:
+            ans = int(ans)
+        except ValueError:
+            print(f'{RED}Must be a number!{CLEAR}')
+            ans = askNumber()
+        return ans
+    
+    internalClock = 0
+    done = False
+    while done == False:
+        nextNumber = findNextNumber(internalClock)
+        if nextNumber > gameStop:
+            print(f'{GREEN}Congratulations! You Win!{CLEAR}')
+            done = True
+            return True
+        else:
+            ans = askNumber()
+            humanAnswer = ans
+            if nextNumber == humanAnswer:
+                print(f'{GREEN}Correct!{CLEAR}')
+                correct = True
+            else:
+                numWord = numToWords(ans)
+                numWordCleansed = numWord.replace(' ', '')
+                numWordCleansed = numWord.replace('-', '')
+                numWordSyllables = getSyllables(numWord)
+                failReasonDefined = False
+                if str(gameUnit) in str(ans):
+                    failReason = f'{humanAnswer} contains {gameUnit}'
+                    failReasonDefined = True
+                if ans % gameUnit == 0:
+                    failReason = f'{humanAnswer} is divisible by {gameUnit}'
+                    failReasonDefined = True
+                if len(str(ans)) == gameUnit:
+                    failReason = f'{humanAnswer} has {gameUnit} Digits'
+                    failReasonDefined = True
+                if len(numWordCleansed) == gameUnit:
+                    failReason = f'{humanAnswer} has {gameUnit} Letters'
+                    failReasonDefined = True
+                if numWordSyllables == gameUnit:
+                    failReason = f'{humanAnswer} has {gameUnit} Syllables'
+                    failReasonDefined = True
+                if failReasonDefined == False:
+                    failReason = f'There is a correct answer ({nextNumber}) before {humanAnswer}'
+                print(f'{RED}Incorrect! {failReason}.{CLEAR}')
+                correct = False
+            internalClock = humanAnswer
+            if correct == False:
+                done = True
+                return False
+
+def playBoardQuiz(numQuestions):
+    for roundNum in range(1,numQuestions+1):
+        print(f'Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
+        valid = False
+        while not valid:
+            moves = []
+            currentSpace = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+            valid = True
+            for n in range(roundNum):
+                if valid:
+                    possibleMoves = findPossibleMoves(paths, currentSpace, True, highwayInformation)
+                    move = random.choice(possibleMoves)
+                    moves.append(f'{getColourFromFraction((numQuestions-n-1)/numQuestions)}{move["direction"]}{CLEAR}')
+                    currentSpace = move['destination']
+                    if board[currentSpace['row']][currentSpace['col']] in ['shadow realm', 'flamingo']:
+                        valid = False
+        correctAnswer = board[currentSpace['row']][currentSpace['col']]
+        possibleAnswers = [correctAnswer]
+        for _ in range(3):
+            possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest'] if x not in possibleAnswers]))
+        random.shuffle(possibleAnswers)
+        print(f'If you move {", ".join(moves)} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
+        for n, answer in enumerate(possibleAnswers):
+            print(f'{n+1}: {grammatiseSpaceType(answer, title=True)}')
+        choice = 0
+        while choice == 0:
+            choice = int(askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 4))
+        if choice == possibleAnswers.index(correctAnswer)+1:
+            print(f'{GREEN}Correct!{CLEAR}')
+        else:
+            print(f'{RED}Incorrect!{CLEAR} The correct answer was {grammatiseSpaceType(correctAnswer, title=True)}')
+            return False
+    print(f'{GREEN}Congratulations! You Win!{CLEAR}')
+    return True
+
+def playLogicGame(numQuestions):
+    def convertToHumanReadable(expression):
+        expression = expression.replace('0', f'{RED}False{CLEAR}')
+        expression = expression.replace('1', f'{GREEN}True{CLEAR}')
+        expression = expression.replace('!', f'{CYAN}not{CLEAR} ')
+        expression = expression.replace('&', f' {CYAN}and{CLEAR} ')
+        expression = expression.replace('|', f' {CYAN}or{CLEAR} ')
+        expression = expression.replace('^', f' {CYAN}xor{CLEAR} ')
+        expression = expression.replace('<', f' {CYAN}nand{CLEAR} ')
+        expression = expression.replace('>', f' {CYAN}nor{CLEAR} ')
+        expression = expression.replace('v', f' {CYAN}xnor{CLEAR} ')
+        return expression
+    
+    for roundNum in range(1,numQuestions+1):
+        print(f'Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
+        correctAnswer = random.choice(['0', '1'])
+        expression = correctAnswer
+        for _ in range(roundNum):
+            newExpression = ''
+            for n, char in enumerate(expression):
+                if char in ['(', ')', '!', '&', '|', '^', '<', '>', 'v']:
+                    newExpression += char
+                else: 
+                    if char == '0':
+                        newBit = random.choice(['!1', '!1', '!1', '0&0', '0&1', '1&0', '0|0', '0^0', '1^1', '1<1', '1>0', '0>1', '1>1', '0v1', '1v0'])
+                    else:
+                        newBit = random.choice(['!0', '!0', '!0', '1&1', '1|0', '0|1', '1|1', '0^1', '1^0', '0<0', '0<1', '1<0', '0>0', '0v0', '1v1'])
+                    if newBit[0] == '!':
+                        newExpression += newBit
+                    elif n != 0:
+                        if expression[n-1] in ['!', '&', '|', '^', '<', '>', 'v']:
+                            newExpression += f'({newBit})'
+                        else:
+                            newExpression += newBit
+                    else:
+                        newExpression += newBit
+            expression = newExpression
+        print(convertToHumanReadable(expression))
+        print(f'0: {RED}False{CLEAR}')
+        print(f'1: {GREEN}True{CLEAR}')
+        choice = int(askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+        if choice == int(correctAnswer):
+            print(f'{GREEN}Correct!{CLEAR}')
+        else:
+            print(f'{RED}Incorrect!{CLEAR} The correct answer was {convertToHumanReadable(correctAnswer)}')
+            return False
+    print(f'{GREEN}Congratulations! You Win!{CLEAR}')
+    return True
+
+def playDateQuiz():
+    today = datetime.datetime.today()
+    for roundNum in range(1,6):
+        print(f'Question {getColourFromFraction((5-roundNum)/5)}{roundNum}{CLEAR}:')
+        if roundNum == 1:
+            lowerBound = datetime.date(today.year, today.month, 1)
+            upperBound = datetime.date(today.year, today.month + 1, 1) - datetime.timedelta(days=1)
+        if roundNum == 2:
+            lowerBound = datetime.date(today.year, 1, 1)
+            upperBound = datetime.date(today.year, 12, 31)
+        if roundNum == 3:
+            lowerBound = datetime.date((today.year//10)*10, 1, 1)
+            upperBound = datetime.date((today.year//10)*10+9, 12, 31)
+        if roundNum == 4:
+            lowerBound = datetime.date((today.year//100)*100, 1, 1)
+            upperBound = datetime.date((today.year//100)*100+99, 12, 31)
+        if roundNum == 5:
+            lowerBound = datetime.date((today.year//100)*100-200, 1, 1)
+            upperBound = datetime.date((today.year//100)*100+299, 12, 31)
+        possibleDays = (upperBound-lowerBound).days
+        chosenDate = lowerBound + datetime.timedelta(days=random.randrange(possibleDays))
+        print(chosenDate.strftime(f'{CYAN}%B{CLEAR} {GREEN}%-d{CLEAR}, {ORANGE}%Y{CLEAR}'))
+        correctAnswer = chosenDate.strftime('%A')
+        possibleAnswers = [correctAnswer]
+        for _ in range(3):
+            possibleAnswers.append(random.choice([x for x in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] if x not in possibleAnswers]))
+        random.shuffle(possibleAnswers)
+        for n, answer in enumerate(possibleAnswers):
+            print(f'{n+1}: {answer}')
+        choice = 0
+        while choice == 0:
+            choice = int(askOptions(f'{TURQUOISE}Enter your Choice:{CLEAR} ', 4))
+        if choice == possibleAnswers.index(correctAnswer)+1:
+            print(f'{GREEN}Correct!{CLEAR}')
+        else:
+            print(f'{RED}Incorrect!{CLEAR} The correct answer was {correctAnswer}')
+            return False
+    print(f'{GREEN}Congratulations! You Win!{CLEAR}')
+    return True
 
 def generateWingPlatter():
     ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Mango Chili Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
@@ -1439,33 +1715,34 @@ def selectRandomSpace(board):
             validSpace = True
     return space
 
-def grammatiseSpaceType(spaceType, punctuation=False):
+def grammatiseSpaceType(spaceType, punctuation=False, title=False):
     if spaceType == 'empty':
-        return f'an {EMPTY_SPACE}empty{CLEAR} space{"." if punctuation else ""}'
+        return f'an {EMPTY_SPACE}{"Empty" if title else "empty"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'flamingo':
-        return f'the {FLAMINGO_SPACE}flamingo{CLEAR} space{"!" if punctuation else ""}'
+        return f'the {FLAMINGO_SPACE}{"Flamingo" if title else "flamingo"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'home':
-        return f'the {HOME_SPACE}home{CLEAR} space{"." if punctuation else ""}'
+        return f'the {HOME_SPACE}{"Home" if title else "home"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shadow realm':
-        return f'the {SHADOW_REALM_SPACE}shadow realm{CLEAR} space{"." if punctuation else ""}'
+        return f'the {SHADOW_REALM_SPACE}{"Shadow Realm" if title else "shadow realm"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'good':
-        return f'a {GOOD_SPACE}good{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {GOOD_SPACE}{"Good" if title else "good"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'bad':
-        return f'a {BAD_SPACE}bad{CLEAR} space{"." if punctuation else ""}'
+        return f'a {BAD_SPACE}{"Bad" if title else "bad"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shop':
-        return f'a {SHOP_SPACE}shop{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {SHOP_SPACE}{"Shop" if title else "shop"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'teleport':
-        return f'a {TELEPORT_SPACE}teleport{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {TELEPORT_SPACE}{"Teleport" if title else "teleport"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'gambling':
-        return f'a {GAMBLING_SPACE}gambling{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {GAMBLING_SPACE}{"Gambling" if title else "gambling"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'timewarp':
-        return f'a {TIMEWARP_SPACE}time warp{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'papas wingeria':
-        return f'{PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}{"!" if punctuation else ""}'
+        apostrophe = '\''
+        return f'{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s Wingeria" if title else f"papa{apostrophe}s wingeria"}{CLEAR}{"!" if punctuation else ""}'
     if spaceType == 'gym':
-        return f'a {GYM_SPACE}gym{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'quest':
-        return f'a {QUEST_SPACE}quest{CLEAR} space{"!" if punctuation else ""}'
+        return f'a {QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR} space{"!" if punctuation else ""}'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
@@ -1535,7 +1812,7 @@ def redefineItemDescriptions():
         #movement stuff
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
         "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.2{CLEAR} if they are on the same space as you.',
-        "freeze ray": f'Make another player loose the {ORANGE}ability to move{CLEAR} for 1 turn.',
+        "freeze ray": f'Make another player lose the {ORANGE}ability to move{CLEAR} for 1 turn.',
         "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
         #miscellaneous
         "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
@@ -1774,9 +2051,16 @@ try:
                             if spaceType == 'empty':
                                 print('Nothing Happens.')
                             if spaceType == 'flamingo':
-                                print(f'You {GREEN}win the game{CLEAR}!')
-                                running = False
-                                winner = currentPlayer
+                                print(f'You must play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
+                                print(f'{RED}If you lose{CLEAR}, you must return to the {HOME_SPACE}home{CLEAR} space.')
+                                time.sleep(1)
+                                print(f'The {FLAMINGO_SPACE}flamingo game{CLEAR} you will play is:')
+                                if spinTheFlamingoWheel():
+                                    running = False
+                                    winner = currentPlayer
+                                else:
+                                    print(f'{RED}You lost!{CLEAR} You must return to the {HOME_SPACE}home{CLEAR} space!')
+                                    playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
                             if spaceType == 'home':
                                 print(f'You gain {YELLOW}1 gold{CLEAR}!')
                                 playerGolds[currentPlayer] += 1
@@ -2010,4 +2294,4 @@ except Exception as e: #i know this is bad practice shut up ok
     print(f'{ERROR}uh oh! something went wrong...{CLEAR}')
     print(f'Creating a save with the name {GREEN}quicksave{CLEAR}...')
     saveToFile('quicksave')
-    print(e)
+    print(traceback.format_exc())
