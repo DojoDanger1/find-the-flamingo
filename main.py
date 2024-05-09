@@ -2117,7 +2117,7 @@ try:
                             if spaceType == 'papas wingeria':
                                 for player, bonus in enumerate(playerInvestmentBonus):
                                     if player != 0 and player != currentPlayer and bonus != 0:
-                                        print(f'You must pay {RED}player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
+                                        print(f'You must pay {RED}Player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
                                         playerGolds[currentPlayer] -= bonus
                                         playerGolds[player] += bonus
                                         print(f'You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
