@@ -27,6 +27,7 @@ BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
 GYM_PROGRESS_REQUIRED = 2
 WINGERIA_PROGRESS_REQUIRED = 4
+MINIMUM_SPEED = 0.25
 
 #assertions
 assert GRID_SIZE > 3, 'grid size must be greater than 3!'
@@ -1073,9 +1074,10 @@ def useItem():
                             print(f'Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                         else:
                             for player in playersOnCurrentSpot:
-                                playerSpeeds[player] = round(playerSpeeds[player] - 0.2, 4)
-                                if playerSpeeds[player] < 0:
-                                    playerSpeeds[player] = 0
+                                playerSpeeds[player] -= 0.2
+                                playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+                                if playerSpeeds[player] < MINIMUM_SPEED:
+                                    playerSpeeds[player] = MINIMUM_SPEED
                                 print(f'{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
                     if item == 'freeze ray':
                         player = int(askForPlayer(f'{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
@@ -2125,8 +2127,8 @@ try:
                                 order, cost = generateWingPlatter()
                                 print(f'You ordered {order}.')
                                 playerSpeeds[currentPlayer] -= cost*0.0035
-                                if playerSpeeds[currentPlayer] < 0:
-                                    playerSpeeds[currentPlayer] = 0
+                                if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
+                                    playerSpeeds[currentPlayer] = MINIMUM_SPEED
                                 playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
                                 print(f'You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
                                 updateQuests('eatChicken', cost)
