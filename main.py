@@ -746,18 +746,14 @@ def evaluatePathDecorators():
 def spinWheelVisually(options):
     print('')
     for _ in range(20):
-        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
-        print(f'{random.choice(options)}')
+        print(f'\x1B[A\x1B[2K{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
-        print(f'{random.choice(options)}')
+        print(f'\x1B[A\x1B[2K{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
-        print(f'{random.choice(options)}')
+        print(f'\x1B[A\x1B[2K{random.choice(options)}')
         time.sleep(0.1)
-    print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
     result = random.choice(options)
     return result
 
@@ -779,7 +775,7 @@ def spinTheBadWheel():
         f'{" "*indent}The sign of your {YELLOW}gold{CLEAR} has swapped!'
     ]
     result = spinWheelVisually(options)
-    print(result)
+    print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     if result == f'{" "*indent}You have been sent to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}.':
         playerPositions[currentPlayer] = findShadowRealm(board)
@@ -865,7 +861,7 @@ def spinTheGoodWheel():
         f'{" "*indent}You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!',
     ]
     result = spinWheelVisually(options)
-    print(result)
+    print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     if result == f'{" "*indent}You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
@@ -949,7 +945,7 @@ def spinTheShadowWheel():
         f'{" "*indent}You must spin the {RED}Bad Wheel{CLEAR}.'
     ]
     result = spinWheelVisually(options)
-    print(result)
+    print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     if result == f'{" "*indent}You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
@@ -1008,7 +1004,7 @@ def spinTheQuestWheel():
     options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
     spinWheelVisually(options)
     result = random.choice(actualOptions)
-    print(f'{" "*indent}{questTextFromDict(result)}')
+    print(f'\x1B[A\x1B[2K{" "*indent}{questTextFromDict(result)}')
     time.sleep(0.75)
     playerQuests[currentPlayer].append(result)
     indent -= 1
@@ -1043,7 +1039,7 @@ def spinTheFlamingoWheel():
         f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}'
     ]
     result = spinWheelVisually(options)
-    print(result)
+    print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Number Game{CLEAR}':
         unit = random.randint(2,9)
