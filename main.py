@@ -587,14 +587,14 @@ def evaluateSpaceType(spaceType):
         indent += 1
         print(f'{" "*indent}You get to spin the {GREEN}Good Wheel{CLEAR}!')
         spinTheGoodWheel()
-        updateQuests('goodSpace', 1)
         indent -= 1
+        updateQuests('goodSpace', 1)
     if spaceType == 'bad':
         indent += 1
         print(f'{" "*indent}You get to spin the {RED}Bad Wheel{CLEAR}.')
         spinTheBadWheel()
-        updateQuests('badSpace', 1)
         indent -= 1
+        updateQuests('badSpace', 1)
     if spaceType == 'shop':
         indent += 1
         print(f'{" "*indent}You get to buy from the {SHOP_SPACE}shop{CLEAR}!')
