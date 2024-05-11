@@ -746,18 +746,18 @@ def evaluatePathDecorators():
 def spinWheelVisually(options):
     print('')
     for _ in range(20):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
+        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
         print(f'{random.choice(options)}')
         time.sleep(0.02)
     for _ in range(5):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
+        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
         print(f'{random.choice(options)}')
         time.sleep(0.05)
     for _ in range(2):
-        print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
+        print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
         print(f'{random.choice(options)}')
         time.sleep(0.1)
-    print(f'\033[A {" "*(max([len(x) for x in options])+1)} \033[A')
+    print(f'\x1B[A {" "*(max([len(x) for x in options])+1)} \x1B[A')
     result = random.choice(options)
     return result
 
