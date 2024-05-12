@@ -1,11 +1,11 @@
-import random
-import time
 import os
 import copy
-import math
 import json
-import traceback
+import math
+import time
+import random
 import datetime
+import traceback
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
