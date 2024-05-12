@@ -1086,6 +1086,7 @@ def printShopList():
 
 def goToTheShop():
     global itemDescriptions
+    global numTimeMachines
     global indent
     indent += 1
     tab = 0
@@ -1117,6 +1118,9 @@ def goToTheShop():
             playerGolds[currentPlayer] -= price
             if item in itemRewards.keys():
                 playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
+            elif item == 'time machine':
+                numTimeMachines += 1
+                playerInventories[currentPlayer].append(f'{item};{numTimeMachines}')
             else:
                 playerInventories[currentPlayer].append(item)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
@@ -1141,11 +1145,15 @@ def printItemList(itemList):
     for item in itemList:
         actualItemRewards = copy.deepcopy(itemRewards)
         if ';' in item:
-            split = item.split(';')
-            item = split[0]
-            reward = int(split[1])
-            itemRewards[item] = reward
-            itemDescriptions = redefineItemDescriptions()
+            if 'time machine' not in item:
+                split = item.split(';')
+                item = split[0]
+                reward = int(split[1])
+                itemRewards[item] = reward
+                itemDescriptions = redefineItemDescriptions()
+            else:
+                split = item.split(';')
+                item = split[0]
         options += 1
         print(f'{" "*indent}{options}: {CYAN}{item.title()}{CLEAR} - {itemDescriptions[item]}')
         itemRewards = copy.deepcopy(actualItemRewards)
@@ -1428,6 +1436,7 @@ def useItem():
                         playerWaitingForEvents[player].append('bad wheel')
                         indent -= 1
                     if item == 'time machine':
+                        timeMachineIndex = reward
                         if len(prevPlayerPositions) >= 1+NUM_PLAYERS:
                             playerPositions = prevPlayerPositions[-1-NUM_PLAYERS]
                             playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
@@ -1460,15 +1469,19 @@ def useItem():
                                 prevDecorators.pop(-1)
                                 prevPathDecorators.pop(-1)
                                 prevBoards.pop(-1)
-                            if len(playerInventories) >= int(choice):
-                                if playerInventories[int(choice)-1] == 'time machine':
-                                    playerInventories[currentPlayer].remove(item)
+                            if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
+                                playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
+                            for gameState in prevPlayerInventories:
+                                if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
+                                    gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                             itemDescriptions = redefineItemDescriptions()
                             generateImage(board, paths)
                             indent -= 2
                             return 'continue'
                         else:
-                            print(f'{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                            indent += 1
+                            print(f'{" "*indent}{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                            indent -= 1
                     if item == 'padlock':
                         indent += 1
                         code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE}: (0-9999){CLEAR} ', 9999))
@@ -1570,7 +1583,7 @@ def visitGym():
             playerProgress[currentPlayer]["gym"] = 0
             playerStealBonus[currentPlayer] += 1
             for n, item in enumerate(playerInventories[currentPlayer]):
-                if ';' in item:
+                if ';' in item and 'time machine' not in item:
                     split = item.split(';')
                     playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
             indent -= 1
@@ -2391,6 +2404,8 @@ for _ in range(NUM_PLAYERS):
     playerQuests.append(copy.deepcopy([]))
     playerWaitingForEvents.append(copy.deepcopy([]))
     playerFrozens.append(False)
+
+numTimeMachines = 0
 
 prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
