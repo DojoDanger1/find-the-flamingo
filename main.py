@@ -2034,11 +2034,24 @@ def playBoardQuiz(numQuestions):
             for n in range(roundNum):
                 if valid:
                     possibleMoves = findPossibleMoves(paths, currentSpace, True, highwayInformation)
-                    move = random.choice(possibleMoves)
-                    moves.append(f'{getColourFromFraction((numQuestions-n-1)/numQuestions)}{move["direction"]}{CLEAR}')
-                    currentSpace = move['destination']
-                    if board[currentSpace['row']][currentSpace['col']] in ['shadow realm', 'flamingo']:
+                    if len(moves) > 0:
+                        if 'down' in moves[-1]:
+                            avoid = 'up'
+                        if 'up' in moves[-1]:
+                            avoid = 'down'
+                        if 'left' in moves[-1]:
+                            avoid = 'right'
+                        if 'right' in moves[-1]:
+                            avoid = 'left'
+                        possibleMoves = [move for move in possibleMoves if move['direction'] != avoid]
+                    if len(possibleMoves) == 0:
                         valid = False
+                    else:
+                        move = random.choice(possibleMoves)
+                        moves.append(f'{getColourFromFraction((numQuestions-n-1)/numQuestions)}{move["direction"]}{CLEAR}')
+                        currentSpace = move['destination']
+                        if board[currentSpace['row']][currentSpace['col']] in ['shadow realm', 'flamingo']:
+                            valid = False
         correctAnswer = board[currentSpace['row']][currentSpace['col']]
         possibleAnswers = [correctAnswer]
         for _ in range(3):
