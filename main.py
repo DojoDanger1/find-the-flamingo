@@ -1518,7 +1518,7 @@ def visitWingeria():
     indent += 1
     for player, bonus in enumerate(playerInvestmentBonus):
         if player != 0 and player != currentPlayer and bonus != 0:
-            print(f'You must pay {RED}Player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
+            print(f'{" "*indent}You must pay {RED}Player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
             playerGolds[currentPlayer] -= bonus
             playerGolds[player] += bonus
             indent += 1
