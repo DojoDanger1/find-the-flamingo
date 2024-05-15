@@ -1393,7 +1393,7 @@ def useItem():
                         else:
                             for player in playersOnCurrentSpot:
                                 playerSpeeds[player] -= 0.2
-                                playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+                                playerSpeeds[player] = round(playerSpeeds[player], 4)
                                 if playerSpeeds[player] < MINIMUM_SPEED:
                                     playerSpeeds[player] = MINIMUM_SPEED
                                 print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
