@@ -992,7 +992,7 @@ def questTextFromDict(quest):
     if quest['type'] == 'spendMoney':
         return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} at the {SHOP_SPACE}shop{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
     if quest['type'] == 'shootPeople':
-        return f'You must shoot {QUEST_SPACE}{quest["requirement"]}{CLEAR} people with {RED}1 bullet{CLEAR} using the {CYAN}gun{CLEAR} item'
+        return f'You must shoot {QUEST_SPACE}{quest["requirement"]}{CLEAR} people with {RED}1 bullet{CLEAR} using the {CYAN}gun{CLEAR} item. - {YELLOW}{quest["reward"]} gold{CLEAR}'
 
 def spinTheQuestWheel():
     global indent
