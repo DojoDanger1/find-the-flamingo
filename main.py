@@ -1392,7 +1392,7 @@ def useItem():
                             print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                         else:
                             for player in playersOnCurrentSpot:
-                                playerSpeeds[player] -= 0.2
+                                playerSpeeds[player] -= 0.15
                                 playerSpeeds[player] = round(playerSpeeds[player], 4)
                                 if playerSpeeds[player] < MINIMUM_SPEED:
                                     playerSpeeds[player] = MINIMUM_SPEED
@@ -2332,7 +2332,7 @@ def redefineItemDescriptions():
         "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
         #movement stuff
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
-        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.2{CLEAR} if they are on the same space as you.',
+        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.15{CLEAR} if they are on the same space as you.',
         "freeze ray": f'Make another player lose the {ORANGE}ability to move{CLEAR} for 1 turn.',
         "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
         #miscellaneous
