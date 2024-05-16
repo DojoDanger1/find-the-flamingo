@@ -1002,7 +1002,7 @@ def spinTheQuestWheel():
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
         {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0},
-        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(1, max(NUM_PLAYERS, 5))), "reward": peopleToShoot*5, "progress": 0}
+        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(1, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*5, "progress": 0}
     ]
     options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
     spinWheelVisually(options)
