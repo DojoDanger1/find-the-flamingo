@@ -818,7 +818,11 @@ def spinTheBadWheel():
                     valid = True
             item = playerInventories[currentPlayer][int(choice)-1]
             playerInventories[currentPlayer].remove(item)
-            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give the {CYAN}{item.title()}{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
+            if ';' in item:
+                itemName = item.split(';')[0]
+            else:
+                itemName = item
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give the {CYAN}{itemName.title()}{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
             playerInventories[player].append(item)
         indent -= 1
     if result == f'{" "*indent}You must spin the {RED}Bad Wheel{CLEAR} twice more.':
