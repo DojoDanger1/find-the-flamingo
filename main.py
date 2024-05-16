@@ -2159,7 +2159,10 @@ def playDateQuiz():
         print(f'{" "*indent}Question {getColourFromFraction((5-roundNum)/5)}{roundNum}{CLEAR}:')
         if roundNum == 1:
             lowerBound = datetime.date(today.year, today.month, 1)
-            upperBound = datetime.date(today.year, today.month + 1, 1) - datetime.timedelta(days=1)
+            if today.month == 12:
+                upperBound = datetime.date(today.year + 1, 1, 1) - datetime.timedelta(days=1)
+            else:
+                upperBound = datetime.date(today.year, today.month + 1, 1) - datetime.timedelta(days=1)
         if roundNum == 2:
             lowerBound = datetime.date(today.year, 1, 1)
             upperBound = datetime.date(today.year, 12, 31)
