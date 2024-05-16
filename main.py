@@ -987,6 +987,8 @@ def questTextFromDict(quest):
         return f'You must win back {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} by playing {GAMBLING_SPACE}blackjack{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
     if quest['type'] == 'spendMoney':
         return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} at the {SHOP_SPACE}shop{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if quest['type'] == 'shootPeople':
+        return f'You must shoot {QUEST_SPACE}{quest["requirement"]}{CLEAR} people with {RED}1 bullet{CLEAR} using the {CYAN}gun{CLEAR} item'
 
 def spinTheQuestWheel():
     global indent
@@ -999,7 +1001,8 @@ def spinTheQuestWheel():
         {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0},
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
-        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0}
+        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0},
+        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(1, max(NUM_PLAYERS, 5))), "reward": peopleToShoot*5, "progress": 0}
     ]
     options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
     spinWheelVisually(options)
@@ -1025,6 +1028,9 @@ def updateQuests(questType, qtyIncrease):
                 playerGolds[currentPlayer] += quest['reward']
                 print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                 indent -= 1
+            else:
+                if quest['type'] == 'shootPeople':
+                    quest['progress'] = 0
             indent -= 1
     for quest in sorted(questsToRemove, reverse=True):
         playerQuests[currentPlayer].pop(quest)
@@ -1336,6 +1342,7 @@ def useItem():
                         foundSomeone = False
                         currentPos = playerPositions[currentPlayer][changing]
                         possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same]]
+                        peopleShot = 0
                         while not foundSomeone:
                             currentPos += plusOrMinus
                             if currentPos >= GRID_SIZE:
@@ -1345,6 +1352,7 @@ def useItem():
                             for player, playerPosition in possibleTargets:
                                 if playerPosition[changing] == currentPos:
                                     foundSomeone = True
+                                    peopleShot += 1
                                     if player != currentPlayer:
                                         indent += 1
                                         print(f'{" "*indent}You hit {RED}Player {player}{CLEAR}!')
@@ -1362,6 +1370,7 @@ def useItem():
                                         print(f'{" "*indent}You lost {YELLOW}{reward} gold{CLEAR}.')
                                         print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                                         indent -= 2
+                        updateQuests('shootPeople', peopleShot)
                         indent -= 1
                     if item == 'trap':
                         indent += 1
