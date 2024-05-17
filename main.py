@@ -18,7 +18,7 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 3
 STARTING_INVENTORY = []
-STARTING_GOLD = 3
+STARTING_GOLD = 30
 STARTING_SPEED = 1
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -1100,14 +1100,10 @@ def goToTheShop():
     global indent
     indent += 1
     tab = 0
-    beenToTheShopBefore = False
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
         print(f'{" "*indent}What would you like to buy?')
-        if beenToTheShopBefore:
-            backAndUp = "\x1B[A\x1B[2K"
-            print(f'{backAndUp*(len(itemDescriptions.values())+len(itemSectionRanges.values())+2)}\x1B[A')
         printShopList()
         print(f'{" "*indent}You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         options = len(itemDescriptions.keys())
