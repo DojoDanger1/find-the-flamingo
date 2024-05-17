@@ -1113,7 +1113,6 @@ def goToTheShop():
             if choice == '0':
                 valid = True
             else:
-                beenToTheShopBefore = True
                 item = list(itemDescriptions.keys())[int(choice)-1]
                 price = itemPrices[item]
                 if price > playerGolds[currentPlayer]:
