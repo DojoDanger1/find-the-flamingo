@@ -2017,7 +2017,7 @@ def playNumberGame(gameUnit, gameStop):
                     failReason = f'{humanAnswer} is divisible by {gameUnit}'
                 elif len(str(ans)) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Digits'
-                elif sum([int(digit) for digit in str(num)]) == gameUnit:
+                elif sum([int(digit) for digit in str(ans)]) == gameUnit:
                     failReason = f'{humanAnswer}\'s digits sum to {gameUnit}'
                 elif len(numWordCleansed) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Letters'
