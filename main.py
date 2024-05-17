@@ -1100,10 +1100,13 @@ def goToTheShop():
     global indent
     indent += 1
     tab = 0
+    beenToTheShopBefore = False
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
         print(f'{" "*indent}What would you like to buy?')
+        if beenToTheShopBefore:
+            print(f'{"\x1B[A\x1B[2K"*(len(itemDescriptions)+len(itemSectionRanges)+5)}\x1B[A')
         printShopList()
         print(f'{" "*indent}You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         options = len(itemDescriptions.keys())
@@ -1113,6 +1116,7 @@ def goToTheShop():
             if choice == '0':
                 valid = True
             else:
+                beenToTheShopBefore = True
                 item = list(itemDescriptions.keys())[int(choice)-1]
                 price = itemPrices[item]
                 if price > playerGolds[currentPlayer]:
