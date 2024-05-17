@@ -1052,9 +1052,9 @@ def spinTheFlamingoWheel():
     print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Number Game{CLEAR}':
-        unit = random.randint(2,9)
+        unit = random.randint(3,9)
         limit = random.randint(50,200)
-        print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
+        print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}Digits {RED}cannot{CLEAR} sum to {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
         result = playNumberGame(unit, limit)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}':
         questions = random.randint(5,10)
@@ -1969,6 +1969,8 @@ def playNumberGame(gameUnit, gameStop):
                 numberPass = False
             if len(str(num)) == gameUnit:
                 numberPass = False
+            if sum([int(digit) for digit in str(num)]) == gameUnit:
+                numberPass = False
             if len(numWordCleansed) == gameUnit:
                 numberPass = False
             if numWordSyllables == gameUnit:
@@ -2015,6 +2017,8 @@ def playNumberGame(gameUnit, gameStop):
                     failReason = f'{humanAnswer} is divisible by {gameUnit}'
                 elif len(str(ans)) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Digits'
+                elif sum([int(digit) for digit in str(num)]) == gameUnit:
+                    failReason = f'{humanAnswer}\'s digits sum to {gameUnit}'
                 elif len(numWordCleansed) == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Letters'
                 elif numWordSyllables == gameUnit:
