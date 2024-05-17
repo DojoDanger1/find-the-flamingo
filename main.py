@@ -1106,7 +1106,8 @@ def goToTheShop():
             break
         print(f'{" "*indent}What would you like to buy?')
         if beenToTheShopBefore:
-            print(f'{"\x1B[A\x1B[2K"*(len(itemDescriptions)+len(itemSectionRanges)+5)}\x1B[A')
+            backAndUp = "\x1B[A\x1B[2K"
+            print(f'{backAndUp*(len(itemDescriptions)+len(itemSectionRanges)+5)}\x1B[A')
         printShopList()
         print(f'{" "*indent}You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         options = len(itemDescriptions.keys())
