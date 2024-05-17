@@ -2011,7 +2011,9 @@ def playNumberGame(gameUnit, gameStop):
                 numWordCleansed = numWord.replace(' ', '')
                 numWordCleansed = numWord.replace('-', '')
                 numWordSyllables = getSyllables(numWord)
-                if str(gameUnit) in str(ans):
+                if nextNumber < humanAnswer:
+                    failReason = f'There is a correct answer ({nextNumber}) before {humanAnswer}'
+                elif str(gameUnit) in str(ans):
                     failReason = f'{humanAnswer} contains {gameUnit}'
                 elif ans % gameUnit == 0:
                     failReason = f'{humanAnswer} is divisible by {gameUnit}'
@@ -2023,10 +2025,8 @@ def playNumberGame(gameUnit, gameStop):
                     failReason = f'{humanAnswer} has {gameUnit} Letters'
                 elif numWordSyllables == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Syllables'
-                elif nextNumber > humanAnswer:
-                    failReason = f'That was so stupid i\'m not even going to say what was wrong'
                 else:
-                    failReason = f'There is a correct answer ({nextNumber}) before {humanAnswer}'
+                    failReason = f'That was so stupid i\'m not even going to say what was wrong'
                 print(f'{" "*indent}{RED}Incorrect! {failReason}.{CLEAR}')
                 correct = False
             indent -= 1
