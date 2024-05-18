@@ -1006,7 +1006,7 @@ def spinTheQuestWheel():
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
         {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0},
-        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(1, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*5, "progress": 0}
+        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0}
     ]
     options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
     spinWheelVisually(options)
@@ -1094,7 +1094,7 @@ def printShopList():
     indent -= 1
     print(f'{" "*indent}{GREEN}{"-"*15}{CLEAR}')
 
-def goToTheShop():
+def goToTheShop(portable=False):
     global itemDescriptions
     global numTimeMachines
     global indent
@@ -1118,6 +1118,10 @@ def goToTheShop():
                 if price > playerGolds[currentPlayer]:
                     indent += 1
                     print(f'{" "*indent}{RED}You do not have enough gold! Please select a different item.{CLEAR}')
+                    indent -= 1
+                elif portable == True and item == 'portable shop':
+                    indent += 1
+                    print(f'{" "*indent}{RED}You cannot buy a portable shop from a portable shop! Please select a different item.{CLEAR}')
                     indent -= 1
                 else:
                     valid = True
@@ -1516,12 +1520,12 @@ def useItem():
                         print(f'{" "*indent}Successfully placed a {CYAN}padlock{CLEAR} on {GREEN}That Path{CLEAR}!')
                         indent -= 1
                     if item == 'portable shop':
-                        if playerGolds[currentPlayer] < min(itemPrices.values()):
+                        if playerGolds[currentPlayer] < min([itemPrices[key] for key in itemPrices.keys() if key != 'portable shop']):
                             indent += 1
                             print(f'{" "*indent}You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
                             indent -= 1
                         else:
-                            goToTheShop()
+                            goToTheShop(portable=True)
                 indent -= 1
     indent -= 1
     return 'dont continue'
