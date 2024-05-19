@@ -1956,7 +1956,7 @@ def playNumberGame(gameUnit, gameStop):
     def findNextNumber(num):
         numWord = numToWords(num)
         numWordCleansed = numWord.replace(' ', '')
-        numWordCleansed = numWord.replace('-', '')
+        numWordCleansed = numWordCleansed.replace('-', '')
         numWordSyllables = getSyllables(numWord)
         numberPass = True
         foundNextNumber = False
@@ -1964,7 +1964,7 @@ def playNumberGame(gameUnit, gameStop):
             num += 1
             numWord = numToWords(num)
             numWordCleansed = numWord.replace(' ', '')
-            numWordCleansed = numWord.replace('-', '')
+            numWordCleansed = numWordCleansed.replace('-', '')
             numWordSyllables = getSyllables(numWord)
             numberPass = True
             if str(gameUnit) in str(num):
@@ -2013,7 +2013,7 @@ def playNumberGame(gameUnit, gameStop):
             else:
                 numWord = numToWords(ans)
                 numWordCleansed = numWord.replace(' ', '')
-                numWordCleansed = numWord.replace('-', '')
+                numWordCleansed = numWordCleansed.replace('-', '')
                 numWordSyllables = getSyllables(numWord)
                 if nextNumber < humanAnswer:
                     failReason = f'There is a correct answer ({nextNumber}) before {humanAnswer}'
