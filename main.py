@@ -1250,7 +1250,7 @@ def useItem():
                         indent -= 1
                     if item == 'f3 menu':
                         indent += 1
-                        print(f'{" "*indent}Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]}{CLEAR}).')
+                        print(f'{" "*indent}Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]+1}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]+1}{CLEAR}).')
                         indent -= 1
                     if item == 'safeword':
                         playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
