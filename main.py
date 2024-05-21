@@ -1005,7 +1005,7 @@ def spinTheQuestWheel():
         {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0},
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
-        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(15,30)), "reward": int((spendMoney*1.25)//1), "progress": 0},
+        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0},
         {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0}
     ]
     options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
@@ -1194,6 +1194,7 @@ def useItem():
     global board
     done = False
     indent += 1
+    itemsUsed = []
     while not done:
         if len(playerInventories[currentPlayer]) == 0:
             done = True
@@ -1216,316 +1217,324 @@ def useItem():
                 printItemList(playerInventories[currentPlayer])
                 choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', len(playerInventories[currentPlayer]))
                 if int(choice) != 0:
+                    inventoryBackup = copy.deepcopy(playerInventories[currentPlayer])
                     item = playerInventories[currentPlayer].pop(int(choice)-1)
                     if ';' in item:
                         split = item.split(';')
                         item = split[0]
                         reward = int(split[1])
-                    #help i'm lost
-                    if item == 'compass':
+                    if item in itemsUsed:
                         indent += 1
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'{" "*indent}The compass is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                        else:
-                            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                            print(f'{" "*indent}Here is all of the information about the {ORANGE}Adjacent Spaces{CLEAR}:')
+                        print(f'{" "*indent}{RED}You have already used this item!{CLEAR} Try again at the next opportunity.')
+                        playerInventories[currentPlayer] = inventoryBackup
+                        indent -= 1
+                    else:
+                        itemsUsed.append(item)
+                        #help i'm lost
+                        if item == 'compass':
                             indent += 1
-                            message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]], punctuation=False)}.'
-                            for player, playerPosition in enumerate(playerPositions):
-                                if playerPosition == playerPositions[currentPlayer] and player != currentPlayer:
-                                    message += f' {RED}Player {player}{CLEAR} is also on this space.'
-                            for decorator in decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]:
-                                message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
-                            print(f'{" "*indent}{message}')
-                            for move in possibleMoves:
-                                destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
-                                message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                                print(f'{" "*indent}The compass is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
+                            else:
+                                possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                                print(f'{" "*indent}Here is all of the information about the {ORANGE}Adjacent Spaces{CLEAR}:')
+                                indent += 1
+                                message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]], punctuation=False)}.'
                                 for player, playerPosition in enumerate(playerPositions):
-                                    if playerPosition == move['destination']:
-                                        message += f' {RED}Player {player}{CLEAR} is on this space.'
-                                for decorator in decorators[move['destination']['row']][move['destination']['col']]:
+                                    if playerPosition == playerPositions[currentPlayer] and player != currentPlayer:
+                                        message += f' {RED}Player {player}{CLEAR} is also on this space.'
+                                for decorator in decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]:
                                     message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                 print(f'{" "*indent}{message}')
-                            indent -= 1
-                        indent -= 1
-                    if item == 'f3 menu':
-                        indent += 1
-                        print(f'{" "*indent}Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]+1}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]+1}{CLEAR}).')
-                        indent -= 1
-                    if item == 'safeword':
-                        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
-                    #where's the flamingo
-                    if item == 'red potion':
-                        indent += 1
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'{" "*indent}The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                        else:
-                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-                            firstPath = shortestPathToFlamingo[0]
-                            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                            for move in possibleMoves:
-                                possiblePaths = [
-                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": False},
-                                    {"start": move['path']['start'], "end": move['path']['end'], "oneWay": True},
-                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": False},
-                                    {"start": move['path']['end'], "end": move['path']['start'], "oneWay": True},
-                                ]
-                                if firstPath in possiblePaths:
-                                    print(f'{" "*indent}To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
-                        indent -= 1
-                    if item == 'green potion':
-                        indent += 1
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'{" "*indent}The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                        else:
-                            shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-                            print(f'{" "*indent}The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
-                        indent -= 1
-                    if item == 'flamingo':
-                        indent += 1
-                        print(f'{" "*indent}Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            indent += 1
-                            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
-                            indent -= 1
-                        else:
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
-                        indent -= 1
-                    if item == 'information':
-                        indent += 1
-                        for n, row in enumerate(board):
-                            for m, cell in enumerate(row):
-                                if cell == 'flamingo':
-                                    flamingoPos = (n+1, m+1)
-                        rowOrCol = random.choice(['row', 'col'])
-                        if rowOrCol == 'row':
-                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
-                            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-                        else:
-                            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
-                            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
-                        indent -= 1
-                    #violence is always the answer
-                    if item == 'knife':
-                        indent += 1
-                        playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
-                        if len(playersOnCurrentSpot) == 0:
-                            print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
-                        else:
-                            for player in playersOnCurrentSpot:
-                                playerGolds[player] -= reward
-                                playerGolds[currentPlayer] += reward
-                                print(f'{" "*indent}Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
-                                indent += 1
-                                print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                for move in possibleMoves:
+                                    destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
+                                    message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
+                                    for player, playerPosition in enumerate(playerPositions):
+                                        if playerPosition == move['destination']:
+                                            message += f' {RED}Player {player}{CLEAR} is on this space.'
+                                    for decorator in decorators[move['destination']['row']][move['destination']['col']]:
+                                        message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
+                                    print(f'{" "*indent}{message}')
                                 indent -= 1
-                                updateQuests('stabPeople', 1)
-                        indent -= 1
-                    if item == 'gun':
-                        indent += 1
-                        print(f'{" "*indent}Which direction would you like to shoot?')
-                        indent += 1
-                        print(f'{" "*indent}0: Down')
-                        print(f'{" "*indent}1: Left')
-                        print(f'{" "*indent}2: Right')
-                        print(f'{" "*indent}3: Up')
-                        indent -= 1
-                        direction = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 3)
-                        if direction == '0':
-                            changing = 'row'
-                            same = 'col'
-                            plusOrMinus = 1
-                        if direction == '1':
-                            changing = 'col'
-                            same = 'row'
-                            plusOrMinus = -1
-                        if direction == '2':
-                            changing = 'col'
-                            same = 'row'
-                            plusOrMinus = 1
-                        if direction == '3':
-                            changing = 'row'
-                            same = 'col'
-                            plusOrMinus = 1
-                        foundSomeone = False
-                        currentPos = playerPositions[currentPlayer][changing]
-                        possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same]]
-                        peopleShot = 0
-                        while not foundSomeone:
-                            currentPos += plusOrMinus
-                            if currentPos >= GRID_SIZE:
-                                currentPos = 0
-                            if currentPos <= -1:
-                                currentPos = GRID_SIZE-1
-                            for player, playerPosition in possibleTargets:
-                                if playerPosition[changing] == currentPos:
-                                    foundSomeone = True
-                                    peopleShot += 1
-                                    if player != currentPlayer:
-                                        indent += 1
-                                        print(f'{" "*indent}You hit {RED}Player {player}{CLEAR}!')
-                                        playerGolds[player] -= reward
-                                        playerGolds[currentPlayer] += reward
-                                        indent += 1
-                                        print(f'{" "*indent}Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
-                                        print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
-                                        indent -= 2
-                                    else:
-                                        indent += 1
-                                        print(f'{" "*indent}The bullet wrapped around the map and {RED}hit you{CLEAR}!')
-                                        playerGolds[currentPlayer] -= reward
-                                        indent += 1
-                                        print(f'{" "*indent}You lost {YELLOW}{reward} gold{CLEAR}.')
-                                        print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                                        indent -= 2
-                        updateQuests('shootPeople', peopleShot)
-                        indent -= 1
-                    if item == 'trap':
-                        indent += 1
-                        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
-                        print(f'{" "*indent}Successfully placed a trap on {GREEN}This Space{CLEAR}!')
-                        indent -= 1
-                    if item == 'goblin':
-                        indent += 1
-                        print(f'{" "*indent}Successfully placed a goblin on {GREEN}This Space{CLEAR}!')
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            indent += 1
-                            print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                             indent -= 1
-                        else:
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
-                        indent -= 1
-                    #movement stuff
-                    if item == 'dumbells':
-                        indent += 1
-                        playerSpeeds[currentPlayer] += 0.1
-                        playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-                        print(f'{" "*indent}Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
-                        indent -= 1
-                    if item == 'fat injection':
-                        indent += 1
-                        playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
-                        if len(playersOnCurrentSpot) == 0:
-                            print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
-                        else:
-                            for player in playersOnCurrentSpot:
-                                playerSpeeds[player] -= 0.15
-                                playerSpeeds[player] = round(playerSpeeds[player], 4)
-                                if playerSpeeds[player] < MINIMUM_SPEED:
-                                    playerSpeeds[player] = MINIMUM_SPEED
-                                print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
-                        indent -= 1
-                    if item == 'freeze ray':
-                        indent += 1
-                        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
-                        playerFrozens[player] = True
-                        indent -= 1
-                    if item == 'swap':
-                        indent += 1
-                        player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        valid = False
-                        while not valid:
-                            player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                            if player2 == player1:
+                        if item == 'f3 menu':
+                            indent += 1
+                            print(f'{" "*indent}Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]+1}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]+1}{CLEAR}).')
+                            indent -= 1
+                        if item == 'safeword':
+                            playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+                        #where's the flamingo
+                        if item == 'red potion':
+                            indent += 1
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                                print(f'{" "*indent}The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
+                            else:
+                                shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+                                firstPath = shortestPathToFlamingo[0]
+                                possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                                for move in possibleMoves:
+                                    possiblePaths = [
+                                        {"start": move['path']['start'], "end": move['path']['end'], "oneWay": False},
+                                        {"start": move['path']['start'], "end": move['path']['end'], "oneWay": True},
+                                        {"start": move['path']['end'], "end": move['path']['start'], "oneWay": False},
+                                        {"start": move['path']['end'], "end": move['path']['start'], "oneWay": True},
+                                    ]
+                                    if firstPath in possiblePaths:
+                                        print(f'{" "*indent}To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
+                            indent -= 1
+                        if item == 'green potion':
+                            indent += 1
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                                print(f'{" "*indent}The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
+                            else:
+                                shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+                            indent -= 1
+                        if item == 'flamingo':
+                            indent += 1
+                            print(f'{" "*indent}Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
                                 indent += 1
-                                print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
+                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                                 indent -= 1
                             else:
-                                valid = True
-                        temp = playerPositions[player1]
-                        playerPositions[player1] = playerPositions[player2]
-                        playerPositions[player2] = temp
-                        indent -= 1
-                    #miscellaneous
-                    if item == 'gold potion':
-                        indent += 1
-                        if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
-                            print(f'{" "*indent}The gold potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No {YELLOW}gold{CLEAR} was placed.')
-                        else:
+                                decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
+                            indent -= 1
+                        if item == 'information':
+                            indent += 1
+                            for n, row in enumerate(board):
+                                for m, cell in enumerate(row):
+                                    if cell == 'flamingo':
+                                        flamingoPos = (n+1, m+1)
+                            rowOrCol = random.choice(['row', 'col'])
+                            if rowOrCol == 'row':
+                                choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
+                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+                            else:
+                                choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
+                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+                            indent -= 1
+                        #violence is always the answer
+                        if item == 'knife':
+                            indent += 1
+                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                            if len(playersOnCurrentSpot) == 0:
+                                print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
+                            else:
+                                for player in playersOnCurrentSpot:
+                                    playerGolds[player] -= reward
+                                    playerGolds[currentPlayer] += reward
+                                    print(f'{" "*indent}Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                    indent += 1
+                                    print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                    indent -= 1
+                                    updateQuests('stabPeople', 1)
+                            indent -= 1
+                        if item == 'gun':
+                            indent += 1
+                            print(f'{" "*indent}Which direction would you like to shoot?')
+                            indent += 1
+                            print(f'{" "*indent}0: Down')
+                            print(f'{" "*indent}1: Left')
+                            print(f'{" "*indent}2: Right')
+                            print(f'{" "*indent}3: Up')
+                            indent -= 1
+                            direction = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 3)
+                            if direction == '0':
+                                changing = 'row'
+                                same = 'col'
+                                plusOrMinus = 1
+                            if direction == '1':
+                                changing = 'col'
+                                same = 'row'
+                                plusOrMinus = -1
+                            if direction == '2':
+                                changing = 'col'
+                                same = 'row'
+                                plusOrMinus = 1
+                            if direction == '3':
+                                changing = 'row'
+                                same = 'col'
+                                plusOrMinus = 1
+                            foundSomeone = False
+                            currentPos = playerPositions[currentPlayer][changing]
+                            possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same]]
+                            peopleShot = 0
+                            while not foundSomeone:
+                                currentPos += plusOrMinus
+                                if currentPos >= GRID_SIZE:
+                                    currentPos = 0
+                                if currentPos <= -1:
+                                    currentPos = GRID_SIZE-1
+                                for player, playerPosition in possibleTargets:
+                                    if playerPosition[changing] == currentPos:
+                                        foundSomeone = True
+                                        peopleShot += 1
+                                        if player != currentPlayer:
+                                            indent += 1
+                                            print(f'{" "*indent}You hit {RED}Player {player}{CLEAR}!')
+                                            playerGolds[player] -= reward
+                                            playerGolds[currentPlayer] += reward
+                                            indent += 1
+                                            print(f'{" "*indent}Stolen {YELLOW}{reward} gold{CLEAR} from {GREEN}Player {player}{CLEAR}.')
+                                            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+                                            indent -= 2
+                                        else:
+                                            indent += 1
+                                            print(f'{" "*indent}The bullet wrapped around the map and {RED}hit you{CLEAR}!')
+                                            playerGolds[currentPlayer] -= reward
+                                            indent += 1
+                                            print(f'{" "*indent}You lost {YELLOW}{reward} gold{CLEAR}.')
+                                            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+                                            indent -= 2
+                            updateQuests('shootPeople', peopleShot)
+                            indent -= 1
+                        if item == 'trap':
+                            indent += 1
+                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
+                            print(f'{" "*indent}Successfully placed a trap on {GREEN}This Space{CLEAR}!')
+                            indent -= 1
+                        if item == 'goblin':
+                            indent += 1
+                            print(f'{" "*indent}Successfully placed a goblin on {GREEN}This Space{CLEAR}!')
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                                indent += 1
+                                print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                                indent -= 1
+                            else:
+                                decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
+                            indent -= 1
+                        #movement stuff
+                        if item == 'dumbells':
+                            indent += 1
+                            playerSpeeds[currentPlayer] += 0.1
+                            playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+                            print(f'{" "*indent}Your {GYM_SPACE}speed{CLEAR} is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}')
+                            indent -= 1
+                        if item == 'fat injection':
+                            indent += 1
+                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                            if len(playersOnCurrentSpot) == 0:
+                                print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
+                            else:
+                                for player in playersOnCurrentSpot:
+                                    playerSpeeds[player] -= 0.15
+                                    playerSpeeds[player] = round(playerSpeeds[player], 4)
+                                    if playerSpeeds[player] < MINIMUM_SPEED:
+                                        playerSpeeds[player] = MINIMUM_SPEED
+                                    print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
+                            indent -= 1
+                        if item == 'freeze ray':
+                            indent += 1
+                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
+                            playerFrozens[player] = True
+                            indent -= 1
+                        if item == 'swap':
+                            indent += 1
+                            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            valid = False
+                            while not valid:
+                                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                                if player2 == player1:
+                                    indent += 1
+                                    print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
+                                    indent -= 1
+                                else:
+                                    valid = True
+                            temp = playerPositions[player1]
+                            playerPositions[player1] = playerPositions[player2]
+                            playerPositions[player2] = temp
+                            indent -= 1
+                        #miscellaneous
+                        if item == 'gold potion':
+                            indent += 1
+                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                                print(f'{" "*indent}The gold potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No {YELLOW}gold{CLEAR} was placed.')
+                            else:
+                                possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                                chosenSpace = random.choice(possibleMoves)['destination']
+                                decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
+                                print(f'{" "*indent}Successfully placed {reward} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
+                            indent -= 1
+                        if item == 'wand':
+                            indent += 1
+                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            playerWaitingForEvents[player].append('bad wheel')
+                            indent -= 1
+                        if item == 'time machine':
+                            timeMachineIndex = reward
+                            if len(prevPlayerPositions) >= 1+NUM_PLAYERS:
+                                playerPositions = prevPlayerPositions[-1-NUM_PLAYERS]
+                                playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
+                                playerGolds = prevPlayerGolds[-1-NUM_PLAYERS]
+                                playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS]
+                                playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
+                                playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
+                                playerInvestmentBonus = prevPlayerInvestmentBonus[-1-NUM_PLAYERS]
+                                playerQuests = prevPlayerQuests[-1-NUM_PLAYERS]
+                                playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
+                                playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
+                                itemPrices = prevItemPrices[-1-NUM_PLAYERS]
+                                itemRewards = prevItemRewards[-1-NUM_PLAYERS]
+                                decorators = prevDecorators[-1-NUM_PLAYERS]
+                                pathDecorators = prevPathDecorators[-1-NUM_PLAYERS]
+                                board = prevBoards[-1-NUM_PLAYERS]
+                                for _ in range(NUM_PLAYERS):
+                                    prevPlayerPositions.pop(-1)
+                                    prevPlayerInventories.pop(-1)
+                                    prevPlayerGolds.pop(-1)
+                                    prevPlayerSpeeds.pop(-1)
+                                    prevPlayerProgress.pop(-1)
+                                    prevPlayerStealBonus.pop(-1)
+                                    prevPlayerInvestmentBonus.pop(-1)
+                                    prevPlayerQuests.pop(-1)
+                                    prevPlayerWaitingForEvents.pop(-1)
+                                    prevPlayerFrozens.pop(-1)
+                                    prevItemPrices.pop(-1)
+                                    prevItemRewards.pop(-1)
+                                    prevDecorators.pop(-1)
+                                    prevPathDecorators.pop(-1)
+                                    prevBoards.pop(-1)
+                                if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
+                                    playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
+                                for gameState in prevPlayerInventories:
+                                    if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
+                                        gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
+                                itemDescriptions = redefineItemDescriptions()
+                                generateImage(board, paths)
+                                indent -= 2
+                                return 'continue'
+                            else:
+                                indent += 1
+                                print(f'{" "*indent}{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                                indent -= 1
+                        if item == 'padlock':
+                            indent += 1
+                            code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE}: (0-9999){CLEAR} ', 9999))
+                            print(f'{" "*indent}Where would you like to place the {CYAN}padlock{CLEAR}?')
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                            chosenSpace = random.choice(possibleMoves)['destination']
-                            decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
-                            print(f'{" "*indent}Successfully placed {reward} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
-                        indent -= 1
-                    if item == 'wand':
-                        indent += 1
-                        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
-                        playerWaitingForEvents[player].append('bad wheel')
-                        indent -= 1
-                    if item == 'time machine':
-                        timeMachineIndex = reward
-                        if len(prevPlayerPositions) >= 1+NUM_PLAYERS:
-                            playerPositions = prevPlayerPositions[-1-NUM_PLAYERS]
-                            playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
-                            playerGolds = prevPlayerGolds[-1-NUM_PLAYERS]
-                            playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS]
-                            playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
-                            playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
-                            playerInvestmentBonus = prevPlayerInvestmentBonus[-1-NUM_PLAYERS]
-                            playerQuests = prevPlayerQuests[-1-NUM_PLAYERS]
-                            playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
-                            playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
-                            itemPrices = prevItemPrices[-1-NUM_PLAYERS]
-                            itemRewards = prevItemRewards[-1-NUM_PLAYERS]
-                            decorators = prevDecorators[-1-NUM_PLAYERS]
-                            pathDecorators = prevPathDecorators[-1-NUM_PLAYERS]
-                            board = prevBoards[-1-NUM_PLAYERS]
-                            for _ in range(NUM_PLAYERS):
-                                prevPlayerPositions.pop(-1)
-                                prevPlayerInventories.pop(-1)
-                                prevPlayerGolds.pop(-1)
-                                prevPlayerSpeeds.pop(-1)
-                                prevPlayerProgress.pop(-1)
-                                prevPlayerStealBonus.pop(-1)
-                                prevPlayerInvestmentBonus.pop(-1)
-                                prevPlayerQuests.pop(-1)
-                                prevPlayerWaitingForEvents.pop(-1)
-                                prevPlayerFrozens.pop(-1)
-                                prevItemPrices.pop(-1)
-                                prevItemRewards.pop(-1)
-                                prevDecorators.pop(-1)
-                                prevPathDecorators.pop(-1)
-                                prevBoards.pop(-1)
-                            if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
-                                playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
-                            for gameState in prevPlayerInventories:
-                                if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
-                                    gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
-                            itemDescriptions = redefineItemDescriptions()
-                            generateImage(board, paths)
-                            indent -= 2
-                            return 'continue'
-                        else:
+                            options = 0
                             indent += 1
-                            print(f'{" "*indent}{RED}Unfortunately, the game has not existed long enough to rewind 1 round.{CLEAR}')
+                            for move in possibleMoves:
+                                options += 1
+                                print(f'{" "*indent}{options}: {move["direction"].title()}')
                             indent -= 1
-                    if item == 'padlock':
-                        indent += 1
-                        code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE}: (0-9999){CLEAR} ', 9999))
-                        print(f'{" "*indent}Where would you like to place the {CYAN}padlock{CLEAR}?')
-                        possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                        options = 0
-                        indent += 1
-                        for move in possibleMoves:
-                            options += 1
-                            print(f'{" "*indent}{options}: {move["direction"].title()}')
-                        indent -= 1
-                        choice = '0'
-                        while choice == '0':
-                            choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
-                        chosenPath = possibleMoves[int(choice)-1]['path']
-                        for n, path in enumerate(paths):
-                            if path == chosenPath:
-                                pathDecorators[n].append({'type': 'padlock', 'code': code})
-                        print(f'{" "*indent}Successfully placed a {CYAN}padlock{CLEAR} on {GREEN}That Path{CLEAR}!')
-                        indent -= 1
-                    if item == 'portable shop':
-                        if playerGolds[currentPlayer] < min([itemPrices[key] for key in itemPrices.keys() if key != 'portable shop']):
-                            indent += 1
-                            print(f'{" "*indent}You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                            choice = '0'
+                            while choice == '0':
+                                choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                            chosenPath = possibleMoves[int(choice)-1]['path']
+                            for n, path in enumerate(paths):
+                                if path == chosenPath:
+                                    pathDecorators[n].append({'type': 'padlock', 'code': code})
+                            print(f'{" "*indent}Successfully placed a {CYAN}padlock{CLEAR} on {GREEN}That Path{CLEAR}!')
                             indent -= 1
-                        else:
-                            goToTheShop(portable=True)
+                        if item == 'portable shop':
+                            if playerGolds[currentPlayer] < min([itemPrices[key] for key in itemPrices.keys() if key != 'portable shop']):
+                                indent += 1
+                                print(f'{" "*indent}You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                                indent -= 1
+                            else:
+                                goToTheShop(portable=True)
                 indent -= 1
     indent -= 1
     return 'dont continue'
