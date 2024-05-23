@@ -1588,8 +1588,9 @@ def visitGym():
     indent += 1
     print(f'{" "*indent}0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
     print(f'{" "*indent}1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
+    print(f'{" "*indent}2: Mewing - {RED}1 in 100 chance{CLEAR} of doubling {GYM_SPACE}speed{CLEAR} and {YELLOW}gold{CLEAR}.')
     indent -= 1
-    choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+    choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 2))
     if choice == 0:
         indent += 1
         workoutTime = random.randint(1, 24)
@@ -1613,6 +1614,17 @@ def visitGym():
                     split = item.split(';')
                     playerInventories[currentPlayer][n] = f'{split[0]};{int(split[1])+1}'
             indent -= 1
+        indent -= 1
+    if choice == 2:
+        indent += 1
+        if random.random() <= 0.01:
+            print(f'{" "*indent}{GREEN}Your mewing payed off!{CLEAR}')
+            playerSpeeds[currentPlayer] *= 2
+            print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+            playerGolds[currentPlayer] *= 2
+            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+        else:
+            print(f'{" "*indent}{RED}Unfortunately,{CLEAR} your {GYM_SPACE}{random.randint(1, 24)} hour mewing exercise{CLEAR} did nothing!')
         indent -= 1
     indent -= 1
 
