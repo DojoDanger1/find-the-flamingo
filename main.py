@@ -1618,7 +1618,7 @@ def visitGym():
     if choice == 2:
         indent += 1
         if random.random() <= 0.01:
-            print(f'{" "*indent}{GREEN}Your mewing payed off!{CLEAR}')
+            print(f'{" "*indent}{GREEN}Your mewing paid off!{CLEAR}')
             playerSpeeds[currentPlayer] *= 2
             print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
             playerGolds[currentPlayer] *= 2
