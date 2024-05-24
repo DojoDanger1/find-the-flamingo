@@ -74,6 +74,7 @@ TIMEWARP_SPACE = getColour(0, 97, 112)
 PAPAS_WINGERIA_SPACE = getColour(133, 60, 1)
 GYM_SPACE = getColour(0, 199, 192)
 QUEST_SPACE = getColour(176, 0, 230)
+ENTANGLEMENT_SPACE = getColour(255, 88, 10)
 
 def fillSpaces(board, fillWith, howMany, initialState):
     linearBoard = sum(board, [])
@@ -214,6 +215,7 @@ def generateBoard():
         board = fillSpaces(board, 'papas wingeria', numEmpties // 12, 'empty')
         board = fillSpaces(board, 'gym', numEmpties // 12, 'empty')
         board = fillSpaces(board, 'quest', numEmpties // 10, 'empty')
+        board = fillSpaces(board, 'entanglement', numEmpties // 20, 'empty')
         #get positions of flamingo and shadow realm and home
         for n, row in enumerate(board):
             for m, cell in enumerate(row):
@@ -307,7 +309,7 @@ def generateBoard():
     print('generating image...')
     return board, paths, decorators, pathDecorators
 
-def generateImage(board, paths):
+def generateImage(board, paths, quantumEntanglements):
     width = GRID_SIZE*100
     height = GRID_SIZE*100
 
@@ -329,6 +331,13 @@ def generateImage(board, paths):
             draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
         else:
             draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#000000', 'RGBA'), width=10)
+    for entanglement in quantumEntanglements:
+        if entanglement[0]['col'] == entanglement[1]['col']:
+            draw.line((entanglement[0]['col']*100+65, entanglement[0]['row']*100+50, entanglement[1]['col']*100+65, entanglement[1]['row']*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+        elif entanglement[0]['row'] == entanglement[1]['row']:
+            draw.line((entanglement[0]['col']*100+50, entanglement[0]['row']*100+65, entanglement[1]['col']*100+50, entanglement[1]['row']*100+65), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+        else:
+            draw.line((entanglement[0]['col']*100+50, entanglement[0]['row']*100+50, entanglement[1]['col']*100+50, entanglement[1]['row']*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
     for n, row in enumerate(board):
         for m, cell in enumerate(row):
             if cell == 'empty':
@@ -357,6 +366,8 @@ def generateImage(board, paths):
                 colour = '#00c7c0'
             if cell == 'quest':
                 colour = '#b000e6'
+            if cell == 'entanglement':
+                colour = '#ff580a'
             if cell != None:
                 draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
         
@@ -549,6 +560,17 @@ def askForPlayer(prompt, includeSelf):
         option = askForPlayer(prompt, includeSelf)
     return str(option)
 
+def evaluateEntanglement():
+    if random.random() < 0.5:
+        possibleSpaces = []
+        for entanglement in quantumEntanglements:
+            if playerPositions[currentPlayer] in entanglement:
+                possibleSpaces.append(entanglement[1-entanglement.index(playerPositions[currentPlayer])])
+        if len(possibleSpaces) >= 1:
+            chosenSpace = random.choice(possibleSpaces)
+            playerPositions[currentPlayer] = chosenSpace
+            
+
 def evaluateSpaceType(spaceType):
     global indent
     global running
@@ -655,6 +677,21 @@ def evaluateSpaceType(spaceType):
         indent += 1
         print(f'{" "*indent}You must spin the {QUEST_SPACE}quest wheel{CLEAR} to recieve a random {QUEST_SPACE}quest{CLEAR}!')
         spinTheQuestWheel()
+        indent -= 1
+    if spaceType == 'entanglement':
+        indent += 1
+        if len(quantumEntanglements) == GRID_SIZE // 2:
+            print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}! An old {ENTANGLEMENT_SPACE}entanglement{CLEAR} has also been {RED}removed{CLEAR}.')
+            quantumEntanglements.pop(random.randint(1,len(quantumEntanglements))-1)
+        else:
+            print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}!')
+        print(f'{" "*indent}If you are on a space that has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}, there is a {RED}50% chance{CLEAR} you will be {TELEPORT_SPACE}teleported{CLEAR} to the other one')
+        firstSpace = selectRandomSpace(board)
+        secondSpace = firstSpace
+        while firstSpace == secondSpace:
+            secondSpace = selectRandomSpace(board)
+        quantumEntanglements.append([firstSpace, secondSpace])
+        generateImage(board, paths, quantumEntanglements)
         indent -= 1
     indent -= 1
 
@@ -842,7 +879,7 @@ def spinTheBadWheel():
             board = fillSpaces(board, 'shop', 1, 'empty')
         if changeType == 'addSpeedSpace':
             board = fillSpaces(board, random.choice(['papas wingeria', 'gym']), 1, 'empty')
-        generateImage(board, paths)
+        generateImage(board, paths, quantumEntanglements)
     if result == f'{" "*indent}The sign of your {YELLOW}gold{CLEAR} has swapped!':
         playerGolds[currentPlayer] *= -1
         print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
@@ -1498,6 +1535,7 @@ def useItem():
                                 decorators = prevDecorators[-1-NUM_PLAYERS]
                                 pathDecorators = prevPathDecorators[-1-NUM_PLAYERS]
                                 board = prevBoards[-1-NUM_PLAYERS]
+                                quantumEntanglements = prevQuantumEntanglements[-1-NUM_PLAYERS]
                                 for _ in range(NUM_PLAYERS):
                                     prevPlayerPositions.pop(-1)
                                     prevPlayerInventories.pop(-1)
@@ -1514,13 +1552,14 @@ def useItem():
                                     prevDecorators.pop(-1)
                                     prevPathDecorators.pop(-1)
                                     prevBoards.pop(-1)
+                                    prevQuantumEntanglements.pop(-1)
                                 if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
                                     playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 for gameState in prevPlayerInventories:
                                     if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
                                         gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 itemDescriptions = redefineItemDescriptions()
-                                generateImage(board, paths)
+                                generateImage(board, paths, quantumEntanglements)
                                 indent -= 2
                                 return 'continue'
                             else:
@@ -2328,6 +2367,8 @@ def grammatiseSpaceType(spaceType, punctuation=False, title=False):
         return f'a {GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'quest':
         return f'a {QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR} space{"!" if punctuation else ""}'
+    if spaceType == 'entanglement':
+        return f'an {ENTANGLEMENT_SPACE}{"Entanglement" if title else "entanglement"}{CLEAR} space{"!" if punctuation else ""}'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
@@ -2347,6 +2388,7 @@ def saveToFile(filename):
         "highwayInformation": highwayInformation,
         "decorators": decorators,
         "pathDecorators": pathDecorators,
+        "quantumEntanglements": quantumEntanglements,
         "playerPositions": playerPositions,
         "playerInventories": playerInventories,
         "playerGolds": playerGolds,
@@ -2362,6 +2404,7 @@ def saveToFile(filename):
         "prevBoards": prevBoards,
         "prevDecorators": prevDecorators,
         "prevPathDecorators": prevPathDecorators,
+        "prevQuantumEntanglements": prevQuantumEntanglements,
         "prevPlayerPositions": prevPlayerPositions,
         "prevPlayerInventories": prevPlayerInventories,
         "prevPlayerGolds": prevPlayerGolds,
@@ -2409,7 +2452,8 @@ def redefineItemDescriptions():
     return itemDescriptions
 
 board, paths, decorators, pathDecorators = generateBoard()
-generateImage(board, paths)
+quantumEntanglements = []
+generateImage(board, paths, quantumEntanglements)
 highwayInformation = decideHighwayInformation(board, paths)
 
 itemPrices = {
@@ -2499,6 +2543,7 @@ prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
 prevPathDecorators = [copy.deepcopy(pathDecorators)]
 prevBoards = [copy.deepcopy(board)]
+prevQuantumEntanglements = [copy.deepcopy(quantumEntanglements)]
 
 try:
     running = True
@@ -2508,6 +2553,7 @@ try:
         indent = 0
         print('-'*50)
         print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
+        evaluateEntanglement()
         if len(playerQuests[currentPlayer]) > 0:
             indent += 1
             print(f'{" "*indent}Your current {QUEST_SPACE}quests{CLEAR} are:')
@@ -2637,6 +2683,7 @@ try:
                     highwayInformation = data["highwayInformation"]
                     decorators = data["decorators"]
                     pathDecorators = data["pathDecorators"]
+                    quantumEntanglements = data["quantumEntanglements"]
                     playerPositions = data["playerPositions"]
                     playerInventories = data["playerInventories"]
                     playerGolds = data["playerGolds"]
@@ -2652,6 +2699,7 @@ try:
                     prevBoards = data["prevBoards"]
                     prevDecorators = data["prevDecorators"]
                     prevPathDecorators = data["prevPathDecorators"]
+                    prevQuantumEntanglements = data["prevQuantumEntanglements"]
                     prevPlayerPositions = data["prevPlayerPositions"]
                     prevPlayerInventories = data["prevPlayerInventories"]
                     prevPlayerGolds = data["prevPlayerGolds"]
@@ -2665,7 +2713,7 @@ try:
                     prevItemPrices = data["prevItemPrices"]
                     prevItemRewards = data["prevItemRewards"]
                     os.remove(f'saves/{dir[int(choice)-1]}')
-                    generateImage(board, paths)
+                    generateImage(board, paths, quantumEntanglements)
                 indent -= 1
             saveToFile('current')
             os.system('clear')
@@ -2685,6 +2733,7 @@ try:
             prevDecorators.append(copy.deepcopy(decorators))
             prevPathDecorators.append(copy.deepcopy(pathDecorators))
             prevBoards.append(copy.deepcopy(board))
+            prevQuantumEntanglements.append(copy.deepcopy(quantumEntanglements))
             #change turn order
             currentPlayer += 1
             if currentPlayer > NUM_PLAYERS:
