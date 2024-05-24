@@ -561,6 +561,7 @@ def askForPlayer(prompt, includeSelf):
     return str(option)
 
 def evaluateEntanglement():
+    global indent
     if random.random() < 0.5:
         possibleSpaces = []
         for entanglement in quantumEntanglements:
@@ -569,8 +570,12 @@ def evaluateEntanglement():
         if len(possibleSpaces) >= 1:
             chosenSpace = random.choice(possibleSpaces)
             playerPositions[currentPlayer] = chosenSpace
+            if playerQuantumNotifications[currentPlayer] >= 1:
+                playerQuantumNotifications[currentPlayer] -= 1
+                indent += 1
+                print(f'{" "*indent}You have been {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}!')
+                indent -= 1
             
-
 def evaluateSpaceType(spaceType):
     global indent
     global running
@@ -656,6 +661,7 @@ def evaluateSpaceType(spaceType):
         playerQuests[player] = prevPlayerQuests[-targetTime][player]
         playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
         playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
+        playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
         for _ in range(targetTime-1):
             for i in range(1, len(prevPlayerPositions)):
                 prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
@@ -668,6 +674,7 @@ def evaluateSpaceType(spaceType):
                 prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
                 prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                 prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
+                prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
         indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
@@ -680,18 +687,27 @@ def evaluateSpaceType(spaceType):
         indent -= 1
     if spaceType == 'entanglement':
         indent += 1
-        if len(quantumEntanglements) == GRID_SIZE // 2:
-            print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}! An old {ENTANGLEMENT_SPACE}entanglement{CLEAR} has also been {RED}removed{CLEAR}.')
-            quantumEntanglements.pop(random.randint(1,len(quantumEntanglements))-1)
-        else:
-            print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}!')
-        print(f'{" "*indent}If you are on a space that has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}, there is a {RED}50% chance{CLEAR} you will be {TELEPORT_SPACE}teleported{CLEAR} to the other one')
+        print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}!')
+        print(f'{" "*indent}If you are on a space that has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}, there is a {RED}50% chance{CLEAR} you will be {TELEPORT_SPACE}teleported{CLEAR} to the other one.')
         firstSpace = selectRandomSpace(board)
         secondSpace = firstSpace
         while firstSpace == secondSpace:
             secondSpace = selectRandomSpace(board)
         quantumEntanglements.append([firstSpace, secondSpace])
         generateImage(board, paths, quantumEntanglements)
+        if playerGolds[currentPlayer] >= 5:
+            print(f'{" "*indent}Would you like to pay {YELLOW}5 gold{CLEAR} to be {GREEN}notified{CLEAR} when you next get {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
+            if choice == '1':
+                indent += 1
+                playerQuantumNotifications[currentPlayer] += 1
+                playerGolds[currentPlayer] -= 5
+                print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+                indent -= 1
         indent -= 1
     indent -= 1
 
@@ -1242,12 +1258,14 @@ def useItem():
     global playerQuests
     global playerWaitingForEvents
     global playerFrozens
+    global playerQuantumNotifications
     global itemPrices
     global itemRewards
     global itemDescriptions
     global decorators
     global pathDecorators
     global board
+    global quantumEntanglements
     done = False
     indent += 1
     itemsUsed = []
@@ -1530,6 +1548,7 @@ def useItem():
                                 playerQuests = prevPlayerQuests[-1-NUM_PLAYERS]
                                 playerWaitingForEvents = prevPlayerWaitingForEvents[-1-NUM_PLAYERS]
                                 playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS]
+                                playerQuantumNotifications = prevPlayerQuantumNotifications[-1-NUM_PLAYERS]
                                 itemPrices = prevItemPrices[-1-NUM_PLAYERS]
                                 itemRewards = prevItemRewards[-1-NUM_PLAYERS]
                                 decorators = prevDecorators[-1-NUM_PLAYERS]
@@ -1547,6 +1566,7 @@ def useItem():
                                     prevPlayerQuests.pop(-1)
                                     prevPlayerWaitingForEvents.pop(-1)
                                     prevPlayerFrozens.pop(-1)
+                                    prevPlayerQuantumNotifications.pop(-1)
                                     prevItemPrices.pop(-1)
                                     prevItemRewards.pop(-1)
                                     prevDecorators.pop(-1)
@@ -2155,7 +2175,7 @@ def playBoardQuiz(numQuestions):
         correctAnswer = board[currentSpace['row']][currentSpace['col']]
         possibleAnswers = [correctAnswer]
         for _ in range(3):
-            possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest'] if x not in possibleAnswers]))
+            possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement'] if x not in possibleAnswers]))
         random.shuffle(possibleAnswers)
         print(f'{" "*indent}If you move {", ".join(moves)} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
         indent += 1
@@ -2399,6 +2419,7 @@ def saveToFile(filename):
         "playerQuests": playerQuests,
         "playerWaitingForEvents": playerWaitingForEvents,
         "playerFrozens": playerFrozens,
+        "playerQuantumNotifications": playerQuantumNotifications,
         "itemPrices": itemPrices,
         "itemRewards": itemRewards,
         "prevBoards": prevBoards,
@@ -2415,6 +2436,7 @@ def saveToFile(filename):
         "prevPlayerQuests": prevPlayerQuests,
         "prevPlayerWaitingForEvents": prevPlayerWaitingForEvents,
         "prevPlayerFrozens": prevPlayerFrozens,
+        "prevPlayerQuantumNotifications": prevPlayerQuantumNotifications,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
@@ -2514,6 +2536,7 @@ playerInvestmentBonus = [None]
 playerQuests = [None]
 playerWaitingForEvents = [None]
 playerFrozens = [None]
+playerQuantumNotifications = [None]
 for _ in range(NUM_PLAYERS):
     playerPositions.append({"row": GRID_SIZE // 2, "col": GRID_SIZE // 2})
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
@@ -2525,6 +2548,7 @@ for _ in range(NUM_PLAYERS):
     playerQuests.append(copy.deepcopy([]))
     playerWaitingForEvents.append(copy.deepcopy([]))
     playerFrozens.append(False)
+    playerQuantumNotifications.append(0)
 
 numTimeMachines = 0
 
@@ -2538,6 +2562,7 @@ prevPlayerInvestmentBonus = [copy.deepcopy(playerInvestmentBonus)]
 prevPlayerQuests = [copy.deepcopy(playerQuests)]
 prevPlayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
+prevPlayerQuantumNotifications = [copy.deepcopy(playerQuantumNotifications)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
@@ -2694,6 +2719,7 @@ try:
                     playerQuests = data["playerQuests"]
                     playerWaitingForEvents = data["playerWaitingForEvents"]
                     playerFrozens = data["playerFrozens"]
+                    playerQuantumNotifications = data["playerQuantumNotifications"]
                     itemPrices = data["itemPrices"]
                     itemRewards = data["itemRewards"]
                     prevBoards = data["prevBoards"]
@@ -2710,6 +2736,7 @@ try:
                     prevPlayerQuests = data["prevPlayerQuests"]
                     prevPlayerWaitingForEvents = data["prevPlayerWaitingForEvents"]
                     prevPlayerFrozens = data["prevPlayerFrozens"]
+                    prevPlayerQuantumNotifications = data["prevPlayerQuantumNotifications"]
                     prevItemPrices = data["prevItemPrices"]
                     prevItemRewards = data["prevItemRewards"]
                     os.remove(f'saves/{dir[int(choice)-1]}')
@@ -2728,6 +2755,7 @@ try:
             prevPlayerQuests.append(copy.deepcopy(playerQuests))
             prevPlayerWaitingForEvents.append(copy.deepcopy(playerWaitingForEvents))
             prevPlayerFrozens.append(copy.deepcopy(playerFrozens))
+            prevPlayerQuantumNotifications.append(copy.deepcopy(playerQuantumNotifications))
             prevItemPrices.append(copy.deepcopy(itemPrices))
             prevItemRewards.append(copy.deepcopy(itemPrices))
             prevDecorators.append(copy.deepcopy(decorators))
