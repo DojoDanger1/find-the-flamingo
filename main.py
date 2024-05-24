@@ -1165,7 +1165,8 @@ def goToTheShop(portable=False):
                 if item in itemRewards.keys():
                     itemRewards[item] += 1
                     itemDescriptions = redefineItemDescriptions()
-    updateQuests('spendMoney', tab)
+    if tab > 0:
+        updateQuests('spendMoney', tab)
     indent -= 1
 
 def printItemList(itemList):
