@@ -974,44 +974,49 @@ def spinTheShadowWheel():
         spinTheBadWheel()
     indent -= 1
 
-def questTextFromDict(quest):
+def questTextFromDict(quest, progress):
     if quest['type'] == 'goodSpace':
-        return f'You must land on the {GOOD_SPACE}good space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output =  f'You must land on the {GOOD_SPACE}good space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times.'
     if quest['type'] == 'badSpace':
-        return f'You must land on the {BAD_SPACE}bad space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must land on the {BAD_SPACE}bad space{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times.'
     if quest['type'] == 'shadowRealm':
-        return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.'
     if quest['type'] == 'workout':
-        return f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}.'
     if quest['type'] == 'eatChicken':
-        return f'You must eat {QUEST_SPACE}{quest["requirement"]}{CLEAR} {PAPAS_WINGERIA_SPACE}chicken wings{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must eat {QUEST_SPACE}{quest["requirement"]}{CLEAR} {PAPAS_WINGERIA_SPACE}chicken wings{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}.'
     if quest['type'] == 'stabPeople':
-        return f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item.'
     if quest['type'] == 'gamble':
-        return f'You must win back {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} by playing {GAMBLING_SPACE}blackjack{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must win back {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} by playing {GAMBLING_SPACE}blackjack{CLEAR}.'
     if quest['type'] == 'spendMoney':
-        return f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} at the {SHOP_SPACE}shop{CLEAR}. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} {YELLOW}gold{CLEAR} at the {SHOP_SPACE}shop{CLEAR}.'
     if quest['type'] == 'shootPeople':
-        return f'You must shoot {QUEST_SPACE}{quest["requirement"]}{CLEAR} people with {RED}1 bullet{CLEAR} using the {CYAN}gun{CLEAR} item. - {YELLOW}{quest["reward"]} gold{CLEAR}'
+        output = f'You must shoot {QUEST_SPACE}{quest["requirement"]}{CLEAR} people with {RED}1 bullet{CLEAR} using the {CYAN}gun{CLEAR} item.'
+    output += f' - {YELLOW}{quest["reward"]} gold{CLEAR}'
+    if progress:
+        output += f' {getColourFromFraction(quest["progress"]/quest["requirement"])}({quest["progress"]}/{quest["requirement"]}){CLEAR}'
+        output += f' {GRAY}[{getColourFromFraction((quest["timeLeft"]-1)/20)}{quest["timeLeft"]}{GRAY} turn{"" if quest["timeLeft"] == 1 else "s"} remaining]{CLEAR}'
+    return output
 
 def spinTheQuestWheel():
     global indent
     indent += 1
     actualOptions = [
-        {"type": 'goodSpace', "requirement": (numGoodSpaces := random.randint(3, 5)), "reward": numGoodSpaces*2, "progress": 0},
-        {"type": 'badSpace', "requirement": (numBadSpaces := random.randint(3, 5)), "reward": numBadSpaces*4, "progress": 0},
-        {"type": 'shadowRealm', "requirement": (timeInShadowRealm := random.randint(6,10)), "reward": timeInShadowRealm*2, "progress": 0},
-        {"type": 'workout', "requirement": (workoutHours := random.randint(40,70)), "reward": workoutHours//4, "progress": 0},
-        {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0},
-        {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0},
-        {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0},
-        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0},
-        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0}
+        {"type": 'goodSpace', "requirement": (numGoodSpaces := random.randint(3, 5)), "reward": numGoodSpaces*2, "progress": 0, "timeLeft": numGoodSpaces*5},
+        {"type": 'badSpace', "requirement": (numBadSpaces := random.randint(3, 5)), "reward": numBadSpaces*4, "progress": 0, "timeLeft": numBadSpaces*5},
+        {"type": 'shadowRealm', "requirement": (timeInShadowRealm := random.randint(6,10)), "reward": timeInShadowRealm*2, "progress": 0, "timeLeft": timeInShadowRealm*3},
+        {"type": 'workout', "requirement": (workoutHours := random.randint(40,70)), "reward": workoutHours//4, "progress": 0, "timeLeft": int(workoutHours//2.5)},
+        {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0, "timeLeft": int(workoutHours//2.5)},
+        {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0, "timeLeft": peopleToStab*6},
+        {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0, "timeLeft": gambleWinnings*2},
+        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0, "timeLeft": int((spendMoney*1.5)//1)},
+        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0, "timeLeft": 15}
     ]
-    options = [f'{" "*indent}{questTextFromDict(option)}' for option in actualOptions]
+    options = [f'{" "*indent}{questTextFromDict(option, progress=False)}' for option in actualOptions]
     spinWheelVisually(options)
     result = random.choice(actualOptions)
-    print(f'\x1B[A\x1B[2K{" "*indent}{questTextFromDict(result)}')
+    print(f'\x1B[A\x1B[2K{" "*indent}{questTextFromDict(result, progress=False)}')
     time.sleep(0.75)
     playerQuests[currentPlayer].append(result)
     indent -= 1
@@ -1023,7 +1028,7 @@ def updateQuests(questType, qtyIncrease):
         if quest['type'] == questType:
             indent += 1
             quest['progress'] += qtyIncrease
-            print(f'{" "*indent}{GRAY}(You have worked towards the quest: {CLEAR}{questTextFromDict(quest)} {getColourFromFraction(quest["progress"]/quest["requirement"])}({quest["progress"]}/{quest["requirement"]}){GRAY}){CLEAR}')
+            print(f'{" "*indent}{GRAY}(You have worked towards the quest: {CLEAR}{questTextFromDict(quest, progress=True)}{GRAY}){CLEAR}')
             if quest['progress'] >= quest['requirement']:
                 indent += 1
                 print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You have completed this {QUEST_SPACE}quest{CLEAR}!')
@@ -1036,6 +1041,19 @@ def updateQuests(questType, qtyIncrease):
                 if quest['type'] == 'shootPeople':
                     quest['progress'] = 0
             indent -= 1
+    for quest in sorted(questsToRemove, reverse=True):
+        playerQuests[currentPlayer].pop(quest)
+
+def reduceTimeOnQuests():
+    global indent
+    questsToRemove = []
+    for n, quest in enumerate(playerQuests[currentPlayer]):
+        quest['timeLeft'] -= 1
+        if quest['timeLeft'] == 0:
+            indent += 1
+            print(f'{" "*indent}{RED}Unfortunately,{CLEAR} you have ran out of time to complete the quest: {questTextFromDict(quest, progress=False)}')
+            indent -= 1
+            questsToRemove.append(n)
     for quest in sorted(questsToRemove, reverse=True):
         playerQuests[currentPlayer].pop(quest)
 
@@ -2494,7 +2512,7 @@ try:
             print(f'{" "*indent}Your current {QUEST_SPACE}quests{CLEAR} are:')
             indent += 1
             for quest in playerQuests[currentPlayer]:
-                print(f'{" "*indent}{questTextFromDict(quest)} {getColourFromFraction(quest["progress"]/quest["requirement"])}({quest["progress"]}/{quest["requirement"]}){CLEAR}')
+                print(f'{" "*indent}{questTextFromDict(quest, progress=True)}')
             indent -= 2
         #check for waiting events
         for event in playerWaitingForEvents[currentPlayer]:
@@ -2587,6 +2605,7 @@ try:
         if timeTravelled:
             os.system('clear')
             continue
+        reduceTimeOnQuests()
         #change turn order
         print('-'*50)
         if running == True:
