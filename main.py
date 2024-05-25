@@ -8,7 +8,7 @@ import datetime
 import traceback
 from PIL import Image, ImageDraw, ImageColor
 
-#bord paramaterssss
+#bord paramaters
 GRID_SIZE = 7
 PERCENTAGE_SQUARES = 0.7
 PERCENTAGE_PATHS = 0.5
