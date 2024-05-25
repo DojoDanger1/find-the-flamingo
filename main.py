@@ -2578,7 +2578,9 @@ try:
         indent = 0
         print('-'*50)
         print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
-        evaluateEntanglement()
+        indent += 1
+        print(f'{" "*indent}You curently have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+        indent -= 1
         if len(playerQuests[currentPlayer]) > 0:
             indent += 1
             print(f'{" "*indent}Your current {QUEST_SPACE}quests{CLEAR} are:')
@@ -2586,6 +2588,7 @@ try:
             for quest in playerQuests[currentPlayer]:
                 print(f'{" "*indent}{questTextFromDict(quest, progress=True)}')
             indent -= 2
+        evaluateEntanglement()
         #check for waiting events
         for event in playerWaitingForEvents[currentPlayer]:
             if event == 'bad wheel':
