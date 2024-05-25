@@ -44,6 +44,7 @@ assert BLACKJACK_TARGET >= 21, 'blackjack target must be greater than or equal t
 assert 0 <= BLACKJACK_DEALER_CAUTION and BLACKJACK_DEALER_CAUTION <= BLACKJACK_TARGET, f'blackjack dealer caution must be in between 0 and {BLACKJACK_TARGET}!'
 assert GYM_PROGRESS_REQUIRED > 0, 'gym progress required must be positive!'
 assert WINGERIA_PROGRESS_REQUIRED > 0, 'wingeria progress required must be positive!'
+assert MINIMUM_SPEED >= 0, 'minimum speed must be non negative!'
 
 #colourings
 def getColour(r, g, b, background=False):
