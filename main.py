@@ -1141,7 +1141,8 @@ def spinTheInformationWheel():
         f'{" "*indent}The {ORANGE}column{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR}.',
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.',
-        f'{" "*indent}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.'
+        f'{" "*indent}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.',
+        f'{" "*indent}The position of a {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR} space.'
     ]
     result = spinWheelVisually(options)
     print(f'\x1B[A\x1B[2K{result}')
@@ -1219,6 +1220,12 @@ def spinTheInformationWheel():
     if result == f'{" "*(indent-1)}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.':
         count = len(quantumEntanglements)
         print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {ENTANGLEMENT_SPACE}quantum entanglement{"s" if count != 1 else ""}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The position of a {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR} space.':
+        if len(quantumEntanglements) == 0:
+            print(f'{" "*indent}No spaces are {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
+        else:
+            space = random.choice(random.choice(quantumEntanglements))
+            print(f'{" "*indent}The space at ({ORANGE}row{CLEAR} {GREEN}{space["row"]+1}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{space["col"]+1}{CLEAR}) has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
     indent -= 3
 
 def spinTheFlamingoWheel():
