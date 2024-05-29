@@ -1633,7 +1633,7 @@ def useItem():
 def generateWingPlatter():
     global indent
     
-    month = datetime.datetime.today().strftime('%B')
+    month = datetime.datetime.today().strftime('%B').lower()
     holiday = random.choice(WINGERIA_INGREDIENTS[month])
     meats = WINGERIA_INGREDIENTS['allTime']['meats']
     sauces = WINGERIA_INGREDIENTS['allTime']['sauces'] + holiday['sauces']
@@ -1673,9 +1673,13 @@ def generateWingPlatter():
     return output, cost
 
 def addToFoodInventory(numIngredients):
+    month = datetime.datetime.today().strftime('%B').lower()
     for _ in range(numIngredients):
         ingredientType = random.choice(['meats', 'meats', 'sauces', 'sides', 'dips'])
-        ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType])
+        if ingredientType != 'meats':
+            ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType] + random.choice(WINGERIA_INGREDIENTS[month])[ingredientType])
+        else:
+            ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType])
         qty = (random.choice([1, 1, 2]) if ingredientType in ['sauces', 'dips'] else random.randint(4,12))
         if ingredient not in playerFoodInventories[currentPlayer][ingredientType].keys():
             playerFoodInventories[currentPlayer][ingredientType][ingredient] = qty
@@ -1913,7 +1917,7 @@ def visitWingeria():
             increased = True
         if increased:
             indent += 1
-            print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You now steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+            print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You now have {GREEN}{7+playerInvestmentBonus[currentPlayer]}{CLEAR} {PAPAS_WINGERIA_SPACE}platter slots{CLEAR} and steal {YELLOW}{playerInvestmentBonus[currentPlayer]} gold{CLEAR} each time a player visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
             indent -= 1
         indent -= 2
     indent -= 1
