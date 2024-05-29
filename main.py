@@ -1633,7 +1633,7 @@ def useItem():
 def generateWingPlatter():
     global indent
     
-    month = random.choice(['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'])
+    month = datetime.datetime.today().strftime('%B')
     holiday = random.choice(WINGERIA_INGREDIENTS[month])
     meats = WINGERIA_INGREDIENTS['allTime']['meats']
     sauces = WINGERIA_INGREDIENTS['allTime']['sauces'] + holiday['sauces']
