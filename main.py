@@ -1884,7 +1884,9 @@ def visitWingeria():
             playerSpeeds[player] = round(playerSpeeds[player], 4)
             if playerSpeeds[player] < MINIMUM_SPEED:
                 playerSpeeds[player] = MINIMUM_SPEED
+            indent += 1
             print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
+            indent -= 1
     if playerGolds[currentPlayer] > 0:
         time.sleep(0.5)
         print(f'{" "*indent}Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
