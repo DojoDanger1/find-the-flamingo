@@ -77,6 +77,7 @@ PAPAS_WINGERIA_SPACE = getColour(133, 60, 1)
 GYM_SPACE = getColour(0, 199, 192)
 QUEST_SPACE = getColour(176, 0, 230)
 ENTANGLEMENT_SPACE = getColour(255, 88, 10)
+INFORMATION_SPACE = getColour(175, 175, 175)
 
 #wingeria ingredients
 WINGERIA_INGREDIENTS = ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Mango Chili Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
@@ -221,6 +222,7 @@ def generateBoard():
         board = fillSpaces(board, 'gym', numEmpties // 12, 'empty')
         board = fillSpaces(board, 'quest', numEmpties // 10, 'empty')
         board = fillSpaces(board, 'entanglement', numEmpties // 20, 'empty')
+        board = fillSpaces(board, 'information', numEmpties // 10, 'empty')
         #get positions of flamingo and shadow realm and home
         for n, row in enumerate(board):
             for m, cell in enumerate(row):
@@ -346,7 +348,7 @@ def generateImage(board, paths, quantumEntanglements):
     for n, row in enumerate(board):
         for m, cell in enumerate(row):
             if cell == 'empty':
-                colour = '#8A8A8A'
+                colour = '#8a8a8a'
             if cell == 'flamingo':
                 colour = '#ff00ea'
             if cell == 'home':
@@ -373,6 +375,8 @@ def generateImage(board, paths, quantumEntanglements):
                 colour = '#b000e6'
             if cell == 'entanglement':
                 colour = '#ff580a'
+            if cell == 'information':
+                colour = '#ffffff'
             if cell != None:
                 draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
         
@@ -716,6 +720,8 @@ def evaluateSpaceType(spaceType):
                 print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                 indent -= 1
         indent -= 1
+    if spaceType == 'information':
+        spinTheInformationWheel()
     indent -= 1
 
 def evaluateDecorators():
@@ -920,7 +926,7 @@ def spinTheGoodWheel():
         f'{" "*indent}You gain {YELLOW}5 gold{CLEAR}',
         f'{" "*indent}You gain {CYAN}a compass{CLEAR}',
         f'{" "*indent}You can visit the {SHOP_SPACE}shop{CLEAR}!',
-        f'{" "*indent}You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!',
+        f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!',
         f'{" "*indent}You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.',
         f'{" "*indent}You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!',
     ]
@@ -955,7 +961,7 @@ def spinTheGoodWheel():
             indent -= 1
         else:
             goToTheShop()
-    if result == f'{" "*indent}You get information about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!':
+    if result == f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!':
         indent += 1
         for n, row in enumerate(board):
             for m, cell in enumerate(row):
@@ -1116,6 +1122,104 @@ def reduceTimeOnQuests():
             questsToRemove.append(n)
     for quest in sorted(questsToRemove, reverse=True):
         playerQuests[currentPlayer].pop(quest)
+
+def spinTheInformationWheel():
+    global indent
+    indent += 1
+    print(f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about:')
+    indent += 1
+    options = [
+        f'{" "*indent}The {ORANGE}row{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        f'{" "*indent}The {ORANGE}column{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        f'{" "*indent}The {ORANGE}total{CLEAR} number of spaces on the board',
+        f'{" "*indent}The number of spaces in a {ORANGE}row{CLEAR}.',
+        f'{" "*indent}The number of spaces in a {ORANGE}column{CLEAR}.',
+        f'{" "*indent}The number of spaces of a {ORANGE}certain type{CLEAR}.',
+        f'{" "*indent}The space at {ORANGE}specific coordinates{CLEAR}.',
+        f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        f'{" "*indent}The {ORANGE}row{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        f'{" "*indent}The {ORANGE}column{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR}.',
+        f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.',
+        f'{" "*indent}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.'
+    ]
+    result = spinWheelVisually(options)
+    print(f'\x1B[A\x1B[2K{result}')
+    time.sleep(1)
+    indent += 1
+    if result == f'{" "*(indent-1)}The {ORANGE}row{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = (n+1, m+1)
+        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
+        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The {ORANGE}column{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = (n+1, m+1)
+        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
+        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The {ORANGE}total{CLEAR} number of spaces on the board':
+        count = sum([len([x for x in row if x != None]) for row in board])
+        print(f'{" "*indent}In {ORANGE}total{CLEAR}, there {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""}.')
+    if result == f'{" "*(indent-1)}The number of spaces in a {ORANGE}row{CLEAR}.':
+        row = random.randint(1, GRID_SIZE)
+        count = len([x for x in board[row-1] if x != None])
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""} in {ORANGE}row {row}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The number of spaces in a {ORANGE}column{CLEAR}.':
+        column = random.randint(1, GRID_SIZE)
+        count = len([x[column-1] for x in board if x[column-1] != None])
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""} in {ORANGE}column {column}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The number of spaces of a {ORANGE}certain type{CLEAR}.':
+        spaceType = random.choice(['empty', 'flamingo', 'home', 'shadow realm', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement', 'information'])
+        count = sum([len([x for x in row if x == spaceType]) for row in board])
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {grammatiseSpaceType(spaceType, article=False)}{"s" if count != 1 else ""}.')
+    if result == f'{" "*(indent-1)}The space at {ORANGE}specific coordinates{CLEAR}.':
+        row = random.randint(1, GRID_SIZE)
+        column = random.randint(1, GRID_SIZE)
+        space = board[row-1][column-1]
+        if space == None:
+            print(f'{" "*indent}At ({ORANGE}row{CLEAR} {GREEN}{row}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{column}{CLEAR}) there is no space.')
+        else:
+            print(f'{" "*indent}At ({ORANGE}row{CLEAR} {GREEN}{row}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{column}{CLEAR}) there is {grammatiseSpaceType(board[row-1][column-1])}.')
+    if result == f'{" "*(indent-1)}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = {"row": n, "col": m}
+        possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
+        destination = possibleMoves[0]['destination']
+        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {grammatiseSpaceType(board[destination["row"]][destination["col"]])}.')
+    if result == f'{" "*(indent-1)}The {ORANGE}row{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = {"row": n, "col": m}
+        possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
+        destination = possibleMoves[0]['destination']
+        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != destination['row']+1]
+        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The {ORANGE}column{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+        for n, row in enumerate(board):
+            for m, cell in enumerate(row):
+                if cell == 'flamingo':
+                    flamingoPos = {"row": n, "col": m}
+        possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
+        destination = possibleMoves[0]['destination']
+        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != destination['col']+1]
+        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The number of {SHOP_SPACE}highways{CLEAR}.':
+        count = len([path for path in paths if path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row']])
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {SHOP_SPACE}highway{"s" if count != 1 else ""}{CLEAR}.')
+    if result == f'{" "*(indent-1)}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.':
+        count = len([path for path in paths if path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row'] and board[path['end']['row']][path['end']['col']] == 'shadow realm'])
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {SHOP_SPACE}highway{"s" if count != 1 else ""}{CLEAR} leading to the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.')
+    if result == f'{" "*(indent-1)}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.':
+        count = len(quantumEntanglements)
+        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {ENTANGLEMENT_SPACE}quantum entanglement{"s" if count != 1 else ""}{CLEAR}.')
+    indent -= 3
 
 def spinTheFlamingoWheel():
     global indent
@@ -1384,20 +1488,6 @@ def useItem():
                                 indent -= 1
                             else:
                                 decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
-                            indent -= 1
-                        if item == 'information':
-                            indent += 1
-                            for n, row in enumerate(board):
-                                for m, cell in enumerate(row):
-                                    if cell == 'flamingo':
-                                        flamingoPos = (n+1, m+1)
-                            rowOrCol = random.choice(['row', 'col'])
-                            if rowOrCol == 'row':
-                                choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
-                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-                            else:
-                                choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
-                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
                             indent -= 1
                         #violence is always the answer
                         if item == 'knife':
@@ -2438,7 +2528,7 @@ def playBoardQuiz(numQuestions):
         correctAnswer = board[currentSpace['row']][currentSpace['col']]
         possibleAnswers = [correctAnswer]
         for _ in range(3):
-            possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement'] if x not in possibleAnswers]))
+            possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement', 'information'] if x not in possibleAnswers]))
         random.shuffle(possibleAnswers)
         print(f'{" "*indent}If you move {", ".join(moves)} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
         indent += 1
@@ -2583,36 +2673,38 @@ def selectRandomSpace(board):
             validSpace = True
     return space
 
-def grammatiseSpaceType(spaceType, punctuation=False, title=False):
+def grammatiseSpaceType(spaceType, punctuation=False, title=False, article=True):
     if spaceType == 'empty':
-        return f'an {EMPTY_SPACE}{"Empty" if title else "empty"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"an " if article else ""}{EMPTY_SPACE}{"Empty" if title else "empty"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'flamingo':
-        return f'the {FLAMINGO_SPACE}{"Flamingo" if title else "flamingo"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"the " if article else ""}{FLAMINGO_SPACE}{"Flamingo" if title else "flamingo"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'home':
-        return f'the {HOME_SPACE}{"Home" if title else "home"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"the " if article else ""}{HOME_SPACE}{"Home" if title else "home"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shadow realm':
-        return f'the {SHADOW_REALM_SPACE}{"Shadow Realm" if title else "shadow realm"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"the " if article else ""}{SHADOW_REALM_SPACE}{"Shadow Realm" if title else "shadow realm"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'good':
-        return f'a {GOOD_SPACE}{"Good" if title else "good"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GOOD_SPACE}{"Good" if title else "good"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'bad':
-        return f'a {BAD_SPACE}{"Bad" if title else "bad"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"a " if article else ""}{BAD_SPACE}{"Bad" if title else "bad"}{CLEAR} space{"." if punctuation else ""}'
     if spaceType == 'shop':
-        return f'a {SHOP_SPACE}{"Shop" if title else "shop"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{SHOP_SPACE}{"Shop" if title else "shop"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'teleport':
-        return f'a {TELEPORT_SPACE}{"Teleport" if title else "teleport"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{TELEPORT_SPACE}{"Teleport" if title else "teleport"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'gambling':
-        return f'a {GAMBLING_SPACE}{"Gambling" if title else "gambling"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GAMBLING_SPACE}{"Gambling" if title else "gambling"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'timewarp':
-        return f'a {TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'papas wingeria':
         apostrophe = '\''
         return f'{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s Wingeria" if title else f"papa{apostrophe}s wingeria"}{CLEAR}{"!" if punctuation else ""}'
     if spaceType == 'gym':
-        return f'a {GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'quest':
-        return f'a {QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'entanglement':
-        return f'an {ENTANGLEMENT_SPACE}{"Entanglement" if title else "entanglement"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"an " if article else ""}{ENTANGLEMENT_SPACE}{"Entanglement" if title else "entanglement"}{CLEAR} space{"!" if punctuation else ""}'
+    if spaceType == 'information':
+        return f'{"an " if article else ""}{INFORMATION_SPACE}{"Information" if title else "information"}{CLEAR} space{"!" if punctuation else ""}'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
@@ -2679,7 +2771,6 @@ def redefineItemDescriptions():
         "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
         "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
-        "information": f'Tells you a random {ORANGE}row{CLEAR} or {ORANGE}column{CLEAR} that the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in.',
         #violence is always the answer
         "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
         "gun": f'Shoot in a direction and steal {YELLOW}{itemRewards["gun"]} gold{CLEAR} if it hits someone.',
@@ -2714,7 +2805,6 @@ itemPrices = {
     "red potion": 3,
     "green potion": 3,
     "flamingo": 3,
-    "information": 2,
     #violence is always the answer
     "knife": 2,
     "gun": 2,
@@ -2729,7 +2819,7 @@ itemPrices = {
     "gold potion": 2,
     "wand": 2,
     "time machine": 3,
-    'padlock': 3,
+    "padlock": 3,
     "ingredient bundle": 2,
     "portable shop": 3,
 }
@@ -2747,9 +2837,9 @@ itemRewards = {
 itemSectionRanges = {
     "1": "help i'm lost",
     "4": "where's the flamingo",
-    "8": "violence is always the answer",
-    "12": "movement stuff",
-    "16": "miscellaneous"
+    "7": "violence is always the answer",
+    "11": "movement stuff",
+    "15": "miscellaneous"
 }
 
 itemDescriptions = redefineItemDescriptions()
