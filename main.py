@@ -20,6 +20,7 @@ NUM_PLAYERS = 3
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
+STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
@@ -76,6 +77,9 @@ PAPAS_WINGERIA_SPACE = getColour(133, 60, 1)
 GYM_SPACE = getColour(0, 199, 192)
 QUEST_SPACE = getColour(176, 0, 230)
 ENTANGLEMENT_SPACE = getColour(255, 88, 10)
+
+#wingeria ingredients
+WINGERIA_INGREDIENTS = ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Mango Chili Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
 
 def fillSpaces(board, fillWith, howMany, initialState):
     linearBoard = sum(board, [])
@@ -636,7 +640,7 @@ def evaluateSpaceType(spaceType):
     if spaceType == 'teleport':
         indent += 1
         print(f'{" "*indent}You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be randomly teleported: (1-{NUM_PLAYERS}){CLEAR} ', True))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be randomly teleported (1-{NUM_PLAYERS}):{CLEAR} ', True))
         playerPositions[player] = selectRandomSpace(board)
         indent -= 1
     if spaceType == 'gambling':
@@ -650,12 +654,13 @@ def evaluateSpaceType(spaceType):
     if spaceType == 'timewarp':
         indent += 1
         print(f'{" "*indent}You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent back: (1-{NUM_PLAYERS}){CLEAR} ', True))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent back (1-{NUM_PLAYERS}):{CLEAR} ', True))
         targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
         playerPositions[player] = prevPlayerPositions[-targetTime][player]
         playerInventories[player] = prevPlayerInventories[-targetTime][player]
         playerGolds[player] = prevPlayerGolds[-targetTime][player]
         playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+        playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
         playerProgress[player] = prevPlayerProgress[-targetTime][player]
         playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
         playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
@@ -669,6 +674,7 @@ def evaluateSpaceType(spaceType):
                 prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
                 prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
                 prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
                 prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
                 prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
                 prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
@@ -780,7 +786,7 @@ def evaluatePathDecorators():
                         attempts = 3
                         done = False
                         while not done:
-                            code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE} ({getColourFromFraction(attempts/3)}{attempts} attempt{"s" if attempts != 1 else ""}{TURQUOISE} remaining): (0-9999){CLEAR} ', 9999))
+                            code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE} ({getColourFromFraction(attempts/3)}{attempts} attempt{"s" if attempts != 1 else ""}{TURQUOISE} remaining) (0-9999):{CLEAR} ', 9999))
                             if code == decorator['code']:
                                 indent += 1
                                 print(f'{" "*indent}{GREEN}Successfuly entered code!{CLEAR}')
@@ -844,7 +850,7 @@ def spinTheBadWheel():
         playerPositions[currentPlayer] = temp
     if result == f'{" "*indent}You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}':
         indent += 1
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
         playerGolds[player] += playerGolds[currentPlayer]
         playerGolds[currentPlayer] = 0
         print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
@@ -853,7 +859,7 @@ def spinTheBadWheel():
         playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
     if result == f'{" "*indent}You must give away {YELLOW}3 gold{CLEAR}.':
         indent += 1
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give {YELLOW}3 gold{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give {YELLOW}3 gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
         playerGolds[player] += 3
         playerGolds[currentPlayer] -= 3
         print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
@@ -876,7 +882,7 @@ def spinTheBadWheel():
                 itemName = item.split(';')[0]
             else:
                 itemName = item
-            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give the {CYAN}{itemName.title()}{TURQUOISE} to: (1-{NUM_PLAYERS}){CLEAR} ', False))
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give the {CYAN}{itemName.title()}{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
             playerInventories[player].append(item)
         indent -= 1
     if result == f'{" "*indent}You must spin the {RED}Bad Wheel{CLEAR} twice more.':
@@ -923,7 +929,7 @@ def spinTheGoodWheel():
     time.sleep(1)
     if result == f'{" "*indent}You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
         playerPositions[player] = findShadowRealm(board)
         indent -= 1
     if result == f'{" "*indent}You gain {YELLOW}3 gold{CLEAR}!':
@@ -980,7 +986,7 @@ def spinTheGoodWheel():
                 indent -= 1
         if choice == '1':
             indent += 1
-            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', False))
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn (1-{NUM_PLAYERS}):{CLEAR} ', False))
             playerWaitingForEvents[player].append('gamble')
             indent -= 1
         indent -= 1
@@ -1007,7 +1013,7 @@ def spinTheShadowWheel():
     time.sleep(1)
     if result == f'{" "*indent}You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
+        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
         playerPositions[player] = findShadowRealm(board)
         indent -= 1
     if result == f'{" "*indent}You can now spin the {GREEN}Good Wheel{CLEAR}!':
@@ -1202,13 +1208,16 @@ def goToTheShop(portable=False):
         else:
             tab += price
             playerGolds[currentPlayer] -= price
-            if item in itemRewards.keys():
-                playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
-            elif item == 'time machine':
-                numTimeMachines += 1
-                playerInventories[currentPlayer].append(f'{item};{numTimeMachines}')
+            if item != 'ingredient bundle':
+                if item in itemRewards.keys():
+                    playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
+                elif item == 'time machine':
+                    numTimeMachines += 1
+                    playerInventories[currentPlayer].append(f'{item};{numTimeMachines}')
+                else:
+                    playerInventories[currentPlayer].append(item)
             else:
-                playerInventories[currentPlayer].append(item)
+                addToFoodInventory(itemPrices['ingredient bundle']*3)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
                 itemPrices[item] *= 2
                 if item in itemRewards.keys():
@@ -1251,6 +1260,7 @@ def useItem():
     global indent
     global playerPositions
     global playerInventories
+    global playerFoodInventories
     global playerGolds
     global playerSpeeds
     global playerProgress
@@ -1493,7 +1503,7 @@ def useItem():
                                 print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                             else:
                                 for player in playersOnCurrentSpot:
-                                    playerSpeeds[player] -= 0.15
+                                    playerSpeeds[player] -= 0.1
                                     playerSpeeds[player] = round(playerSpeeds[player], 4)
                                     if playerSpeeds[player] < MINIMUM_SPEED:
                                         playerSpeeds[player] = MINIMUM_SPEED
@@ -1501,15 +1511,15 @@ def useItem():
                             indent -= 1
                         if item == 'freeze ray':
                             indent += 1
-                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', False))
+                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
                             playerFrozens[player] = True
                             indent -= 1
                         if item == 'swap':
                             indent += 1
-                            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
                             valid = False
                             while not valid:
-                                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE}: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
                                 if player2 == player1:
                                     indent += 1
                                     print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
@@ -1533,7 +1543,7 @@ def useItem():
                             indent -= 1
                         if item == 'wand':
                             indent += 1
-                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn: (1-{NUM_PLAYERS}){CLEAR} ', True))
+                            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn (1-{NUM_PLAYERS}):{CLEAR} ', True))
                             playerWaitingForEvents[player].append('bad wheel')
                             indent -= 1
                         if item == 'time machine':
@@ -1543,6 +1553,7 @@ def useItem():
                                 playerInventories = prevPlayerInventories[-1-NUM_PLAYERS]
                                 playerGolds = prevPlayerGolds[-1-NUM_PLAYERS]
                                 playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS]
+                                playerFoodInventories = prevPlayerFoodInventories[-1-NUM_PLAYERS]
                                 playerProgress = prevPlayerProgress[-1-NUM_PLAYERS]
                                 playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS]
                                 playerInvestmentBonus = prevPlayerInvestmentBonus[-1-NUM_PLAYERS]
@@ -1561,6 +1572,7 @@ def useItem():
                                     prevPlayerInventories.pop(-1)
                                     prevPlayerGolds.pop(-1)
                                     prevPlayerSpeeds.pop(-1)
+                                    prevPlayerFoodInventories.pop(-1)
                                     prevPlayerProgress.pop(-1)
                                     prevPlayerStealBonus.pop(-1)
                                     prevPlayerInvestmentBonus.pop(-1)
@@ -1589,7 +1601,7 @@ def useItem():
                                 indent -= 1
                         if item == 'padlock':
                             indent += 1
-                            code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE}: (0-9999){CLEAR} ', 9999))
+                            code = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the code for this {CYAN}padlock{TURQUOISE} (0-9999):{CLEAR} ', 9999))
                             print(f'{" "*indent}Where would you like to place the {CYAN}padlock{CLEAR}?')
                             possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                             options = 0
@@ -1618,6 +1630,225 @@ def useItem():
     indent -= 1
     return 'dont continue'
 
+def generateWingPlatter():
+    global indent
+    
+    month = random.choice(['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'])
+    holiday = random.choice(WINGERIA_INGREDIENTS[month])
+    meats = WINGERIA_INGREDIENTS['allTime']['meats']
+    sauces = WINGERIA_INGREDIENTS['allTime']['sauces'] + holiday['sauces']
+    sides = WINGERIA_INGREDIENTS['allTime']['sides'] + holiday['sides']
+    dips = WINGERIA_INGREDIENTS['allTime']['dips'] + holiday['dips']
+    
+    output = 'a Wing Platter with\n'
+    cost = 0
+    slots = 7
+    numMeats = random.randint(1,3)
+    slots -= (2 * numMeats)
+    items = []
+    for _ in range(numMeats):
+        qty = random.randint(1,12)
+        meat = random.choice(meats)
+        side = random.choice(['on the left', '', 'on the right'])
+        if qty == 1 and meat != 'Shrimp':
+            meat = meat[:-1]
+        items.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{random.choice(sauces)}{CLEAR}{" " if side != "" else ""}{side}')
+        cost += qty*0.0035
+    numDips = random.randint(0,4)
+    if numDips != 0:
+        slots -= 1
+    for _ in range(slots):
+        side = random.choice(['on the left', '', 'on the right'])
+        qty = random.randint(2,12)
+        items.append(f'{GREEN}{qty}{CLEAR} {RED}{random.choice(sides)}{CLEAR}{" " if side != "" else ""}{side}')
+        cost += qty*0.0005
+    for _ in range(numDips):
+        items.append(f'{CYAN}{random.choice(dips)}{CLEAR}')
+        cost += 0.001
+    newline = '\n'
+    indent += 1
+    for n, item in enumerate(items):
+        output += f'{" "*indent}{item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}{newline if n != len(items)-1 else ""}'
+    indent -= 1
+    return output, cost
+
+def addToFoodInventory(numIngredients):
+    for _ in range(numIngredients):
+        ingredientType = random.choice(['meats', 'meats', 'sauces', 'sides', 'dips'])
+        ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType])
+        qty = (random.choice([1, 1, 2]) if ingredientType in ['sauces', 'dips'] else random.randint(4,12))
+        if ingredient not in playerFoodInventories[currentPlayer][ingredientType].keys():
+            playerFoodInventories[currentPlayer][ingredientType][ingredient] = qty
+        else:
+            playerFoodInventories[currentPlayer][ingredientType][ingredient] += qty
+
+def constructOwnWingPlatter():
+    global indent
+    def printCurrentOrder(order):
+        global indent
+        print(f'{" "*indent}The current plate is:')
+        indent += 1
+        for n, item in enumerate(order):
+            print(f'{" "*indent}{item}{"" if n == len(order)-1 else " and" if n == len(order)-2 else ","}')
+        indent -= 1
+    
+    def askAboutMeat():
+        global indent
+        
+        print(f'{" "*indent}Which {PAPAS_WINGERIA_SPACE}meat{CLEAR} would you like to add?')
+        indent += 1
+        for n, meat in enumerate(playerFoodInventories[currentPlayer]['meats'].keys()):
+            print(f'{" "*indent}{n}: {meat}')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', len(playerFoodInventories[currentPlayer]['meats'].keys())))
+        meat = list(playerFoodInventories[currentPlayer]['meats'].keys())[choice]
+        
+        print(f'{" "*indent}How many {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} would you like to add?')
+        maxMeats = min(playerFoodInventories[currentPlayer]["meats"][meat], 12)
+        qty = 0
+        while qty == 0:
+            qty = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice (1-{maxMeats}):{CLEAR} ', maxMeats))
+        playerFoodInventories[currentPlayer]["meats"][meat] -= qty
+        if playerFoodInventories[currentPlayer]["meats"][meat] == 0:
+            del playerFoodInventories[currentPlayer]["meats"][meat]
+        
+        print(f'{" "*indent}Which {ORANGE}sauce{CLEAR} would you like to coat these {PAPAS_WINGERIA_SPACE}{meat}{CLEAR}?')
+        indent += 1
+        for n, sauce in enumerate(playerFoodInventories[currentPlayer]['sauces'].keys()):
+            print(f'{" "*indent}{n}: {sauce}')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', len(playerFoodInventories[currentPlayer]['sauces'].keys())-1))
+        sauce = list(playerFoodInventories[currentPlayer]['sauces'].keys())[choice]
+        playerFoodInventories[currentPlayer]["sauces"][sauce] -= 1
+        if playerFoodInventories[currentPlayer]["sauces"][sauce] == 0:
+            del playerFoodInventories[currentPlayer]["sauces"][sauce]
+        
+        return meat, qty, sauce
+    
+    def askAboutSides():
+        global indent
+        
+        print(f'{" "*indent}Which {RED}side{CLEAR} would you like to add?')
+        indent += 1
+        for n, side in enumerate(playerFoodInventories[currentPlayer]['sides'].keys()):
+            print(f'{" "*indent}{n}: {side}')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', len(playerFoodInventories[currentPlayer]['sides'].keys())-1))
+        side = list(playerFoodInventories[currentPlayer]['sides'].keys())[choice]
+        
+        print(f'{" "*indent}How many {PAPAS_WINGERIA_SPACE}{side}{CLEAR} would you like to add?')
+        maxSides = min(playerFoodInventories[currentPlayer]["sides"][side], 12)
+        qty = 0
+        while qty == 0:
+            qty = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice (1-{maxSides}):{CLEAR} ', maxSides))
+        playerFoodInventories[currentPlayer]["sides"][side] -= qty
+        if playerFoodInventories[currentPlayer]["sides"][side] == 0:
+            del playerFoodInventories[currentPlayer]["sides"][side]
+        
+        return side, qty
+    
+    def askAboutDips():
+        global indent
+        
+        print(f'{" "*indent}Which {CYAN}dip{CLEAR} would you like to add?')
+        indent += 1
+        for n, dip in enumerate(playerFoodInventories[currentPlayer]['dips'].keys()):
+            print(f'{" "*indent}{n}: {dip}')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', len(playerFoodInventories[currentPlayer]['dips'].keys())))
+        dip = list(playerFoodInventories[currentPlayer]['dips'].keys())[choice]
+        playerFoodInventories[currentPlayer]["dips"][dip] -= 1
+        if playerFoodInventories[currentPlayer]["dips"][dip] == 0:
+            del playerFoodInventories[currentPlayer]["dips"][dip]
+        
+        return dip
+    
+    indent += 1
+    currentOrder = []
+    slotsRemaining = 7
+    cost = 0
+    
+    meat, qty, sauce = askAboutMeat()
+    cost += qty*0.0035
+    currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
+    slotsRemaining -= 2
+    printCurrentOrder(currentOrder)
+    if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0 and slotsRemaining >= 2:
+        meatsNotDone = True
+    else:
+        meatsNotDone = False
+    while meatsNotDone:
+        print(f'{" "*indent}Would you like to add more {PAPAS_WINGERIA_SPACE}meat{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+        if choice == 0:
+            meatsNotDone = False
+        else:
+            indent += 1
+            meat, qty, sauce = askAboutMeat()
+            indent -= 1
+            cost += qty*0.0035
+            currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
+            slotsRemaining -= 2
+            printCurrentOrder(currentOrder)
+            if not(sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0 and slotsRemaining >= 2):
+                meatsNotDone = False
+    
+    if sum(playerFoodInventories[currentPlayer]['sides'].values()) > 0 and slotsRemaining >= 1:
+        sidesNotDone = True
+    else:
+        sidesNotDone = False
+    while sidesNotDone:
+        print(f'{" "*indent}Would you like to a {RED}side{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+        if choice == 0:
+            sidesNotDone = False
+        else:
+            indent += 1
+            side, qty = askAboutSides()
+            indent -= 1
+            cost += qty*0.0005
+            currentOrder.append(f'{GREEN}{qty}{CLEAR} {RED}{side}{CLEAR}')
+            slotsRemaining -= 1
+            printCurrentOrder(currentOrder)
+            if not(sum(playerFoodInventories[currentPlayer]['sides'].values()) > 0 and slotsRemaining >= 1):
+                sidesNotDone = False
+    
+    dipSlotsRemaining = 4
+    if sum(playerFoodInventories[currentPlayer]['dips'].values()) > 0 and slotsRemaining >= 1:
+        dipsNotDone = True
+    else:
+        dipsNotDone = False
+    while dipsNotDone:
+        print(f'{" "*indent}Would you like to a {CYAN}dip{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+        if choice == 0:
+            dipsNotDone = False
+        else:
+            indent += 1
+            dip = askAboutDips()
+            indent -= 1
+            cost += 0.001
+            currentOrder.append(f'{CYAN}{dip}{CLEAR}')
+            dipSlotsRemaining -= 1
+            printCurrentOrder(currentOrder)
+            if not(sum(playerFoodInventories[currentPlayer]['dips'].values()) > 0 and dipSlotsRemaining >= 1):
+                dipsNotDone = False
+    
+    indent -= 1
+    return cost
+
 def visitWingeria():
     global indent
     indent += 1
@@ -1632,12 +1863,28 @@ def visitWingeria():
             time.sleep(0.5)
     order, cost = generateWingPlatter()
     print(f'{" "*indent}You ordered {order}.')
-    playerSpeeds[currentPlayer] -= cost*0.0035
+    playerSpeeds[currentPlayer] -= cost
+    playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
     if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
         playerSpeeds[currentPlayer] = MINIMUM_SPEED
-    playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
     print(f'{" "*indent}You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
     updateQuests('eatChicken', cost)
+    if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0:
+        time.sleep(0.5)
+        print(f'{" "*indent}Would you like to build your own {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} to feed to {RED}another player{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 1))
+        if choice == 1:
+            cost = round(constructOwnWingPlatter(), 4)
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will {RED}feed this plate to{TURQUOISE}, to lose {GYM_SPACE}{cost}{TURQUOISE} speed (1-{NUM_PLAYERS}):{CLEAR} ', False))
+            playerSpeeds[player] -= cost
+            playerSpeeds[player] = round(playerSpeeds[player], 4)
+            if playerSpeeds[player] < MINIMUM_SPEED:
+                playerSpeeds[player] = MINIMUM_SPEED
+            print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
     if playerGolds[currentPlayer] > 0:
         time.sleep(0.5)
         print(f'{" "*indent}Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
@@ -2311,45 +2558,6 @@ def playDateQuiz():
     indent -= 1
     return result
 
-def generateWingPlatter():
-    global indent
-    ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Mango Chili Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
-    month = random.choice(['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'])
-    holiday = random.choice(ingredients[month])
-    meats = ingredients['allTime']['meats']
-    sauces = ingredients['allTime']['sauces'] + holiday['sauces']
-    sides = ingredients['allTime']['sides'] + holiday['sides']
-    dips = ingredients['allTime']['dips'] + holiday['dips']
-    
-    output = 'a Wing Platter with\n'
-    cost = 0
-    slots = 7
-    numMeats = random.randint(1,3)
-    slots -= (2 * numMeats)
-    items = []
-    for _ in range(numMeats):
-        qty = random.randint(1,12)
-        meat = random.choice(meats)
-        side = random.choice(['on the left', '', 'on the right'])
-        if qty == 1 and meat != 'Shrimp':
-            meat = meat[:-1]
-        items.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{random.choice(sauces)}{CLEAR}{" " if side != "" else ""}{side}')
-        cost += qty
-    numDips = random.randint(0,4)
-    if numDips != 0:
-        slots -= 1
-    for _ in range(slots):
-        side = random.choice(['on the left', '', 'on the right'])
-        items.append(f'{GREEN}{random.randint(2,12)}{CLEAR} {RED}{random.choice(sides)}{CLEAR}{" " if side != "" else ""}{side}')
-    for _ in range(numDips):
-        items.append(f'{CYAN}{random.choice(dips)}{CLEAR}')
-    newline = '\n'
-    indent += 1
-    for n, item in enumerate(items):
-        output += f'{" "*indent}{item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}{newline if n != len(items)-1 else ""}'
-    indent -= 1
-    return output, cost
-
 def selectRandomSpace(board):
     validSpace = False
     while not validSpace:
@@ -2414,6 +2622,7 @@ def saveToFile(filename):
         "playerInventories": playerInventories,
         "playerGolds": playerGolds,
         "playerSpeeds": playerSpeeds,
+        "playerFoodInventories": playerFoodInventories,
         "playerProgress": playerProgress,
         "playerStealBonus": playerStealBonus,
         "playerInvestmentBonus": playerInvestmentBonus,
@@ -2431,6 +2640,7 @@ def saveToFile(filename):
         "prevPlayerInventories": prevPlayerInventories,
         "prevPlayerGolds": prevPlayerGolds,
         "prevPlayerSpeeds": prevPlayerSpeeds,
+        "prevPlayerFoodInventories": prevPlayerFoodInventories,
         "prevPlayerProgress": prevPlayerProgress,
         "prevPlayerStealBonus": prevPlayerStealBonus,
         "prevPlayerInvestmentBonus": prevPlayerInvestmentBonus,
@@ -2462,14 +2672,15 @@ def redefineItemDescriptions():
         "goblin": f'Randomly moves around the map. If a player lands on a space with your goblin, you steal {YELLOW}{itemRewards["goblin"]} gold{CLEAR}.',
         #movement stuff
         "dumbells": f'Increase your {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR}.',
-        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.15{CLEAR} if they are on the same space as you.',
+        "fat injection": f'Decrease another player\'s {GYM_SPACE}speed{CLEAR} by {GYM_SPACE}0.1{CLEAR} if they are on the same space as you.',
         "freeze ray": f'Make another player lose the {ORANGE}ability to move{CLEAR} for 1 turn.',
         "swap": f'{TELEPORT_SPACE}Swap{CLEAR} the positions of 2 chosen players.',
         #miscellaneous
         "gold potion": f'Places {YELLOW}{itemRewards["gold potion"]} gold{CLEAR} on a random {ORANGE}adjacent{CLEAR} space.',
         "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
         "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
-        'padlock': f'Place this on an adjacent path. When travelling along this path, you must enter a {RED}4-digit{CLEAR} code.',
+        "padlock": f'Place this on an adjacent path. When travelling along this path, you must enter a {RED}4-digit{CLEAR} code.',
+        "ingredient bundle": f'A collection of {ORANGE}{itemPrices["ingredient bundle"]*3} ingredients{CLEAR} to make a {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}.',
         "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.'
     }
     return itemDescriptions
@@ -2504,6 +2715,7 @@ itemPrices = {
     "wand": 2,
     "time machine": 3,
     'padlock': 3,
+    "ingredient bundle": 2,
     "portable shop": 3,
 }
 
@@ -2531,6 +2743,7 @@ playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
 playerSpeeds = [None]
+playerFoodInventories = [None]
 playerProgress = [None]
 playerStealBonus = [None]
 playerInvestmentBonus = [None]
@@ -2543,6 +2756,7 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
+    playerFoodInventories.append(copy.deepcopy(STARTING_FOOD_INVENTORY))
     playerProgress.append(copy.deepcopy({"gym": 0, "wingeria": 0}))
     playerStealBonus.append(0)
     playerInvestmentBonus.append(0)
@@ -2557,6 +2771,7 @@ prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
 prevPlayerSpeeds = [copy.deepcopy(playerSpeeds)]
+prevPlayerFoodInventories = [copy.deepcopy(playerFoodInventories)]
 prevPlayerProgress = [copy.deepcopy(playerProgress)]
 prevPlayerStealBonus = [copy.deepcopy(playerStealBonus)]
 prevPlayerInvestmentBonus = [copy.deepcopy(playerInvestmentBonus)]
@@ -2717,6 +2932,7 @@ try:
                     playerInventories = data["playerInventories"]
                     playerGolds = data["playerGolds"]
                     playerSpeeds = data["playerSpeeds"]
+                    playerFoodInventories = data["playerFoodInventories"]
                     playerProgress = data["playerProgress"]
                     playerStealBonus = data["playerStealBonus"]
                     playerInvestmentBonus = data["playerInvestmentBonus"]
@@ -2734,6 +2950,7 @@ try:
                     prevPlayerInventories = data["prevPlayerInventories"]
                     prevPlayerGolds = data["prevPlayerGolds"]
                     prevPlayerSpeeds = data["prevPlayerSpeeds"]
+                    prevPlayerFoodInventories = data["prevPlayerFoodInventories"]
                     prevPlayerProgress = data["prevPlayerProgress"]
                     prevPlayerStealBonus = data["prevPlayerStealBonus"]
                     prevPlayerInvestmentBonus = data["prevPlayerInvestmentBonus"]
@@ -2753,6 +2970,7 @@ try:
             prevPlayerInventories.append(copy.deepcopy(playerInventories))
             prevPlayerGolds.append(copy.deepcopy(playerGolds))
             prevPlayerSpeeds.append(copy.deepcopy(playerSpeeds))
+            prevPlayerFoodInventories.append(copy.deepcopy(playerFoodInventories))
             prevPlayerProgress.append(copy.deepcopy(playerProgress))
             prevPlayerStealBonus.append(copy.deepcopy(playerStealBonus))
             prevPlayerInvestmentBonus.append(copy.deepcopy(playerInvestmentBonus))
