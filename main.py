@@ -1765,14 +1765,20 @@ def constructOwnWingPlatter():
     
     indent += 1
     currentOrder = []
-    slotsRemaining = 7
+    slotsRemaining = 7 + playerInvestmentBonus[currentPlayer]
     cost = 0
+    
+    print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slots remaining.')
+    indent += 1
+    print(f'{" "*indent}{GRAY}(Each {PAPAS_WINGERIA_SPACE}meat{GRAY} takes up {GREEN}2{GRAY} slots, each {RED}side{GRAY} takes up {GREEN}1{GRAY} slot, and all {CYAN}dips{GRAY} collectively take up {GREEN}1{GRAY} slot, max {GREEN}4{CLEAR} {CYAN}dips{GRAY}){CLEAR}')
+    indent -= 1
     
     meat, qty, sauce = askAboutMeat()
     cost += qty*0.0035
     currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
     slotsRemaining -= 2
     printCurrentOrder(currentOrder)
+    print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slots remaining.')
     if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0 and slotsRemaining >= 2:
         meatsNotDone = True
     else:
@@ -1794,6 +1800,7 @@ def constructOwnWingPlatter():
             currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
             slotsRemaining -= 2
             printCurrentOrder(currentOrder)
+            print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slot{"s" if slotsRemaining > 1 else ""} remaining.')
             if not(sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0 and slotsRemaining >= 2):
                 meatsNotDone = False
     
@@ -1818,6 +1825,7 @@ def constructOwnWingPlatter():
             currentOrder.append(f'{GREEN}{qty}{CLEAR} {RED}{side}{CLEAR}')
             slotsRemaining -= 1
             printCurrentOrder(currentOrder)
+            print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slot{"s" if slotsRemaining > 1 else ""} remaining.')
             if not(sum(playerFoodInventories[currentPlayer]['sides'].values()) > 0 and slotsRemaining >= 1):
                 sidesNotDone = False
     
@@ -1892,6 +1900,7 @@ def visitWingeria():
         print(f'{" "*indent}Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
         indent += 1
         print(f'{" "*indent}Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+        print(f'{" "*indent}You will also recieve an {GREEN}additional slot{CLEAR} when building your {PAPAS_WINGERIA_SPACE}own platter{CLEAR} for another player.')
         investment = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
         playerGolds[currentPlayer] -= investment
         playerProgress[currentPlayer]["wingeria"] += investment
