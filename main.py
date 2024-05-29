@@ -2797,7 +2797,7 @@ try:
         print('-'*50)
         print(f'{YELLOW}Player {currentPlayer}{CLEAR}, it is your turn!')
         indent += 1
-        print(f'{" "*indent}You curently have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+        print(f'{" "*indent}You currently have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         indent -= 1
         if len(playerQuests[currentPlayer]) > 0:
             indent += 1
