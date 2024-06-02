@@ -6,6 +6,7 @@ import time
 import random
 import datetime
 import traceback
+from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor
 
 #bord paramaters
@@ -29,6 +30,7 @@ BLACKJACK_DEALER_CAUTION = 5
 GYM_PROGRESS_REQUIRED = 2
 WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
+LYING_GAME_DIFFICULTY = 4
 
 #assertions
 assert GRID_SIZE > 3, 'grid size must be greater than 3!'
@@ -46,6 +48,7 @@ assert 0 <= BLACKJACK_DEALER_CAUTION and BLACKJACK_DEALER_CAUTION <= BLACKJACK_T
 assert GYM_PROGRESS_REQUIRED > 0, 'gym progress required must be positive!'
 assert WINGERIA_PROGRESS_REQUIRED > 0, 'wingeria progress required must be positive!'
 assert MINIMUM_SPEED >= 0, 'minimum speed must be non negative!'
+assert LYING_GAME_DIFFICULTY >= 0, 'lying game difficulty must be non negative!'
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -1235,7 +1238,8 @@ def spinTheFlamingoWheel():
         f'{" "*indent}The {FLAMINGO_SPACE}Number Game{CLEAR}',
         f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}',
         f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}',
-        f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}'
+        f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}',
+        f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}'
     ]
     result = spinWheelVisually(options)
     print(f'\x1B[A\x1B[2K{result}')
@@ -1255,6 +1259,10 @@ def spinTheFlamingoWheel():
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}':
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
         result = playDateQuiz()
+    if result == f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}':
+        questions = random.randint(4, 8)
+        print(f'{" "*indent}You must identify the {RED}number of liars{CLEAR} in {GREEN}{questions}{CLEAR} sets of {CYAN}people{CLEAR} making statements about each other.')
+        result = playLyingGame(questions)
     indent -= 1
     return result
 
@@ -2663,7 +2671,138 @@ def playDateQuiz():
             indent -= 1
         else:
             indent += 1
-            print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {correctAnswer}')
+            print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {GREEN}{correctAnswer}{CLEAR}')
+            indent -= 1
+            result = False
+            break
+    indent -= 1
+    return result
+
+def playLyingGame(numQuestions):
+    global indent
+    indent += 1
+    result = True
+    
+    def generateValidQuestion(numPeople):
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        people = list(range(1,numPeople+1))
+        numLiars = random.randint(0,numPeople)
+        liars = random.sample(people, numLiars)
+        people = [None] + [True if x not in liars else False for x in people]
+        statements = [None]
+        complexPeople = random.sample(list(range(1,numPeople+1)), int((numPeople*0.35)//1))
+        for person, truthy in enumerate(people):
+            if person != 0:
+                nextPerson = person + 1
+                if nextPerson == len(people):
+                    nextPerson = 1
+                if truthy:
+                    regularBit = {"person": nextPerson, "statement": people[nextPerson]}
+                    if person not in complexPeople:
+                        statements.append([regularBit])
+                    else:
+                        newBit = {"person": random.randint(1,numPeople), "statement": random.choice([True, False])}
+                        statement = [regularBit, newBit]
+                        random.shuffle(statement)
+                        if people[newBit['person']] == newBit['statement']:
+                            logic = ['or', 'and']
+                        else:
+                            logic = ['or']
+                        statements.append(statement + [random.choice(logic)])
+                else:
+                    regularBit = {"person": nextPerson, "statement": not people[nextPerson]}
+                    if person not in complexPeople:
+                        statements.append([regularBit])
+                    else:
+                        newBit = {"person": random.randint(1,numPeople), "statement": random.choice([True, False])}
+                        statement = [regularBit, newBit]
+                        random.shuffle(statement)
+                        if people[newBit['person']] != newBit['statement']:
+                            logic = ['and', 'or']
+                        else:
+                            logic = ['and']
+                        statements.append(statement + [random.choice(logic)])
+        names = list(alphabet[:(numPeople)])
+        random.shuffle(names)
+        names = [None] + names
+        question = {}
+        for n, name in enumerate(names):
+            if n != 0:
+                if len(statements[n]) == 1:
+                    question[name] = [{"person": names[statement['person']], "statement": statement['statement']} for statement in statements[n]]
+                else:
+                    logic = statements[n].pop(-1)
+                    question[name] = [{"person": names[statement['person']], "statement": statement['statement']} for statement in statements[n]] + [logic]
+                    statements[n].append(logic)
+        question = dict(sorted(question.items()))
+        
+        otherWayWorks = True
+        otherPeople = [None if person == None else not person for person in people]
+        for n, statement in enumerate(statements):
+            if n != 0:
+                if len(statement) == 1:
+                    if otherPeople[n]:
+                        if otherPeople[statement[0]['person']] != statement[0]['statement']:
+                            otherWayWorks = False
+                            break
+                    else:
+                        if otherPeople[statement[0]['person']] == statement[0]['statement']:
+                            otherWayWorks = False
+                            break
+                else:
+                    if otherPeople[n]:
+                        if statement[2] == 'or':
+                            if otherPeople[statement[0]['person']] != statement[0]['statement'] and otherPeople[statement[1]['person']] != statement[1]['statement']:
+                                otherWayWorks = False
+                                break
+                        else:
+                            if otherPeople[statement[0]['person']] != statement[0]['statement'] or otherPeople[statement[1]['person']] != statement[1]['statement']:
+                                otherWayWorks = False
+                                break
+                    else:
+                        if statement[2] == 'or':
+                            if otherPeople[statement[0]['person']] == statement[0]['statement'] or otherPeople[statement[1]['person']] == statement[1]['statement']:
+                                otherWayWorks = False
+                                break
+                        else:
+                            if otherPeople[statement[0]['person']] == statement[0]['statement'] and otherPeople[statement[1]['person']] == statement[1]['statement']:
+                                otherWayWorks = False
+                                break
+            
+        return numLiars, question, otherWayWorks
+    
+    for roundNum in range(1,numQuestions+1):
+        numPeople = roundNum + LYING_GAME_DIFFICULTY
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        names = {}
+        for letter in alphabet[:(numPeople)]:
+            name = '.'
+            while name[0] != letter:
+                name = get_first_name()
+            names[letter] = name
+        print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
+        numLiars, statements, otherWayWorks = generateValidQuestion(numPeople)
+        indent += 1
+        for person in statements:
+            statement = statements[person]
+            if len(statement) == 1:
+                statement = statement[0]
+                print(f'{" "*indent}{CYAN}{names[person]}{CLEAR} says: "{CYAN}{names[statement["person"]]}{CLEAR} is {f"telling the {GREEN}Truth{CLEAR}" if statement["statement"] else f"{RED}Lying{CLEAR}"}"')
+            else:
+                print(f'{" "*indent}{CYAN}{names[person]}{CLEAR} says: "{CYAN}{names[statement[0]["person"]]}{CLEAR} is {f"telling the {GREEN}Truth{CLEAR}" if statement[0]["statement"] else f"{RED}Lying{CLEAR}"} {ORANGE}{statement[2]}{CLEAR} {CYAN}{names[statement[1]["person"]]}{CLEAR} is {f"telling the {GREEN}Truth{CLEAR}" if statement[1]["statement"] else f"{RED}Lying{CLEAR}"}"')
+        indent -= 1
+        print(f'{" "*indent}How many people are {RED}Lying{CLEAR}?')
+        choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice (0-{numPeople}):{CLEAR} ', numPeople))
+        if choice == numLiars or (choice == numPeople-numLiars and otherWayWorks):
+            indent += 1
+            print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
+            indent -= 1
+        else:
+            indent += 1
+            if numLiars == numPeople-numLiars or not otherWayWorks:
+                print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {GREEN}{min([numLiars])}{CLEAR}')
+            else:
+                print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {GREEN}{min([numLiars, numPeople-numLiars])}{CLEAR} or {GREEN}{max([numLiars, numPeople-numLiars])}{CLEAR}')
             indent -= 1
             result = False
             break
