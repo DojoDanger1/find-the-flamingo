@@ -1260,7 +1260,7 @@ def spinTheFlamingoWheel():
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
         result = playDateQuiz()
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}':
-        questions = random.randint(4, 8)
+        questions = random.randint(4, 9)
         print(f'{" "*indent}You must identify the {RED}number of liars{CLEAR} in {GREEN}{questions}{CLEAR} sets of {CYAN}people{CLEAR} making statements about each other.')
         result = playLyingGame(questions)
     indent -= 1
