@@ -1239,7 +1239,8 @@ def spinTheFlamingoWheel():
         f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}',
         f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}',
         f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}',
-        f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}'
+        f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}',
+        f'{" "*indent}The {FLAMINGO_SPACE}Mixed Game{CLEAR}'
     ]
     result = spinWheelVisually(options)
     print(f'\x1B[A\x1B[2K{result}')
@@ -1252,17 +1253,37 @@ def spinTheFlamingoWheel():
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}':
         questions = random.randint(5,10)
         print(f'{" "*indent}You must answer {GREEN}{questions}{CLEAR} questions about the board in {RED}increasing difficulty{CLEAR}.')
-        result = playBoardQuiz(questions)
+        result = playBoardQuiz(questions, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}':
         print(f'{" "*indent}You must simplify {GREEN}5{CLEAR} logic expressions in {RED}increasing difficulty{CLEAR}.')
-        result = playLogicGame(5)
+        result = playLogicGame(5, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}':
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
-        result = playDateQuiz()
+        result = playDateQuiz(questions='all')
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}':
         questions = random.randint(4, 9)
         print(f'{" "*indent}You must identify the {RED}number of liars{CLEAR} in {GREEN}{questions}{CLEAR} sets of {CYAN}people{CLEAR} making statements about each other.')
-        result = playLyingGame(questions)
+        result = playLyingGame(questions, only=False)
+    if result == f'{" "*indent}The {FLAMINGO_SPACE}Mixed Game{CLEAR}':
+        print(f'{" "*indent}You must answer {GREEN}1{CLEAR} question from each of the other {FLAMINGO_SPACE}flamingo games{CLEAR}.')
+        order = ['board', 'logic', 'date', 'lying']
+        random.shuffle(order)
+        for n, game in enumerate(order):
+            if game == 'board':
+                result = playBoardQuiz(n+1, only=True)
+            if game == 'logic':
+                result = playLogicGame(n+1, only=True)
+            if game == 'date':
+                result = playDateQuiz(questions=n+1)
+            if game == 'lying':
+                result = playLyingGame(n+1, only=True)
+            if result == False:
+                break
+        if result == True:
+            unit = random.randint(3,9)
+            limit = random.randint(25,100)
+            print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}Digits {RED}cannot{CLEAR} sum to {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
+            result = playNumberGame(unit, limit)
     indent -= 1
     return result
 
@@ -2508,11 +2529,14 @@ def playNumberGame(gameUnit, gameStop):
     indent -= 1
     return result
 
-def playBoardQuiz(numQuestions):
+def playBoardQuiz(numQuestions, only=False):
     global indent
     indent += 1
     result = True
     for roundNum in range(1,numQuestions+1):
+        if only == True:
+            if roundNum != numQuestions:
+                continue
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         valid = False
         while not valid: 
@@ -2566,7 +2590,7 @@ def playBoardQuiz(numQuestions):
     indent -= 1
     return result
 
-def playLogicGame(numQuestions):
+def playLogicGame(numQuestions, only=False):
     global indent
     indent += 1
     result = True
@@ -2583,6 +2607,9 @@ def playLogicGame(numQuestions):
         return expression
     
     for roundNum in range(1,numQuestions+1):
+        if only == True:
+            if roundNum != numQuestions:
+                continue
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         correctAnswer = random.choice(['0', '1'])
         expression = correctAnswer
@@ -2606,7 +2633,7 @@ def playLogicGame(numQuestions):
                     else:
                         newExpression += newBit
             expression = newExpression
-        print(f'{" "*indent}{convertToHumanReadable(expression)}')
+        print(f'{" "*indent}Simplify {convertToHumanReadable(expression)}')
         indent += 1
         print(f'{" "*indent}0: {RED}False{CLEAR}')
         print(f'{" "*indent}1: {GREEN}True{CLEAR}')
@@ -2625,12 +2652,15 @@ def playLogicGame(numQuestions):
     indent -= 1
     return result
 
-def playDateQuiz():
+def playDateQuiz(questions='all'):
     global indent
     indent += 1
     result = True
     today = datetime.datetime.today()
     for roundNum in range(1,6):
+        if questions != 'all':
+            if questions != roundNum:
+                continue
         print(f'{" "*indent}Question {getColourFromFraction((5-roundNum)/5)}{roundNum}{CLEAR}:')
         if roundNum == 1:
             lowerBound = datetime.date(today.year, today.month, 1)
@@ -2652,7 +2682,7 @@ def playDateQuiz():
             upperBound = datetime.date((today.year//100)*100+299, 12, 31)
         possibleDays = (upperBound-lowerBound).days
         chosenDate = lowerBound + datetime.timedelta(days=random.randrange(possibleDays))
-        print(f'{" "*indent}{chosenDate.strftime(f"{CYAN}%B{CLEAR} {GREEN}%-d{CLEAR}, {ORANGE}%Y{CLEAR}")}')
+        print(f'{" "*indent}What day of the week is {chosenDate.strftime(f"{CYAN}%B{CLEAR} {GREEN}%-d{CLEAR}, {ORANGE}%Y{CLEAR}")}?')
         correctAnswer = chosenDate.strftime('%A')
         possibleAnswers = [correctAnswer]
         for _ in range(3):
@@ -2678,7 +2708,7 @@ def playDateQuiz():
     indent -= 1
     return result
 
-def playLyingGame(numQuestions):
+def playLyingGame(numQuestions, only=False):
     global indent
     indent += 1
     result = True
@@ -2772,6 +2802,9 @@ def playLyingGame(numQuestions):
         return numLiars, question, otherWayWorks
     
     for roundNum in range(1,numQuestions+1):
+        if only == True:
+            if roundNum != numQuestions:
+                continue
         numPeople = roundNum + LYING_GAME_DIFFICULTY
         alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         names = {}
