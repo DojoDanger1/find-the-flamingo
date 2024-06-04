@@ -3073,6 +3073,7 @@ prevQuantumEntanglements = [copy.deepcopy(quantumEntanglements)]
 try:
     running = True
     currentPlayer = 1
+    winner = None
     os.system('clear')
     while running:
         indent = 0
@@ -3146,7 +3147,7 @@ try:
                     print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
                     indent -= 1
                 for _ in range(moves):
-                    if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm':
+                    if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm' and winner == None:
                         indent += 1
                         #display move options
                         print(f'{" "*indent}Where would you like to move?')
