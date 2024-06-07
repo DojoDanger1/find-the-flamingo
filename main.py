@@ -1768,6 +1768,7 @@ def generateWingPlatter():
     
     output = 'a Wing Platter with\n'
     cost = 0
+    totalMeats = 0
     slots = 7
     numMeats = random.randint(1,3)
     slots -= (2 * numMeats)
@@ -1780,6 +1781,7 @@ def generateWingPlatter():
             meat = meat[:-1]
         items.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{random.choice(sauces)}{CLEAR}{" " if side != "" else ""}{side}')
         cost += qty*0.0035
+        totalMeats += qty
     numDips = random.randint(0,4)
     if numDips != 0:
         slots -= 1
@@ -1796,7 +1798,7 @@ def generateWingPlatter():
     for n, item in enumerate(items):
         output += f'{" "*indent}{item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}{newline if n != len(items)-1 else ""}'
     indent -= 1
-    return output, cost
+    return output, cost, totalMeats
 
 def addToFoodInventory(numIngredients):
     month = datetime.datetime.today().strftime('%B').lower()
@@ -1999,14 +2001,14 @@ def visitWingeria():
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
             indent -= 1
             time.sleep(0.5)
-    order, cost = generateWingPlatter()
+    order, cost, totalMeats = generateWingPlatter()
     print(f'{" "*indent}You ordered {order}.')
     playerSpeeds[currentPlayer] -= cost
     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
     if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
         playerSpeeds[currentPlayer] = MINIMUM_SPEED
     print(f'{" "*indent}You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
-    updateQuests('eatChicken', cost)
+    updateQuests('eatChicken', totalMeats)
     if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0:
         time.sleep(0.5)
         print(f'{" "*indent}Would you like to build your own {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} to feed to {RED}another player{CLEAR}?')
