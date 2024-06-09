@@ -710,7 +710,7 @@ def evaluateSpaceType(spaceType):
         quantumEntanglements.append([firstSpace, secondSpace])
         generateImage(board, paths, quantumEntanglements)
         if playerGolds[currentPlayer] >= 5:
-            print(f'{" "*indent}Would you like to pay {YELLOW}5 gold{CLEAR} to be {GREEN}notified{CLEAR} when you next get {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}?')
+            print(f'{" "*indent}Would you like to pay {YELLOW}3 gold{CLEAR} to be {GREEN}notified{CLEAR} the next 2 times you get {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}?')
             indent += 1
             print(f'{" "*indent}0: No')
             print(f'{" "*indent}1: Yes')
@@ -718,8 +718,8 @@ def evaluateSpaceType(spaceType):
             choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
             if choice == '1':
                 indent += 1
-                playerQuantumNotifications[currentPlayer] += 1
-                playerGolds[currentPlayer] -= 5
+                playerQuantumNotifications[currentPlayer] += 2
+                playerGolds[currentPlayer] -= 3
                 print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
                 indent -= 1
         indent -= 1
