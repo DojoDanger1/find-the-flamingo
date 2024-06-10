@@ -582,6 +582,16 @@ def askForPlayer(prompt, includeSelf):
         option = askForPlayer(prompt, includeSelf)
     return str(option)
 
+def selectRandomSpace(board):
+    validSpace = False
+    while not validSpace:
+        row = random.randint(0, GRID_SIZE-1)
+        col = random.randint(0, GRID_SIZE-1)
+        if board[row][col] not in [None, 'flamingo']:
+            space = {"row": row, "col": col}
+            validSpace = True
+    return space
+
 def evaluateEntanglement():
     global indent
     if random.random() < 0.5:
@@ -2929,16 +2939,6 @@ def playLyingGame(numQuestions, only=False):
             break
     indent -= 1
     return result
-
-def selectRandomSpace(board):
-    validSpace = False
-    while not validSpace:
-        row = random.randint(0, GRID_SIZE-1)
-        col = random.randint(0, GRID_SIZE-1)
-        if board[row][col] not in [None, 'flamingo']:
-            space = {"row": row, "col": col}
-            validSpace = True
-    return space
 
 def grammatiseSpaceType(spaceType, punctuation=False, title=False, article=True):
     if spaceType == 'empty':
