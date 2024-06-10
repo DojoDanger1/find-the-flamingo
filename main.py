@@ -3250,7 +3250,7 @@ try:
                     print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
                     indent -= 1
                 for _ in range(moves):
-                    if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm' and winner == None:
+                    if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
                         indent += 1
                         #display move options
                         sure = False
