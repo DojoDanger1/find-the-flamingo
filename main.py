@@ -3253,16 +3253,27 @@ try:
                     if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm' and winner == None:
                         indent += 1
                         #display move options
-                        print(f'{" "*indent}Where would you like to move?')
-                        possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                        options = 0
-                        indent += 1
-                        print(f'{" "*indent}{options}: Stay Here')
-                        for move in possibleMoves:
-                            options += 1
-                            print(f'{" "*indent}{options}: Move {move["direction"]}')
-                        indent -= 1
-                        choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                        sure = False
+                        while not sure:
+                            print(f'{" "*indent}Where would you like to move?')
+                            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                            options = 0
+                            indent += 1
+                            print(f'{" "*indent}{options}: Stay Here')
+                            for move in possibleMoves:
+                                options += 1
+                                print(f'{" "*indent}{options}: Move {move["direction"]}')
+                            indent -= 1
+                            choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                            if int(choice) != 0:
+                                sure = True
+                            else:
+                                print(f'{" "*indent}Are you sure?')
+                                indent += 1
+                                print(f'{" "*indent}0: No')
+                                print(f'{" "*indent}1: Yes')
+                                indent -= 1
+                                sure = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
                         #evaluate option
                         hasBeenEliminated = False
                         if int(choice) != 0:
