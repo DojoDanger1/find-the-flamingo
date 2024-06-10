@@ -38,7 +38,7 @@ assert 0 < PERCENTAGE_SQUARES and PERCENTAGE_SQUARES <= 1, 'percentage squares m
 assert 0 < PERCENTAGE_PATHS and PERCENTAGE_PATHS <= 1, 'percentage paths must be between 0 and 1!'
 assert 0 < PROBABILITY_ONE_WAY and PROBABILITY_ONE_WAY <= 1, 'probability one way must be between 0 and 1!'
 assert 0 < BIAS and BIAS <= 1-PERCENTAGE_PATHS, f'bias must be between 0 and {1-PERCENTAGE_PATHS}'
-assert NUM_PLAYERS > 1, 'number of players must be more than 1!'
+assert NUM_PLAYERS >= 1, 'number of players must be greater than or equal to 1!'
 assert STARTING_SPEED > 0, 'starting speed must be positive!'
 assert SHOP_PURCHACE_LIMIT > 0, 'shop purchase limit must be positive!'
 assert 0 <= CHANCE_OF_INFLATION and CHANCE_OF_INFLATION <= 1, 'chance of inflation must be between 0 and 1!'
@@ -546,6 +546,11 @@ def askOptions(prompt, numOptions):
 
 def askForPlayer(prompt, includeSelf):
     global indent
+    candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers]
+    if not includeSelf:
+        candidates = [player for player in candidates if player != currentPlayer]
+    if len(candidates) == 0:
+        return -1
     option = input(prompt)
     try:
         option = int(option)
@@ -557,6 +562,11 @@ def askForPlayer(prompt, includeSelf):
         elif option > NUM_PLAYERS:
             indent += 1
             print(f'{" "*indent}{ERROR}Invalid Answer! Must be a number from 1 to {NUM_PLAYERS}{CLEAR}')
+            indent -= 1
+            option = askForPlayer(prompt, includeSelf)
+        if option in eliminatedPlayers:
+            indent += 1
+            print(f'{" "*indent}{ERROR}Invalid Answer! This player has been eliminated!{CLEAR}')
             indent -= 1
             option = askForPlayer(prompt, includeSelf)
         if not includeSelf:
@@ -592,6 +602,7 @@ def evaluateSpaceType(spaceType):
     global indent
     global running
     global winner
+    hasBeenEliminated = False
     indent += 1
     print(f'{" "*indent}You landed on {grammatiseSpaceType(spaceType, punctuation=True)}')
     if spaceType == 'empty':
@@ -648,7 +659,10 @@ def evaluateSpaceType(spaceType):
         indent += 1
         print(f'{" "*indent}You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be randomly teleported (1-{NUM_PLAYERS}):{CLEAR} ', True))
-        playerPositions[player] = selectRandomSpace(board)
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            playerPositions[player] = selectRandomSpace(board)
         indent -= 1
     if spaceType == 'gambling':
         indent += 1
@@ -662,34 +676,37 @@ def evaluateSpaceType(spaceType):
         indent += 1
         print(f'{" "*indent}You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent back (1-{NUM_PLAYERS}):{CLEAR} ', True))
-        targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
-        playerPositions[player] = prevPlayerPositions[-targetTime][player]
-        playerInventories[player] = prevPlayerInventories[-targetTime][player]
-        playerGolds[player] = prevPlayerGolds[-targetTime][player]
-        playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
-        playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
-        playerProgress[player] = prevPlayerProgress[-targetTime][player]
-        playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
-        playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
-        playerQuests[player] = prevPlayerQuests[-targetTime][player]
-        playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
-        playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
-        playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
-        for _ in range(targetTime-1):
-            for i in range(1, len(prevPlayerPositions)):
-                prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
-                prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
-                prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
-                prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
-                prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
-                prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
-                prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
-                prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
-                prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
-                prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
-                prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
-                prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
-        indent -= 1
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            targetTime = min(1+3*NUM_PLAYERS,len(prevPlayerPositions))
+            playerPositions[player] = prevPlayerPositions[-targetTime][player]
+            playerInventories[player] = prevPlayerInventories[-targetTime][player]
+            playerGolds[player] = prevPlayerGolds[-targetTime][player]
+            playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+            playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
+            playerProgress[player] = prevPlayerProgress[-targetTime][player]
+            playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
+            playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
+            playerQuests[player] = prevPlayerQuests[-targetTime][player]
+            playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
+            playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
+            playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
+            for _ in range(targetTime-1):
+                for i in range(1, len(prevPlayerPositions)):
+                    prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
+                    prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
+                    prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
+                    prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                    prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
+                    prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
+                    prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
+                    prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
+                    prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
+                    prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
+                    prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
+                    prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
+            indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
     if spaceType == 'gym':
@@ -700,32 +717,11 @@ def evaluateSpaceType(spaceType):
         spinTheQuestWheel()
         indent -= 1
     if spaceType == 'entanglement':
-        indent += 1
-        print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}!')
-        print(f'{" "*indent}If you are on a space that has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}, there is a {RED}50% chance{CLEAR} you will be {TELEPORT_SPACE}teleported{CLEAR} to the other one.')
-        firstSpace = selectRandomSpace(board)
-        secondSpace = firstSpace
-        while firstSpace == secondSpace:
-            secondSpace = selectRandomSpace(board)
-        quantumEntanglements.append([firstSpace, secondSpace])
-        generateImage(board, paths, quantumEntanglements)
-        if playerGolds[currentPlayer] >= 5:
-            print(f'{" "*indent}Would you like to pay {YELLOW}3 gold{CLEAR} to be {GREEN}notified{CLEAR} the next 2 times you get {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}?')
-            indent += 1
-            print(f'{" "*indent}0: No')
-            print(f'{" "*indent}1: Yes')
-            indent -= 1
-            choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
-            if choice == '1':
-                indent += 1
-                playerQuantumNotifications[currentPlayer] += 2
-                playerGolds[currentPlayer] -= 3
-                print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
-                indent -= 1
-        indent -= 1
+        entanglementSpace()
     if spaceType == 'information':
-        spinTheInformationWheel()
+        hasBeenEliminated = spinTheInformationWheel()
     indent -= 1
+    return hasBeenEliminated
 
 def evaluateDecorators():
     global indent
@@ -852,7 +848,7 @@ def spinTheBadWheel():
         playerPositions[currentPlayer] = selectRandomSpace(board)
     if result == f'{" "*indent}You {TELEPORT_SPACE}swap places{CLEAR} with a random player.':
         players = list(range(1,NUM_PLAYERS+1))
-        players.remove(currentPlayer)
+        players = [player for player in players if player != currentPlayer and player not in eliminatedPlayers]
         player = random.choice(players)
         temp = playerPositions[player]
         playerPositions[player] = playerPositions[currentPlayer]
@@ -860,18 +856,24 @@ def spinTheBadWheel():
     if result == f'{" "*indent}You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
-        playerGolds[player] += playerGolds[currentPlayer]
-        playerGolds[currentPlayer] = 0
-        print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            playerGolds[player] += playerGolds[currentPlayer]
+            playerGolds[currentPlayer] = 0
+            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
         indent -= 1
     if result == f'{" "*indent}You must return to the {HOME_SPACE}Home{CLEAR} space.':
         playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
     if result == f'{" "*indent}You must give away {YELLOW}3 gold{CLEAR}.':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give {YELLOW}3 gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
-        playerGolds[player] += 3
-        playerGolds[currentPlayer] -= 3
-        print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            playerGolds[player] += 3
+            playerGolds[currentPlayer] -= 3
+            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
         indent -= 1
     if result == f'{" "*indent}You must give away {CYAN}an item{CLEAR}.':
         indent += 1
@@ -886,13 +888,16 @@ def spinTheBadWheel():
                 if choice != '0':
                     valid = True
             item = playerInventories[currentPlayer][int(choice)-1]
-            playerInventories[currentPlayer].remove(item)
             if ';' in item:
                 itemName = item.split(';')[0]
             else:
                 itemName = item
             player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give the {CYAN}{itemName.title()}{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
-            playerInventories[player].append(item)
+            if player == -1:
+                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose who to give it to.{CLEAR}')
+            else:
+                playerInventories[currentPlayer].remove(item)
+                playerInventories[player].append(item)
         indent -= 1
     if result == f'{" "*indent}You must spin the {RED}Bad Wheel{CLEAR} twice more.':
         for _ in range(2):
@@ -939,7 +944,10 @@ def spinTheGoodWheel():
     if result == f'{" "*indent}You can {CYAN}send a player{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
-        playerPositions[player] = findShadowRealm(board)
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            playerPositions[player] = findShadowRealm(board)
         indent -= 1
     if result == f'{" "*indent}You gain {YELLOW}3 gold{CLEAR}!':
         playerGolds[currentPlayer] += 3
@@ -996,7 +1004,10 @@ def spinTheGoodWheel():
         if choice == '1':
             indent += 1
             player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will {GAMBLING_SPACE}gamble{TURQUOISE} at the start of their next turn (1-{NUM_PLAYERS}):{CLEAR} ', False))
-            playerWaitingForEvents[player].append('gamble')
+            if player == -1:
+                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+            else:
+                playerWaitingForEvents[player].append('gamble')
             indent -= 1
         indent -= 1
     if result == f'{" "*indent}You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!':
@@ -1023,7 +1034,10 @@ def spinTheShadowWheel():
     if result == f'{" "*indent}You must {CYAN}Invite a Friend{CLEAR} to the {SHADOW_REALM_SPACE}Shadow Realm{CLEAR}!':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent to the {SHADOW_REALM_SPACE}Shadow Realm{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
-        playerPositions[player] = findShadowRealm(board)
+        if player == -1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            playerPositions[player] = findShadowRealm(board)
         indent -= 1
     if result == f'{" "*indent}You can now spin the {GREEN}Good Wheel{CLEAR}!':
         spinTheGoodWheel()
@@ -1032,7 +1046,7 @@ def spinTheShadowWheel():
     if result == f'{" "*indent}All other players gain {YELLOW}2 gold{CLEAR}':
         indent += 1
         for player in range(1, NUM_PLAYERS+1):
-            if player != currentPlayer:
+            if player != currentPlayer and player not in eliminatedPlayers:
                 playerGolds[player] += 2
                 print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
         indent -= 1
@@ -1079,9 +1093,10 @@ def spinTheQuestWheel():
         {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0, "timeLeft": int(workoutHours//2.5)},
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0, "timeLeft": peopleToStab*6},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0, "timeLeft": gambleWinnings*2},
-        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0, "timeLeft": int((spendMoney*1.5)//1)},
-        {"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0, "timeLeft": 15}
+        {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0, "timeLeft": int((spendMoney*1.5)//1)}
     ]
+    if NUM_PLAYERS - len(eliminatedPlayers) >= 2:
+        actualOptions += [{"type": 'shootPeople', "requirement": (peopleToShoot := random.randint(2, min(NUM_PLAYERS, 5))), "reward": peopleToShoot*4, "progress": 0, "timeLeft": 15}]
     options = [f'{" "*indent}{questTextFromDict(option, progress=False)}' for option in actualOptions]
     spinWheelVisually(options)
     result = random.choice(actualOptions)
@@ -1417,6 +1432,9 @@ def useItem():
     global pathDecorators
     global board
     global quantumEntanglements
+    global blackHolePos
+    global blackHoleRadius
+    global eliminatedPlayers
     done = False
     indent += 1
     itemsUsed = []
@@ -1466,7 +1484,7 @@ def useItem():
                                 indent += 1
                                 message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]], punctuation=False)}.'
                                 for player, playerPosition in enumerate(playerPositions):
-                                    if playerPosition == playerPositions[currentPlayer] and player != currentPlayer:
+                                    if playerPosition == playerPositions[currentPlayer] and player != currentPlayer and player not in eliminatedPlayers:
                                         message += f' {RED}Player {player}{CLEAR} is also on this space.'
                                 for decorator in decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]:
                                     message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
@@ -1475,7 +1493,7 @@ def useItem():
                                     destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
                                     message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
                                     for player, playerPosition in enumerate(playerPositions):
-                                        if playerPosition == move['destination']:
+                                        if playerPosition == move['destination'] and player not in eliminatedPlayers:
                                             message += f' {RED}Player {player}{CLEAR} is on this space.'
                                     for decorator in decorators[move['destination']['row']][move['destination']['col']]:
                                         message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
@@ -1528,7 +1546,7 @@ def useItem():
                         #violence is always the answer
                         if item == 'knife':
                             indent += 1
-                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer and n not in eliminatedPlayers]
                             if len(playersOnCurrentSpot) == 0:
                                 print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                             else:
@@ -1569,7 +1587,7 @@ def useItem():
                                 plusOrMinus = 1
                             foundSomeone = False
                             currentPos = playerPositions[currentPlayer][changing]
-                            possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same]]
+                            possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same] and n not in eliminatedPlayers]
                             peopleShot = 0
                             while not foundSomeone:
                                 currentPos += plusOrMinus
@@ -1624,7 +1642,7 @@ def useItem():
                             indent -= 1
                         if item == 'fat injection':
                             indent += 1
-                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer]
+                            playersOnCurrentSpot = [n for n, pos in enumerate(playerPositions) if pos == playerPositions[currentPlayer] and n != currentPlayer and n not in eliminatedPlayers]
                             if len(playersOnCurrentSpot) == 0:
                                 print(f'{" "*indent}Unfortunately, {RED}No one{CLEAR} shares a space with you.')
                             else:
@@ -1638,23 +1656,30 @@ def useItem():
                         if item == 'freeze ray':
                             indent += 1
                             player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the  player to be {CYAN}frozen{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
-                            playerFrozens[player] = True
+                            if player == -1:
+                                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+                            else:
+                                playerFrozens[player] = True
                             indent -= 1
                         if item == 'swap':
                             indent += 1
-                            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
-                            valid = False
-                            while not valid:
-                                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
-                                if player2 == player1:
-                                    indent += 1
-                                    print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
-                                    indent -= 1
-                                else:
-                                    valid = True
-                            temp = playerPositions[player1]
-                            playerPositions[player1] = playerPositions[player2]
-                            playerPositions[player2] = temp
+                            candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers]
+                            if len(candidates) <= 1:
+                                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+                            else:
+                                player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
+                                valid = False
+                                while not valid:
+                                    player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to be {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
+                                    if player2 == player1:
+                                        indent += 1
+                                        print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
+                                        indent -= 1
+                                    else:
+                                        valid = True
+                                temp = playerPositions[player1]
+                                playerPositions[player1] = playerPositions[player2]
+                                playerPositions[player2] = temp
                             indent -= 1
                         #miscellaneous
                         if item == 'gold potion':
@@ -1670,7 +1695,10 @@ def useItem():
                         if item == 'wand':
                             indent += 1
                             player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will spin the {RED}Bad Wheel{TURQUOISE} at the start of their next turn (1-{NUM_PLAYERS}):{CLEAR} ', True))
-                            playerWaitingForEvents[player].append('bad wheel')
+                            if player == -1:
+                                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+                            else:   
+                                playerWaitingForEvents[player].append('bad wheel')
                             indent -= 1
                         if item == 'time machine':
                             timeMachineIndex = reward
@@ -1693,6 +1721,9 @@ def useItem():
                                 pathDecorators = prevPathDecorators[-1-NUM_PLAYERS]
                                 board = prevBoards[-1-NUM_PLAYERS]
                                 quantumEntanglements = prevQuantumEntanglements[-1-NUM_PLAYERS]
+                                blackHolePos = prevBlackHolePos[-1-NUM_PLAYERS]
+                                blackHoleRadius = prevBlackHoleRadius[-1-NUM_PLAYERS]
+                                eliminatedPlayers = prevEliminatedPlayers[-1-NUM_PLAYERS]
                                 for _ in range(NUM_PLAYERS):
                                     prevPlayerPositions.pop(-1)
                                     prevPlayerInventories.pop(-1)
@@ -1712,6 +1743,9 @@ def useItem():
                                     prevPathDecorators.pop(-1)
                                     prevBoards.pop(-1)
                                     prevQuantumEntanglements.pop(-1)
+                                    prevBlackHolePos.pop(-1)
+                                    prevBlackHoleRadius.pop(-1)
+                                    prevEliminatedPlayers.pop(-1)
                                 if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
                                     playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 for gameState in prevPlayerInventories:
@@ -1993,7 +2027,7 @@ def visitWingeria():
     global indent
     indent += 1
     for player, bonus in enumerate(playerInvestmentBonus):
-        if player != 0 and player != currentPlayer and bonus != 0:
+        if player != 0 and player != currentPlayer and bonus != 0 and player not in eliminatedPlayers:
             print(f'{" "*indent}You must pay {RED}Player {player}{CLEAR} {YELLOW}{bonus} gold{CLEAR}!')
             playerGolds[currentPlayer] -= bonus
             playerGolds[player] += bonus
@@ -2020,10 +2054,13 @@ def visitWingeria():
         if choice == 1:
             cost = round(constructOwnWingPlatter(), 4)
             player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will {RED}feed this plate to{TURQUOISE}, to lose {GYM_SPACE}{cost}{TURQUOISE} speed (1-{NUM_PLAYERS}):{CLEAR} ', False))
-            playerSpeeds[player] -= cost
-            playerSpeeds[player] = round(playerSpeeds[player], 4)
-            if playerSpeeds[player] < MINIMUM_SPEED:
-                playerSpeeds[player] = MINIMUM_SPEED
+            if player == -1:
+                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose who to give the plate to.{CLEAR}')
+            else:
+                playerSpeeds[player] -= cost
+                playerSpeeds[player] = round(playerSpeeds[player], 4)
+                if playerSpeeds[player] < MINIMUM_SPEED:
+                    playerSpeeds[player] = MINIMUM_SPEED
             indent += 1
             print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
             indent -= 1
@@ -2096,6 +2133,55 @@ def visitGym():
             print(f'{" "*indent}{RED}Unfortunately,{CLEAR} your {GYM_SPACE}{random.randint(1, 24)} hour mewing exercise{CLEAR} did nothing!')
         indent -= 1
     indent -= 1
+
+def entanglementSpace():
+    global indent
+    global blackHolePos
+    global blackHoleRadius
+    hasBeenEliminated = False
+    indent += 1
+    print(f'{" "*indent}2 random spaces have now become {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}!')
+    print(f'{" "*indent}If you are on a space that has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}, there is a {RED}50% chance{CLEAR} you will be {TELEPORT_SPACE}teleported{CLEAR} to the other one.')
+    firstSpace = selectRandomSpace(board)
+    secondSpace = firstSpace
+    while firstSpace == secondSpace:
+        secondSpace = selectRandomSpace(board)
+    quantumEntanglements.append([firstSpace, secondSpace])
+    generateImage(board, paths, quantumEntanglements)
+    indent += 1
+    if len(quantumEntanglements) == 5:
+        print(f'{" "*indent}{GRAY}Hmmm.... Something feels a little {SHADOW_REALM_SPACE}off{GRAY}...{CLEAR}')
+    if len(quantumEntanglements) == 10:
+        print(f'{" "*indent}{GRAY}You begin to feel something {SHADOW_REALM_SPACE}strange{GRAY}...{CLEAR}')
+    if len(quantumEntanglements) == 15:
+        print(f'{" "*indent}{RED}Uh oh!{GRAY} What you were feeling is the {SHADOW_REALM_SPACE}destabilising of reality{GRAY}! If you create more {ENTANGLEMENT_SPACE}entanglements{GRAY} it will only get worse...{CLEAR}')
+    if len(quantumEntanglements) == 20:
+        print(f'{" "*indent}{GRAY}Reality has been {SHADOW_REALM_SPACE}destabilised{GRAY} quite a bit now... do {RED}NOT{GRAY} keep making {ENTANGLEMENT_SPACE}entanglements{GRAY}.{CLEAR}')
+    if len(quantumEntanglements) == 25:
+        print(f'{" "*indent}{GRAY}Reality has been {SHADOW_REALM_SPACE}destabilised{GRAY} too far... A {SHADOW_REALM_SPACE}black hole{GRAY} has formed on this space.{CLEAR}')
+        blackHolePos = playerPositions[currentPlayer]
+        blackHoleRadius = 0
+        indent += 1
+        print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
+        eliminatedPlayers.append(currentPlayer)
+        hasBeenEliminated = True
+        indent -= 1
+    indent -= 1
+    if playerGolds[currentPlayer] >= 3 and not hasBeenEliminated:
+        print(f'{" "*indent}Would you like to pay {YELLOW}3 gold{CLEAR} to be {GREEN}notified{CLEAR} the next 2 times you get {ENTANGLEMENT_SPACE}quantum teleported{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1)
+        if choice == '1':
+            indent += 1
+            playerQuantumNotifications[currentPlayer] += 2
+            playerGolds[currentPlayer] -= 3
+            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+            indent -= 1
+    indent -= 1
+    return hasBeenEliminated
 
 def playBlackjack(bet=0):
     global indent
@@ -2906,6 +2992,9 @@ def saveToFile(filename):
         "decorators": decorators,
         "pathDecorators": pathDecorators,
         "quantumEntanglements": quantumEntanglements,
+        "blackHolePos": blackHolePos,
+        "blackHoleRadius": blackHoleRadius,
+        "eliminatedPlayers": eliminatedPlayers,
         "playerPositions": playerPositions,
         "playerInventories": playerInventories,
         "playerGolds": playerGolds,
@@ -2924,6 +3013,9 @@ def saveToFile(filename):
         "prevDecorators": prevDecorators,
         "prevPathDecorators": prevPathDecorators,
         "prevQuantumEntanglements": prevQuantumEntanglements,
+        "prevBlackHolePos": prevBlackHolePos,
+        "prevBlackHoleRadius": prevBlackHoleRadius,
+        "prevEliminatedPlayers": prevEliminatedPlayers,
         "prevPlayerPositions": prevPlayerPositions,
         "prevPlayerInventories": prevPlayerInventories,
         "prevPlayerGolds": prevPlayerGolds,
@@ -2974,6 +3066,7 @@ def redefineItemDescriptions():
 
 board, paths, decorators, pathDecorators = generateBoard()
 quantumEntanglements = []
+
 generateImage(board, paths, quantumEntanglements)
 highwayInformation = decideHighwayInformation(board, paths)
 
@@ -3053,6 +3146,11 @@ for _ in range(NUM_PLAYERS):
 
 numTimeMachines = 0
 
+blackHolePos = {"row": -1, "col": -1}
+blackHoleRadius = -1
+
+eliminatedPlayers = []
+
 prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
@@ -3071,6 +3169,9 @@ prevDecorators = [copy.deepcopy(decorators)]
 prevPathDecorators = [copy.deepcopy(pathDecorators)]
 prevBoards = [copy.deepcopy(board)]
 prevQuantumEntanglements = [copy.deepcopy(quantumEntanglements)]
+prevBlackHolePos = [copy.deepcopy(blackHolePos)]
+prevBlackHoleRadius = [copy.deepcopy(blackHoleRadius)]
+prevEliminatedPlayers = [copy.deepcopy(eliminatedPlayers)]
 
 try:
     running = True
@@ -3163,6 +3264,7 @@ try:
                         indent -= 1
                         choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
                         #evaluate option
+                        hasBeenEliminated = False
                         if int(choice) != 0:
                             allowedToMove = True
                             evaluatePathDecorators()
@@ -3171,21 +3273,30 @@ try:
                                 playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
                                 evaluateDecorators()
                                 spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
-                                evaluateSpaceType(spaceType)
+                                if math.sqrt((playerPositions[currentPlayer]['row']-blackHolePos['row'])**2+(playerPositions[currentPlayer]['col']-blackHolePos['col'])**2) <= blackHoleRadius:
+                                    print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
+                                    eliminatedPlayers.append(currentPlayer)
+                                    hasBeenEliminated = True
+                                if not hasBeenEliminated:
+                                    hasBeenEliminated = evaluateSpaceType(spaceType)
                         indent -= 1
                         #ask for item use
-                        timeTravelled = False
-                        if running == True:
-                            if len(playerInventories[currentPlayer]) > 0:
-                                if useItem() == 'continue':
-                                    timeTravelled = True
-                                    break
+                        if not hasBeenEliminated:
+                            timeTravelled = False
+                            if running == True:
+                                if len(playerInventories[currentPlayer]) > 0:
+                                    if useItem() == 'continue':
+                                        timeTravelled = True
+                                        break
         if timeTravelled:
             os.system('clear')
             continue
         reduceTimeOnQuests()
         #change turn order
         print('-'*50)
+        if len(eliminatedPlayers) == NUM_PLAYERS:
+            winner = 0
+            running = False
         if running == True:
             next = input(f'{" "*indent}{TURQUOISE}Press Enter to Continue to Next Player {CLEAR}')
             if next == "SAVE":
@@ -3215,6 +3326,9 @@ try:
                     decorators = data["decorators"]
                     pathDecorators = data["pathDecorators"]
                     quantumEntanglements = data["quantumEntanglements"]
+                    blackHolePos = data["blackHolePos"]
+                    blackHoleRadius = data["blackHoleRadius"]
+                    eliminatedPlayers = data["eliminatedPlayers"]
                     playerPositions = data["playerPositions"]
                     playerInventories = data["playerInventories"]
                     playerGolds = data["playerGolds"]
@@ -3233,6 +3347,9 @@ try:
                     prevDecorators = data["prevDecorators"]
                     prevPathDecorators = data["prevPathDecorators"]
                     prevQuantumEntanglements = data["prevQuantumEntanglements"]
+                    prevBlackHolePos = data["prevBlackHolePos"]
+                    prevBlackHoleRadius = data["prevBlackHoleRadius"]
+                    prevEliminatedPlayers = data["prevEliminatedPlayers"]
                     prevPlayerPositions = data["prevPlayerPositions"]
                     prevPlayerInventories = data["prevPlayerInventories"]
                     prevPlayerGolds = data["prevPlayerGolds"]
@@ -3271,46 +3388,74 @@ try:
             prevPathDecorators.append(copy.deepcopy(pathDecorators))
             prevBoards.append(copy.deepcopy(board))
             prevQuantumEntanglements.append(copy.deepcopy(quantumEntanglements))
-            #change turn order
-            currentPlayer += 1
-            if currentPlayer > NUM_PLAYERS:
-                currentPlayer = 1
-                #evaluate misc turns
-                decoratorsToRemove = []
-                goblinsToAdd = []
-                flamingosToAdd = []
-                for n, row in enumerate(decorators):
-                    for m, cell in enumerate(row):
-                        for l, decorator in enumerate(cell):
-                            if decorator['type'] == 'goblin':
-                                possibleMoves = findPossibleMoves(paths, {"row": n, "col": m}, True, highwayInformation)
-                                chosenDestination = random.choice(possibleMoves)['destination']
-                                decoratorsToRemove.append((n, m, l))
-                                print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
-                                if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
-                                    indent += 1
-                                    print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
-                                    indent -= 1
-                                else:
-                                    goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
-                            if decorator['type'] == 'flamingo':
-                                shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, {"row": n, "col": m}, highwayInformation)
-                                decoratorsToRemove.append((n, m, l))
-                                if len(shortestPathToFlamingo) == 1:
-                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has reached the {FLAMINGO_SPACE}flamingo space{CLEAR} and will be despawned.')
-                                else:
-                                    firstPath = shortestPathToFlamingo[0]
-                                    chosenDestination = firstPath['end']
-                                    flamingosToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
-                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has moved!')
-                for decorator in sorted(decoratorsToRemove, reverse=True):
-                    decorators[decorator[0]][decorator[1]].pop(decorator[2])
-                for goblin in goblinsToAdd:
-                    decorators[goblin[0]][goblin[1]].append(goblin[2])
-                for flamingo in flamingosToAdd:
-                    decorators[flamingo[0]][flamingo[1]].append(flamingo[2])
+            prevBlackHolePos.append(copy.deepcopy(blackHolePos))
+            prevBlackHoleRadius.append(copy.deepcopy(blackHoleRadius))
+            prevEliminatedPlayers.append(copy.deepcopy(eliminatedPlayers))
+            #expand black hole
+            if blackHoleRadius > -1:
+                if random.random() <= 0.5:
+                    blackHoleRadius += 1
+                    print(f'{" "*indent}The {SHADOW_REALM_SPACE}black hole{CLEAR} has grown to a radius of {blackHoleRadius} space{"s" if blackHoleRadius != 1 else ""}.')
+                    for n, playerPos in enumerate(playerPositions):
+                        if n != 0 and n not in eliminatedPlayers:
+                            if math.sqrt((playerPos['row']-blackHolePos['row'])**2+(playerPos['col']-blackHolePos['col'])**2) <= blackHoleRadius:
+                                print(f'{" "*indent}{YELLOW}Player {n},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
+                                eliminatedPlayers.append(n)
+                                if len(eliminatedPlayers) == NUM_PLAYERS:
+                                    winner = 0
+                                    running = False
+            if running == True:
+                #change turn order
+                loopedOver = False
+                currentPlayer += 1
+                if currentPlayer > NUM_PLAYERS:
+                    currentPlayer = 1
+                    loopedOver = True
+                while currentPlayer in eliminatedPlayers:
+                    currentPlayer += 1
+                    if currentPlayer > NUM_PLAYERS:
+                        currentPlayer = 1
+                        loopedOver = True
+                if loopedOver:
+                    #evaluate misc turns
+                    decoratorsToRemove = []
+                    goblinsToAdd = []
+                    flamingosToAdd = []
+                    for n, row in enumerate(decorators):
+                        for m, cell in enumerate(row):
+                            for l, decorator in enumerate(cell):
+                                if decorator['type'] == 'goblin':
+                                    possibleMoves = findPossibleMoves(paths, {"row": n, "col": m}, True, highwayInformation)
+                                    chosenDestination = random.choice(possibleMoves)['destination']
+                                    decoratorsToRemove.append((n, m, l))
+                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
+                                    if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
+                                        indent += 1
+                                        print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                                        indent -= 1
+                                    else:
+                                        goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
+                                if decorator['type'] == 'flamingo':
+                                    shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, {"row": n, "col": m}, highwayInformation)
+                                    decoratorsToRemove.append((n, m, l))
+                                    if len(shortestPathToFlamingo) == 1:
+                                        print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has reached the {FLAMINGO_SPACE}flamingo space{CLEAR} and will be despawned.')
+                                    else:
+                                        firstPath = shortestPathToFlamingo[0]
+                                        chosenDestination = firstPath['end']
+                                        flamingosToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
+                                        print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has moved!')
+                    for decorator in sorted(decoratorsToRemove, reverse=True):
+                        decorators[decorator[0]][decorator[1]].pop(decorator[2])
+                    for goblin in goblinsToAdd:
+                        decorators[goblin[0]][goblin[1]].append(goblin[2])
+                    for flamingo in flamingosToAdd:
+                        decorators[flamingo[0]][flamingo[1]].append(flamingo[2])
 
-    print(f'{GREEN}Player {winner} wins!{CLEAR}')
+    if winner != 0:
+        print(f'{GREEN}Player {winner} wins!{CLEAR}')
+    else:
+        print(f'{RED}Everyone has been eliminated. No one wins.{CLEAR}')
 except Exception as e: #i know this is bad practice shut up ok
     print(f'{ERROR}uh oh! something went wrong...{CLEAR}')
     print(f'Creating a save with the name {GREEN}quicksave{CLEAR}...')
