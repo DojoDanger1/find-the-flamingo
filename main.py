@@ -5,7 +5,6 @@ import math
 import time
 import random
 import datetime
-import traceback
 from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor
 
