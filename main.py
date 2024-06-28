@@ -17,7 +17,7 @@ PROBABILITY_ONE_WAY = 0.1
 BIAS = 0.05
 
 #game settings
-NUM_PLAYERS = 3
+NUM_PLAYERS = 1
 ROLES_ENABLED = False
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
@@ -95,11 +95,14 @@ WINGERIA_INGREDIENTS = ingredients = {"allTime": {"meats": ["Chicken Wings", "Bo
 def fillSpaces(board, fillWith, howMany, initialState):
     linearBoard = sum(board, [])
     initialIndexes = [n for n, x in enumerate(linearBoard) if x == initialState]
-    chosenSpaces = random.sample(initialIndexes, howMany)
-    for n, _ in enumerate(linearBoard):
-        if n in chosenSpaces:
-            linearBoard[n] = fillWith
-    return [linearBoard[x*GRID_SIZE:(x+1)*GRID_SIZE] for x in range(GRID_SIZE)]
+    if len(initialIndexes) > 0:
+        chosenSpaces = random.sample(initialIndexes, howMany)
+        for n, _ in enumerate(linearBoard):
+            if n in chosenSpaces:
+                linearBoard[n] = fillWith
+        return [linearBoard[x*GRID_SIZE:(x+1)*GRID_SIZE] for x in range(GRID_SIZE)]
+    else:
+        return board
 
 def findPossiblePaths(board, endPos, oneWay, directions):
     possiblePaths = []
@@ -868,12 +871,15 @@ def spinTheBadWheel():
     if result == f'{" "*indent}You will be {TELEPORT_SPACE}teleported{CLEAR} to a random space.':
         playerPositions[currentPlayer] = selectRandomSpace(board)
     if result == f'{" "*indent}You {TELEPORT_SPACE}swap places{CLEAR} with a random player.':
-        players = list(range(1,NUM_PLAYERS+1))
-        players = [player for player in players if player != currentPlayer and player not in eliminatedPlayers]
-        player = random.choice(players)
-        temp = playerPositions[player]
-        playerPositions[player] = playerPositions[currentPlayer]
-        playerPositions[currentPlayer] = temp
+        if NUM_PLAYERS - len(eliminatedPlayers) > 1:
+            players = list(range(1,NUM_PLAYERS+1))
+            players = [player for player in players if player != currentPlayer and player not in eliminatedPlayers]
+            player = random.choice(players)
+            temp = playerPositions[player]
+            playerPositions[player] = playerPositions[currentPlayer]
+            playerPositions[currentPlayer] = temp
+        else:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to swap with.{CLEAR}')
     if result == f'{" "*indent}You must give away {YELLOW}all gold{CLEAR}. {YELLOW}({playerGolds[currentPlayer]}){CLEAR}':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give your {YELLOW}gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
