@@ -2233,7 +2233,10 @@ def printRoles(roles):
             indent += 1
             print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR} and play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
             print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-            indent -= 1
+            indent += 1
+            print(f'{" "*indent}{GRAY}The purpose of this sentence is to make the length of each description roughly the same.')
+            print(f'{" "*indent}This is so that you can\'t determine anything based on the length of time reading the rules.{CLEAR}')
+            indent -= 2
         if playerRoles[player] == 'Staller':
             indent += 1
             print(f'{" "*indent}To {GREEN}win the game{CLEAR}, the game must last for {ORANGE}{STALLER_WIN} rounds{CLEAR}.')
