@@ -2261,7 +2261,7 @@ def printRoles(roles):
             indent -= 1
         indent -= 1
         print('-'*50)
-        input(f'{TURQUOISE}Press Enter to Continue')
+        input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
         os.system('clear')
 
 def evaluateVote(final):
