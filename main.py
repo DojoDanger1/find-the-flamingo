@@ -24,6 +24,7 @@ STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
 STALLER_WIN = 250
 VOTING_FREQUENCY = 50
+OTHERS_CANT_SEE_FLAMINGO = True
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
@@ -2245,7 +2246,8 @@ def printRoles(roles):
             indent += 1
             print(f'{" "*indent}The {RED}Staller{CLEAR} role will also be passed onto one of the {CYAN}Finders{CLEAR}.')
             indent -= 1
-            print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
+            if OTHERS_CANT_SEE_FLAMINGO:
+                print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
             indent -= 1
         if playerRoles[player] == 'Jester':
             indent += 1
@@ -2254,7 +2256,8 @@ def printRoles(roles):
             indent += 1
             print(f'{" "*indent}If you fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, the {PINK}Jester{CLEAR} role will be passed onto one of the {CYAN}Finders{CLEAR}.')
             indent -= 1
-            print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
+            if OTHERS_CANT_SEE_FLAMINGO:
+                print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
             indent -= 1
         indent -= 1
         print('-'*50)
@@ -3520,7 +3523,7 @@ while running:
                             playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
                             evaluateDecorators()
                             spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
-                            if spaceType == 'flamingo' and playerRoles[currentPlayer] in ['Staller', 'Jester']:
+                            if spaceType == 'flamingo' and playerRoles[currentPlayer] in ['Staller', 'Jester'] and OTHERS_CANT_SEE_FLAMINGO:
                                 spaceType = 'empty'
                             if math.sqrt((playerPositions[currentPlayer]['row']-blackHolePos['row'])**2+(playerPositions[currentPlayer]['col']-blackHolePos['col'])**2) <= blackHoleRadius:
                                 print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
