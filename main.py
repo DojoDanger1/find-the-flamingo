@@ -1,23 +1,25 @@
 import os
 import copy
-import json
 import math
 import time
+import pickle
 import random
 import datetime
+import numpy as np
 from names import get_first_name
-from PIL import Image, ImageDraw, ImageColor
+from PIL import Image, ImageDraw, ImageColor, ImageFont
 
 #bord paramaters
-GRID_SIZE = 7
+GRID_SIZE = 4
+NUM_DIMENSIONS = 3
 PERCENTAGE_SQUARES = 0.7
 PERCENTAGE_PATHS = 0.5
 PROBABILITY_ONE_WAY = 0.1
 BIAS = 0.05
 
 #game settings
-NUM_PLAYERS = 3
-ROLES_ENABLED = False
+NUM_PLAYERS = 5
+ROLES_ENABLED = True
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
@@ -38,6 +40,7 @@ CONFIRM_STAY_HERE = True
 
 #assertions
 assert GRID_SIZE >= 3, 'grid size must be greater than or equal to 3!'
+assert 2 <= NUM_DIMENSIONS and NUM_DIMENSIONS <= 26, 'number of dimensions must be in between 2 and 26!'
 assert 0 < PERCENTAGE_SQUARES and PERCENTAGE_SQUARES <= 1, 'percentage squares must be between 0 and 1!'
 assert 0 < PERCENTAGE_PATHS and PERCENTAGE_PATHS <= 1, 'percentage paths must be between 0 and 1!'
 assert 0 < PROBABILITY_ONE_WAY and PROBABILITY_ONE_WAY <= 1, 'probability one way must be between 0 and 1!'
@@ -92,105 +95,94 @@ INFORMATION_SPACE = getColour(175, 175, 175)
 #wingeria ingredients
 WINGERIA_INGREDIENTS = ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
 
-def fillSpaces(board, fillWith, howMany, initialState):
-    linearBoard = sum(board, [])
-    initialIndexes = [n for n, x in enumerate(linearBoard) if x == initialState]
-    if len(initialIndexes) > 0:
-        chosenSpaces = random.sample(initialIndexes, howMany)
-        for n, _ in enumerate(linearBoard):
-            if n in chosenSpaces:
-                linearBoard[n] = fillWith
-        return [linearBoard[x*GRID_SIZE:(x+1)*GRID_SIZE] for x in range(GRID_SIZE)]
+def convertLanguageDirectionsToLetters(directions):
+    if 'up' in directions:
+        directions[directions.index('up')] = '-y'
+    if 'down' in directions:
+        directions[directions.index('down')] = '+y'
+    if 'right' in directions:
+        directions[directions.index('right')] = '+x'
+    if 'left' in directions:
+        directions[directions.index('left')] = '-x'
+    if 'forwards' in directions:
+        directions[directions.index('forwards')] = '+z'
+    if 'backwards' in directions:
+        directions[directions.index('backwards')] = '-z'
+    return directions
+
+def getAxisOrderFromDirections(directions):
+    directions = convertLanguageDirectionsToLetters(directions)
+    directions = [d[1] for d in directions[::2]]
+    directions.sort()
+    if len(directions) == 2:
+        return ['y', 'x']
+    elif len(directions) == 3:
+        return ['z', 'y', "x"]
     else:
-        return board
+        return directions[0:len(directions)-3] + directions[len(directions)-3:len(directions)][::-1]
+
+if NUM_DIMENSIONS == 2:
+    directions = ['up', 'down', 'left', 'right']
+elif NUM_DIMENSIONS == 3:
+    directions = ['up', 'down', 'left', 'right', 'forwards', 'backwards']
+else:
+    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    directions = []
+    for n in range(NUM_DIMENSIONS):
+        directions.append(f'+{alphabet[25-n]}')
+        directions.append(f'-{alphabet[25-n]}')
+
+ALL_DIRECTIONS = directions
+AXIS_ORDER = getAxisOrderFromDirections(copy.deepcopy(ALL_DIRECTIONS))
+
+def fillSpaces(board, fillWith, howMany, toFill):
+    initialIndexes = [tuple(x) for x in np.argwhere(board == toFill)]
+    if len(initialIndexes) > 0:
+        chosenSpaces = random.sample(list(initialIndexes), howMany)
+        for space in chosenSpaces:
+            board[space] = fillWith
+    return board
 
 def findPossiblePaths(board, endPos, oneWay, directions):
     possiblePaths = []
-    #up
-    if 'up' in directions:
-        row = endPos['row']
+    directions = convertLanguageDirectionsToLetters(copy.deepcopy(directions))
+    for direction in directions:
+        sign = (1 if direction[0] == '+' else -1)
+        axis = AXIS_ORDER.index(direction[1])
         done = False
+        pos = list(copy.deepcopy(endPos))
         while not done:
-            row -= 1
-            if row < 0:
+            pos[axis] -= sign
+            if pos[axis] < 0 or pos[axis] >= GRID_SIZE:
                 done = True
-            elif board[row][endPos['col']] != None:
+            elif board[tuple(pos)] != None:
                 done = True
-                possiblePaths.append({"end": endPos, "start": {"row": row, "col": endPos['col']}, "oneWay": oneWay})
-    #down
-    if 'down' in directions:
-        row = endPos['row']
-        done = False
-        while not done:
-            row += 1
-            if row >= GRID_SIZE:
-                done = True
-            elif board[row][endPos['col']] != None:
-                done = True
-                possiblePaths.append({"end": endPos, "start": {"row": row, "col": endPos['col']}, "oneWay": oneWay})
-    #left
-    if 'left' in directions:
-        col = endPos['col']
-        done = False
-        while not done:
-            col -= 1
-            if col < 0:
-                done = True
-            elif board[endPos['row']][col] != None:
-                done = True
-                possiblePaths.append({"end": endPos, "start": {"row": endPos['row'], "col": col}, "oneWay": oneWay})
-    #right
-    if 'right' in directions:
-        col = endPos['col']
-        done = False
-        while not done:
-            col += 1
-            if col >= GRID_SIZE:
-                done = True
-            elif board[endPos['row']][col] != None:
-                done = True
-                possiblePaths.append({"end": endPos, "start": {"row": endPos['row'], "col": col}, "oneWay": oneWay})
+                possiblePaths.append({"start": tuple(pos), "end": endPos, "oneWay": oneWay})
     return possiblePaths
 
 def generateAValidHighway(board, paths):
+    spaces = [tuple(x) for x in np.argwhere(board != None)]
+    possibleIndexes = []
+    for n, space in enumerate(spaces):
+        if board[space] not in ['home', 'flamingo', 'shadow realm']:
+            count = 0
+            for path in paths:
+                if path['start'] == space or path['end'] == space:
+                    count += 1
+            if count < 2 * NUM_DIMENSIONS:
+                possibleIndexes.append(n)
+    spaces = [space for (n, space) in enumerate(spaces) if n in possibleIndexes]
+    if len(spaces) < 2:
+        return -1
     validPath = False
     while not validPath:
-        validCell = False
-        while not validCell:
-            row = random.randint(0, GRID_SIZE-1)
-            col = random.randint(0, GRID_SIZE-1)
-            if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
-                count = 0
-                startPos = {"row": row, "col": col}
-                for path in paths:
-                    if path['start'] == startPos or path['end'] == startPos:
-                        count += 1
-                if count < 4:
-                    validCell = True
-        validCell = False
-        while not validCell:
-            row = random.randint(0, GRID_SIZE-1)
-            col = random.randint(0, GRID_SIZE-1)
-            if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
-                count = 0
-                endPos = {"row": row, "col": col}
-                for path in paths:
-                    if path['start'] == endPos or path['end'] == endPos:
-                        count += 1
-                if count < 4:
-                    validCell = True
-        path = {"start": startPos, "end": endPos, "oneWay": False}
-        possiblePaths = [
-            {"start": startPos, "end": endPos, "oneWay": True},
-            {"start": startPos, "end": endPos, "oneWay": False},
-            {"start": endPos, "end": startPos, "oneWay": True},
-            {"start": endPos, "end": startPos, "oneWay": False},
-        ]
+        startPos = random.choice(spaces)
+        endPos = random.choice([space for space in spaces if space != startPos])
         alreadyExisting = False
-        for possiblePath in possiblePaths:
-            if possiblePath in paths:
-                alreadyExisting = True
-        if (not alreadyExisting) and (startPos['row'] != endPos['row']) and (startPos['col'] != endPos['col']):
+        if len([path for path in paths if (startPos == path['start'] or startPos == path['end']) and (endPos == path['start'] or endPos == path['end'])]) != 0:
+            alreadyExisting = True
+        path = {"start": startPos, "end": endPos, "oneWay": False}
+        if (not alreadyExisting) and isThisPathAHighway(path):
             validPath = True
             return path
 
@@ -201,26 +193,21 @@ def generateBoard():
     while not reallyPossible:
         #initialise board
         print('  creating board array...')
-        board = []
-        decorators = []
-        for _ in range(GRID_SIZE):
-            board.append([None]*GRID_SIZE)
-            decoratorsRow = []
-            for _ in range(GRID_SIZE):
-                decoratorsRow.append([])
-            decorators.append(decoratorsRow)
+        board = np.full(tuple([GRID_SIZE]*NUM_DIMENSIONS), None)
+        decorators = np.empty(tuple([GRID_SIZE]*NUM_DIMENSIONS), dtype=object)
+        for cell in [tuple(x) for x in np.argwhere(decorators == None)]:
+            decorators[cell] = []
         #add empty spaces
         print('  adding empty spaces...')
         numEmpties = 0
-        for n, row in enumerate(board):
-            for m, _ in enumerate(row):
-                if random.random() < PERCENTAGE_SQUARES:
-                    board[n][m] = 'empty'
-                    numEmpties += 1
+        for n, cell in np.ndenumerate(board):
+            if random.random() < PERCENTAGE_SQUARES:
+                board[n] = 'empty'
+                numEmpties += 1
         #add home space
         print('  adding home space...')
-        midpoint = GRID_SIZE // 2
-        board[midpoint][midpoint] = 'home'
+        midpoint = tuple([GRID_SIZE // 2]*NUM_DIMENSIONS)
+        board[midpoint] = 'home'
         #add other spaces
         print('  adding other spaces...')
         board = fillSpaces(board, 'shadow realm', 1, 'empty')
@@ -237,15 +224,9 @@ def generateBoard():
         board = fillSpaces(board, 'entanglement', numEmpties // 20, 'empty')
         board = fillSpaces(board, 'information', numEmpties // 10, 'empty')
         #get positions of flamingo and shadow realm and home
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = {"row": n, "col": m}
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'shadow realm':
-                    shadowRealmPos = {"row": n, "col": m}
-        homePos = {"row": midpoint, "col": midpoint}
+        flamingoPos = tuple(np.argwhere(board == "flamingo")[0])
+        shadowRealmPos = tuple(np.argwhere(board == "shadow realm")[0])
+        homePos = tuple(np.argwhere(board == "home")[0])
         #repeat until game is possible
         print('  attempting to add pathways...')
         possible = False
@@ -254,43 +235,29 @@ def generateBoard():
             print('   adding paths to flamingo, home, shadow realm...')
             #initialise paths
             paths = []
-            allDirections = ['up', 'down', 'left', 'right']
             #add path to flamingo
-            possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, allDirections) if path['start'] != shadowRealmPos]
+            possiblePaths = [path for path in findPossiblePaths(board, flamingoPos, False, ALL_DIRECTIONS) if board[path['start']] != 'shadow realm']
             paths.append(random.choice(possiblePaths))
             #add paths to shadow realm
-            possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, allDirections) if path['start'] != flamingoPos]
+            possiblePaths = [path for path in findPossiblePaths(board, shadowRealmPos, False, ALL_DIRECTIONS) if board[path['start']] != 'flamingo']
             paths += possiblePaths
             #add paths from home
-            possiblePaths = [path for path in findPossiblePaths(board, homePos, False, allDirections) if path['start'] != shadowRealmPos and path['start'] != flamingoPos]
+            possiblePaths = [path for path in findPossiblePaths(board, homePos, False, ALL_DIRECTIONS) if board[path['start']] not in ['flamingo', 'shadow realm']]
             paths += possiblePaths
             #add internal paths
             print(f'   adding internal paths with chance {PERCENTAGE_PATHS + bias}...')
-            for row in range(GRID_SIZE):
-                for col in range(GRID_SIZE):
-                    pos = {"row": row, "col": col}
-                    if board[row][col] not in [None, 'home', 'flamingo', 'shadow realm']:
-                        #down
+            spaces = [tuple(x) for x in np.argwhere(board != None)]
+            for pos in spaces:
+                if board[pos] not in ['home', 'flamingo', 'shadow realm']:
+                    for direction in AXIS_ORDER:
                         if random.random() < (PERCENTAGE_PATHS + bias):
-                            possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['down']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
+                            oneWay = random.random() < PROBABILITY_ONE_WAY
+                            possiblePaths = [path for path in findPossiblePaths(board, pos, oneWay, [f'+{direction}']) if board[path['start']] not in ['home', 'flamingo', 'shadow realm']]
                             if len(possiblePaths) != 0:
-                                if possiblePaths[0]['oneWay'] == True:
-                                    newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                                    paths.append(random.choice(newPossiblePaths))
-                                else:
-                                    paths += possiblePaths
-                        #right
-                        if random.random() < (PERCENTAGE_PATHS + bias):
-                            possiblePaths = [path for path in findPossiblePaths(board, pos, random.random() < PROBABILITY_ONE_WAY, ['right']) if path['start'] != homePos and path['start'] != flamingoPos and path['start'] != shadowRealmPos]
-                            if len(possiblePaths) != 0:
-                                if possiblePaths[0]['oneWay'] == True:
-                                    newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": True}]
-                                    paths.append(random.choice(newPossiblePaths))
-                                else:
-                                    paths += possiblePaths
+                                newPossiblePaths = [possiblePaths[0], {"start": possiblePaths[0]['end'], "end": possiblePaths[0]['start'], "oneWay": oneWay}]
+                                paths.append(random.choice(newPossiblePaths))
             print('   checking if this is possible...')
-            highwayInformation = decideHighwayInformation(board, paths)
-            if isPossibleToGetEverywhere(board, paths, homePos, highwayInformation) and not areThereAnyPurgatories(board, paths, highwayInformation):
+            if isPossibleToGetEverywhere(board, paths, homePos, False, []) and not areThereAnyPurgatories(board, paths, False, []):
                 print('    it is!')
                 possible = True
                 reallyPossible = True
@@ -302,24 +269,29 @@ def generateBoard():
                     possible = True #this is a lie, it is to break out of the while loop to scrap this map and try again
     #add highways
     print(' adding highways...')
-    for _ in range((GRID_SIZE // 2)):
-        paths.append(generateAValidHighway(board, paths))
+    for _ in range((numEmpties // 10)):
+        highway = generateAValidHighway(board, paths)
+        if highway != -1:
+            paths.append(highway)
     #generate additional highways to shadow realm
     print(' adding additional highways to the shadow realm...')
-    cellsWithLessThan4Paths = []
-    for n, row in enumerate(board):
-        for m, col in enumerate(row):
+    spaces = [tuple(x) for x in np.argwhere(board != None)]
+    possibleIndexes = []
+    for n, space in enumerate(spaces):
+        if board[space] not in ['home', 'flamingo', 'shadow realm']:
             count = 0
-            cell = {"row": n, "col": m}
             for path in paths:
-                if path['start'] == cell or path['end'] == cell:
+                if path['start'] == space or path['end'] == space:
                     count += 1
-            if (count < 4) and (n != shadowRealmPos['row']) and (m != shadowRealmPos['col']) and col != None and col != 'flamingo':
-                cellsWithLessThan4Paths.append(cell)
+            if count < 2 * NUM_DIMENSIONS:
+                possibleIndexes.append(n)
+    cellsWithLessThan4Paths = [space for (n, space) in enumerate(spaces) if n in possibleIndexes]
     numNewPaths = len(cellsWithLessThan4Paths)//8
     connectingCells = random.sample(cellsWithLessThan4Paths, numNewPaths)
     for cell in connectingCells:
-        paths.append({"start": cell, "end": shadowRealmPos, "oneWay": False})
+        proposedPath = {"start": cell, "end": shadowRealmPos, "oneWay": False}
+        if isThisPathAHighway(proposedPath):
+            paths.append(proposedPath)
     #add pathDecorators
     pathDecorators = []
     for _ in paths:
@@ -330,134 +302,209 @@ def generateBoard():
     return board, paths, decorators, pathDecorators
 
 def generateImage(board, paths, quantumEntanglements):
-    width = GRID_SIZE*100
-    height = GRID_SIZE*100
+    os.system('rm -rf map')
+    os.mkdir('map')
+    font = ImageFont.truetype('font/Montserrat-SemiBold.ttf', 20)
+    for axis1 in AXIS_ORDER:
+        for axis2 in AXIS_ORDER[AXIS_ORDER.index(axis1)+1:]:
+            axis1Num = AXIS_ORDER.index(axis1)
+            axis2Num = AXIS_ORDER.index(axis2)
+            consts = [axis for axis in AXIS_ORDER if axis not in [axis1, axis2]]
+            for constNums, _ in np.ndenumerate(np.full([GRID_SIZE]*len(consts), None)):
+                width = GRID_SIZE*100
+                height = GRID_SIZE*100
 
-    mainImg = Image.new('RGBA', (width,height), ImageColor.getcolor('#ffffff', 'RGBA'))
-    draw = ImageDraw.Draw(mainImg)
+                mainImg = Image.new('RGBA', (width,height), ImageColor.getcolor('#ffffff', 'RGBA'))
+                draw = ImageDraw.Draw(mainImg)
 
-    for n, path in enumerate(paths):
-        if path['oneWay']:
-            draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#696969', 'RGBA'), width=10)
-            if path['end']['col'] > path['start']['col'] and path['end']['row'] == path['start']['row']: #right
-                draw.regular_polygon((math.ceil((path['end']['col']+path['start']['col'])/2)*100, path['start']['row']*100+50, 15), 3, 270, fill=ImageColor.getcolor('#696969', 'RGBA'))
-            if path['end']['col'] < path['start']['col'] and path['end']['row'] == path['start']['row']: #left
-                draw.regular_polygon((math.ceil((path['end']['col']+path['start']['col'])/2)*100, path['start']['row']*100+50, 15), 3, 90, fill=ImageColor.getcolor('#696969', 'RGBA'))
-            if path['end']['col'] == path['start']['col'] and path['end']['row'] > path['start']['row']: #down
-                draw.regular_polygon((path['start']['col']*100+50, math.ceil((path['end']['row']+path['start']['row'])/2)*100, 15), 3, 180, fill=ImageColor.getcolor('#696969', 'RGBA'))
-            if path['end']['col'] == path['start']['col'] and path['end']['row'] < path['start']['row']: #up
-                draw.regular_polygon((path['start']['col']*100+50, math.ceil((path['end']['row']+path['start']['row'])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
-        elif path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row']:
-            draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
-        else:
-            draw.line((path['start']['col']*100+50, path['start']['row']*100+50, path['end']['col']*100+50, path['end']['row']*100+50), fill=ImageColor.getcolor('#000000', 'RGBA'), width=10)
-    for entanglement in quantumEntanglements:
-        if entanglement[0]['col'] == entanglement[1]['col']:
-            draw.line((entanglement[0]['col']*100+65, entanglement[0]['row']*100+50, entanglement[1]['col']*100+65, entanglement[1]['row']*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
-        elif entanglement[0]['row'] == entanglement[1]['row']:
-            draw.line((entanglement[0]['col']*100+50, entanglement[0]['row']*100+65, entanglement[1]['col']*100+50, entanglement[1]['row']*100+65), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
-        else:
-            draw.line((entanglement[0]['col']*100+50, entanglement[0]['row']*100+50, entanglement[1]['col']*100+50, entanglement[1]['row']*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
-    for n, row in enumerate(board):
-        for m, cell in enumerate(row):
-            if cell == 'empty':
-                colour = '#8a8a8a'
-            if cell == 'flamingo':
-                colour = '#ff00ea'
-            if cell == 'home':
-                colour = '#d6b200'
-            if cell == 'shadow realm':
-                colour = '#4d09ba'
-            if cell == 'good':
-                colour = '#11ff00'
-            if cell == 'bad':
-                colour = '#ff0400'
-            if cell == 'shop':
-                colour = '#0062ff'
-            if cell == 'teleport':
-                colour = '#ffa200'
-            if cell == 'gambling':
-                colour = '#6b0a0a'
-            if cell == 'timewarp':
-                colour = '#006170'
-            if cell == 'papas wingeria':
-                colour = '#853c01'
-            if cell == 'gym':
-                colour = '#00c7c0'
-            if cell == 'quest':
-                colour = '#b000e6'
-            if cell == 'entanglement':
-                colour = '#ff580a'
-            if cell == 'information':
-                colour = '#ffffff'
-            if cell != None:
-                draw.rectangle((m*100+15, n*100+15, m*100+85, n*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
-        
-    mainImg.save(f'image.png', 'PNG')
+                for path in paths:
+                    rectCoords = (path['start'][axis2Num]*100+50, path['start'][axis1Num]*100+50, path['end'][axis2Num]*100+50, path['end'][axis1Num]*100+50)
+                    if isThisPathAHighway(path):
+                        startIsInPlane = True
+                        endIsInPlane = True
+                        for n, const in enumerate(consts):
+                            if path['start'][AXIS_ORDER.index(const)] != constNums[n]:
+                                startIsInPlane = False
+                            if path['end'][AXIS_ORDER.index(const)] != constNums[n]:
+                                endIsInPlane = False
+                        if startIsInPlane or endIsInPlane:
+                            draw.line(rectCoords, fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
+                    else:
+                        isInPlane = True
+                        for n, const in enumerate(consts):
+                            if path['start'][AXIS_ORDER.index(const)] != constNums[n] or path['end'][AXIS_ORDER.index(const)] != constNums[n]:
+                                isInPlane = False
+                        if isInPlane:
+                            if path['oneWay']:
+                                draw.line(rectCoords, fill=ImageColor.getcolor('#696969', 'RGBA'), width=10)
+                                if path['end'][axis2Num] > path['start'][axis2Num] and path['end'][axis1Num] == path['start'][axis1Num]: #right
+                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100, int(path['start'][axis1Num]*100+50), 15), 3, 270, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                if path['end'][axis2Num] < path['start'][axis2Num] and path['end'][axis1Num] == path['start'][axis1Num]: #left
+                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100, int(path['start'][axis1Num]*100+50), 15), 3, 90, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                if path['end'][axis2Num] == path['start'][axis2Num] and path['end'][axis1Num] > path['start'][axis1Num]: #down
+                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 180, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                if path['end'][axis2Num] == path['start'][axis2Num] and path['end'][axis1Num] < path['start'][axis1Num]: #up
+                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                            else:
+                                draw.line(rectCoords, fill=ImageColor.getcolor('#000000', 'RGBA'), width=10)
+                for entanglement in quantumEntanglements:
+                    firstIsInPlane = True
+                    secondIsInPlane = True
+                    for n, const in enumerate(consts):
+                        if entanglement[0][AXIS_ORDER.index(const)] != constNums[n]:
+                            firstIsInPlane = False
+                        if entanglement[1][AXIS_ORDER.index(const)] != constNums[n]:
+                            secondIsInPlane = False
+                    if firstIsInPlane or secondIsInPlane:
+                        if entanglement[0][axis2Num] == entanglement[1][axis2Num]:
+                            draw.line((entanglement[0][axis2Num]*100+65, entanglement[0][axis1Num]*100+50, entanglement[1][axis2Num]*100+65, entanglement[1][axis1Num]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        elif entanglement[0][axis1Num] == entanglement[1][axis1Num]:
+                            draw.line((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+65, entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+65), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        else:
+                            draw.line((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+50, entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                spaces = [tuple(x) for x in np.argwhere(board != None)]
+                for space in spaces:
+                    isInPlane = True
+                    for n, const in enumerate(consts):
+                        if space[AXIS_ORDER.index(const)] != constNums[n] or space[AXIS_ORDER.index(const)] != constNums[n]:
+                            isInPlane = False
+                    if isInPlane:
+                        cell = board[space]
+                        if cell == 'empty':
+                            colour = '#8a8a8a'
+                        if cell == 'flamingo':
+                            colour = '#ff00ea'
+                        if cell == 'home':
+                            colour = '#d6b200'
+                        if cell == 'shadow realm':
+                            colour = '#4d09ba'
+                        if cell == 'good':
+                            colour = '#11ff00'
+                        if cell == 'bad':
+                            colour = '#ff0400'
+                        if cell == 'shop':
+                            colour = '#0062ff'
+                        if cell == 'teleport':
+                            colour = '#ffa200'
+                        if cell == 'gambling':
+                            colour = '#6b0a0a'
+                        if cell == 'timewarp':
+                            colour = '#006170'
+                        if cell == 'papas wingeria':
+                            colour = '#853c01'
+                        if cell == 'gym':
+                            colour = '#00c7c0'
+                        if cell == 'quest':
+                            colour = '#b000e6'
+                        if cell == 'entanglement':
+                            colour = '#ff580a'
+                        if cell == 'information':
+                            colour = '#ffffff'
+                        draw.rectangle((space[axis2Num]*100+15, space[axis1Num]*100+15, space[axis2Num]*100+85, space[axis1Num]*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
+                for path in paths:
+                    if isThisPathAHighway(path):
+                        startIsInPlane = True
+                        endIsInPlane = True
+                        for n, const in enumerate(consts):
+                            if path['start'][AXIS_ORDER.index(const)] != constNums[n]:
+                                startIsInPlane = False
+                            if path['end'][AXIS_ORDER.index(const)] != constNums[n]:
+                                endIsInPlane = False
+                        if not (startIsInPlane and endIsInPlane):
+                            if startIsInPlane:
+                                coordinates = ",".join([f"{axis}:{path['end'][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
+                                draw.text((path['end'][axis2Num]*100+50, path['end'][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#000088', 'RGBA'), font=font)
+                            if endIsInPlane:
+                                coordinates = ",".join([f"{axis}:{path['start'][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
+                                draw.text((path['start'][axis2Num]*100+50, path['start'][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#000088', 'RGBA'), font=font)
+                for entanglement in quantumEntanglements:
+                    firstIsInPlane = True
+                    secondIsInPlane = True
+                    for n, const in enumerate(consts):
+                        if entanglement[0][AXIS_ORDER.index(const)] != constNums[n]:
+                            firstIsInPlane = False
+                        if entanglement[1][AXIS_ORDER.index(const)] != constNums[n]:
+                            secondIsInPlane = False
+                    if not (startIsInPlane and endIsInPlane):
+                        if firstIsInPlane:
+                            coordinates = ",".join([f"{axis}:{entanglement[1][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
+                            draw.text((entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#882905', 'RGBA'), font=font)
+                        if secondIsInPlane:
+                            coordinates = ",".join([f"{axis}:{entanglement[0][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
+                            draw.text((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#882905', 'RGBA'), font=font)
+                    
+                mainImg.save(f'map/{axis1}{axis2},{",".join([f"{const}={constNums[n]+1}" for (n, const) in enumerate(consts)])}.png', 'PNG')
+
+def isThisPathAHighway(path):
+    for dimension in range(NUM_DIMENSIONS):
+        if path['start'][dimension] == path['end'][dimension]:
+            return False
+    return True
 
 def decideHighwayInformation(board, paths):
-    highways = [path for path in paths if path['start']['row'] != path['end']['row'] and path['start']['col'] != path['end']['col']]
+    highways = [path for path in paths if isThisPathAHighway(path)]
     highwayInformation = []
     for highway in highways:
         thisHighwaysInformation = []
         for startEnd in ['start', 'end']:
             moves = findPossibleMoves(paths, highway[startEnd], False, highwayInformation)
-            if board[highway[startEnd]['row']][highway[startEnd]['col']] == 'shadow realm':
-                thisHighwaysInformation.append({"row": highway[startEnd]['row'], "col": highway[startEnd]['col'], "direction": 'shadow realm'})
+            if board[highway[startEnd]] == 'shadow realm':
+                thisHighwaysInformation.append({"space": highway[startEnd], "direction": 'shadow realm'})
             else:
-                possibleDirections = ['up', 'down', 'left', 'right']
+                possibleDirections = copy.deepcopy(ALL_DIRECTIONS)
                 for move in moves:
                     possibleDirections.remove(move['direction'])
                 for information in highwayInformation:
                     for subInformation in information:
-                        if subInformation['row'] == highway[startEnd]['row'] and subInformation['col'] == highway[startEnd]['col']:
+                        if subInformation['space'] == highway[startEnd]:
                             possibleDirections.remove(subInformation['direction'])
-                thisHighwaysInformation.append({"row": highway[startEnd]['row'], "col": highway[startEnd]['col'], "direction": random.choice(possibleDirections)})
+                thisHighwaysInformation.append({"space": highway[startEnd], "direction": random.choice(possibleDirections)})
         highwayInformation.append(thisHighwaysInformation)
     return highwayInformation
 
 def findPossibleMoves(paths, position, includeHighways, highwayInformation):
     possibleMoves = []
-    possibleDirections = ['up', 'down', 'left', 'right']
     possiblePaths = [(n, path) for n, path in enumerate(paths) if path['start'] == position or (path['end'] == position and path['oneWay'] == False)]
-    numNonHighways = len([path for path in paths if path['start']['row'] == path['end']['row'] or path['start']['col'] == path['end']['col']])
+    numNonHighways = len([path for path in paths if not isThisPathAHighway(path)])
     for (n, path) in possiblePaths:
         if path['start'] == position:
             destination = path['end']
         else:
             destination = path['start']
-        if destination['row'] > position['row'] and destination['col'] == position['col']:
-            direction = 'down'
-            possibleDirections.remove('down')
-        elif destination['row'] < position['row'] and destination['col'] == position['col']:
-            direction = 'up'
-            possibleDirections.remove('up')
-        elif destination['col'] > position['col'] and destination['row'] == position['row']:
-            direction = 'right'
-            possibleDirections.remove('right')
-        elif destination['col'] < position['col'] and destination['row'] == position['row']:
-            direction = 'left'
-            possibleDirections.remove('left')
-        elif includeHighways:
+        if isThisPathAHighway(path) and includeHighways:
             highway = highwayInformation[n-numNonHighways]
-            if highway[0]['col'] == position['col'] and highway[0]['row'] == position['row']:
+            if highway[0]['space'] == position:
                 direction = highway[0]['direction']
-            elif highway[1]['col'] == position['col'] and highway[1]['row'] == position['row']:
+            elif highway[1]['space'] == position:
                 direction = highway[1]['direction']
-            possibleDirections.remove(direction)
-        isHighway = destination['row'] != position['row'] and destination['col'] != position['col']
-        if (isHighway and includeHighways) or (not isHighway):
+        elif not isThisPathAHighway(path):
+            for axis in AXIS_ORDER:
+                if destination[AXIS_ORDER.index(axis)] > position[AXIS_ORDER.index(axis)]:
+                    direction = f'+{axis}'
+                elif destination[AXIS_ORDER.index(axis)] < position[AXIS_ORDER.index(axis)]:
+                    direction = f'-{axis}'
+        if (isThisPathAHighway(path) and includeHighways) or (not isThisPathAHighway(path)):
+            if NUM_DIMENSIONS <= 3:
+                if direction == '-y':
+                    direction = 'up'
+                elif direction == '+y':
+                    direction = 'down'
+                elif direction == '+x':
+                    direction = 'right'
+                elif direction == '-x':
+                    direction = 'left'
+                elif direction == '+z':
+                    direction = 'forwards'
+                elif direction == '-z':
+                    direction = 'backwards'
             possibleMoves.append({"direction": direction, "destination": destination, "path": path})
     return sorted(possibleMoves, key=lambda x: x['direction'])
 
 def findShadowRealm(board):
-    for n, row in enumerate(board):
-        for m, cell in enumerate(row):
-            if cell == 'shadow realm':
-                return {"row": n, "col": m}
+    return tuple(np.argwhere(board == "shadow realm")[0])
 
 def findShortestPathToFlamingo(board, paths, startPos, highwayInformation):
-    if board[startPos['row']][startPos['col']] == 'flamingo':
+    if board[startPos] == 'flamingo':
         return []
     done = False
     allPathChains = []
@@ -474,14 +521,14 @@ def findShortestPathToFlamingo(board, paths, startPos, highwayInformation):
                     path = {"start": move['path']['end'], "end": move['path']['start'], "oneWay": move['path']['oneWay']}
                 allPathChains.append([path])
                 previouslySearched.append(path['end'])
-                if board[path['end']['row']][path['end']['col']] == 'flamingo':
+                if board[path['end']] == 'flamingo':
                     done = True
                     return [path]
         else:
             newPathChains = []
             for pathChain in allPathChains:
                 position = pathChain[-1]['end']
-                if board[position['row']][position['col']] != 'shadow realm':
+                if board[position] != 'shadow realm':
                     possibleMoves = findPossibleMoves(paths, position, True, highwayInformation)
                     for move in possibleMoves:
                         if move['path']['start'] == position:
@@ -492,7 +539,7 @@ def findShortestPathToFlamingo(board, paths, startPos, highwayInformation):
                             newPathChain = pathChain + [path]
                             newPathChains.append(newPathChain)
                             previouslySearched.append(path['end'])
-                            if board[path['end']['row']][path['end']['col']] == 'flamingo':
+                            if board[path['end']] == 'flamingo':
                                 done = True
                                 return newPathChain
             if len(newPathChains) == 0:
@@ -500,15 +547,53 @@ def findShortestPathToFlamingo(board, paths, startPos, highwayInformation):
                 return 'impossible'
             allPathChains = newPathChains
 
-def isPossibleToGetEverywhere(board, paths, startPos, highwayInformation):
+def findPossibleMoves(paths, position, includeHighways, highwayInformation):
+    possibleMoves = []
+    possiblePaths = [(n, path) for n, path in enumerate(paths) if path['start'] == position or (path['end'] == position and path['oneWay'] == False)]
+    numNonHighways = len([path for path in paths if not isThisPathAHighway(path)])
+    for (n, path) in possiblePaths:
+        if path['start'] == position:
+            destination = path['end']
+        else:
+            destination = path['start']
+        if isThisPathAHighway(path) and includeHighways:
+            highway = highwayInformation[n-numNonHighways]
+            if highway[0]['space'] == position:
+                direction = highway[0]['direction']
+            elif highway[1]['space'] == position:
+                direction = highway[1]['direction']
+        elif not isThisPathAHighway(path):
+            for axis in AXIS_ORDER:
+                if destination[AXIS_ORDER.index(axis)] > position[AXIS_ORDER.index(axis)]:
+                    direction = f'+{axis}'
+                elif destination[AXIS_ORDER.index(axis)] < position[AXIS_ORDER.index(axis)]:
+                    direction = f'-{axis}'
+        if (isThisPathAHighway(path) and includeHighways) or (not isThisPathAHighway(path)):
+            if NUM_DIMENSIONS <= 3:
+                if direction == '-y':
+                    direction = 'up'
+                elif direction == '+y':
+                    direction = 'down'
+                elif direction == '+x':
+                    direction = 'right'
+                elif direction == '-x':
+                    direction = 'left'
+                elif direction == '+z':
+                    direction = 'forwards'
+                elif direction == '-z':
+                    direction = 'backwards'
+            possibleMoves.append({"direction": direction, "destination": destination, "path": path})
+    return sorted(possibleMoves, key=lambda x: x['direction'])
+
+def isPossibleToGetEverywhere(board, paths, startPos, includeHighways, highwayInformation):
     previouslySearched = []
     currentlySearching = [startPos]
     nextSearching = ['something is in here']
     while len(nextSearching) > 0:
         nextSearching = []
         for space in currentlySearching:
-            if board[space['row']][space['col']] != 'shadow realm':
-                possibleMoves = findPossibleMoves(paths, space, True, highwayInformation)
+            if board[space] != 'shadow realm':
+                possibleMoves = findPossibleMoves(paths, space, includeHighways, highwayInformation)
                 for move in possibleMoves:
                     destination = move['destination']
                     if destination not in previouslySearched and destination not in nextSearching and destination not in currentlySearching:
@@ -517,17 +602,16 @@ def isPossibleToGetEverywhere(board, paths, startPos, highwayInformation):
                 previouslySearched.append(space)
         currentlySearching = copy.deepcopy(nextSearching)
     numPossibleSpaces = len(previouslySearched)
-    numSpaces = sum([sum([(0 if cell == None else 1) for cell in row]) for row in board])
+    numSpaces = len(np.argwhere(board != None))
     return numPossibleSpaces == numSpaces
 
-def areThereAnyPurgatories(board, paths, highwayInformation):
-    for n, row in enumerate(board):
-        for m, cell in enumerate(row):
-            space = {"row": n, "col": m}
-            if cell != None:
-                possibleMoves = findPossibleMoves(paths, space, True, highwayInformation)
-                if len(possibleMoves) == 0:
-                    return True
+def areThereAnyPurgatories(board, paths, includeHighways,  highwayInformation):
+    spaces = [tuple(x) for x in np.argwhere(board != None)]
+    for pos in spaces:
+        if board[pos] != None:
+            possibleMoves = findPossibleMoves(paths, pos, includeHighways, highwayInformation)
+            if len(possibleMoves) == 0:
+                return True
     return False
 
 def askOptions(prompt, numOptions):
@@ -595,10 +679,8 @@ def askForPlayer(prompt, includeSelf):
 def selectRandomSpace(board):
     validSpace = False
     while not validSpace:
-        row = random.randint(0, GRID_SIZE-1)
-        col = random.randint(0, GRID_SIZE-1)
-        if board[row][col] not in [None, 'flamingo']:
-            space = {"row": row, "col": col}
+        space = random.choice([tuple(x) for x in np.argwhere(board != None)])
+        if board[space] != 'flamingo':
             validSpace = True
     return space
 
@@ -641,7 +723,7 @@ def evaluateSpaceType(spaceType):
             winner = currentPlayer
         else:
             print(f'{" "*indent}{RED}You lost!{CLEAR} You must return to the {HOME_SPACE}home{CLEAR} space!')
-            playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+            playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
         indent -= 1
     if spaceType == 'home':
         indent += 1
@@ -751,7 +833,7 @@ def evaluateDecorators():
     global indent
     decoratorsToRemove = []
     goblinsToAdd = []
-    for n, decorator in enumerate(decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]):
+    for n, decorator in enumerate(decorators[playerPositions[currentPlayer]]):
         if decorator['type'] == 'trap' and decorator['placedBy'] != currentPlayer:
             indent += 1
             print(f'{" "*indent}Unfortunately, you landed on {RED}Player {decorator["placedBy"]}\'s trap{CLEAR}!')
@@ -779,16 +861,16 @@ def evaluateDecorators():
             playerGolds[currentPlayer] -= decorator["reward"]
             playerGolds[decorator['placedBy']] += decorator["reward"]
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
-            possibleMoves = findPossibleMoves(paths, {"row": playerPositions[currentPlayer]['row'], "col": playerPositions[currentPlayer]['col']}, True, highwayInformation)
+            possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
             chosenDestination = random.choice(possibleMoves)['destination']
             decoratorsToRemove.append(n)
             print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
-            if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
+            if board[chosenDestination] == 'shadow realm':
                 indent += 1
                 print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                 indent -= 1
             else:
-                goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
+                goblinsToAdd.append((chosenDestination, decorator))
             indent -= 2
         if decorator['type'] == 'flamingo':
             indent += 1
@@ -796,9 +878,9 @@ def evaluateDecorators():
             indent -= 1
         time.sleep(0.5)
     for decorator in sorted(decoratorsToRemove, reverse=True):
-        decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].pop(decorator)
+        decorators[playerPositions[currentPlayer]].pop(decorator)
     for goblin in goblinsToAdd:
-        decorators[goblin[0]][goblin[1]].append(goblin[2])
+        decorators[goblin[0]].append(goblin[1])
 
 def evaluatePathDecorators():
     global indent
@@ -891,7 +973,7 @@ def spinTheBadWheel():
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
         indent -= 1
     if result == f'{" "*indent}You must return to the {HOME_SPACE}Home{CLEAR} space.':
-        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+        playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
     if result == f'{" "*indent}You must give away {YELLOW}3 gold{CLEAR}.':
         indent += 1
         player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you will give {YELLOW}3 gold{TURQUOISE} to (1-{NUM_PLAYERS}):{CLEAR} ', False))
@@ -961,7 +1043,6 @@ def spinTheGoodWheel():
         f'{" "*indent}You gain {YELLOW}5 gold{CLEAR}',
         f'{" "*indent}You gain {CYAN}a compass{CLEAR}',
         f'{" "*indent}You can visit the {SHOP_SPACE}shop{CLEAR}!',
-        f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!',
         f'{" "*indent}You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.',
         f'{" "*indent}You get to spin the {QUEST_SPACE}quest wheel{CLEAR}!',
     ]
@@ -999,20 +1080,6 @@ def spinTheGoodWheel():
             indent -= 1
         else:
             goToTheShop()
-    if result == f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about the {ORANGE}position{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}!':
-        indent += 1
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = (n+1, m+1)
-        rowOrCol = random.choice(['row', 'col'])
-        if rowOrCol == 'row':
-            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
-            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-        else:
-            choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
-            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
-        indent -= 1
     if result == f'{" "*indent}You must either {GAMBLING_SPACE}gamble{CLEAR}, or make {RED}another player{CLEAR} {GAMBLING_SPACE}gamble{CLEAR}.':
         indent += 1
         print(f'{" "*indent}What would you like to do?')
@@ -1069,7 +1136,7 @@ def spinTheShadowWheel():
     if result == f'{" "*indent}You can now spin the {GREEN}Good Wheel{CLEAR}!':
         spinTheGoodWheel()
     if result == f'{" "*indent}You must return to the {HOME_SPACE}Home{CLEAR} space.':
-        playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+        playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
     if result == f'{" "*indent}All other players gain {YELLOW}2 gold{CLEAR}':
         indent += 1
         for player in range(1, NUM_PLAYERS+1):
@@ -1173,17 +1240,18 @@ def spinTheInformationWheel():
     indent += 1
     print(f'{" "*indent}You get {INFORMATION_SPACE}information{CLEAR} about:')
     indent += 1
-    options = [
-        f'{" "*indent}The {ORANGE}row{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-        f'{" "*indent}The {ORANGE}column{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+    options = []
+    for axis in AXIS_ORDER:
+        options += [
+            f'{" "*indent}The {ORANGE}{axis}{CLEAR}-coordinate of the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+            f'{" "*indent}The number of spaces in a {ORANGE}{axis}{CLEAR}-plane.',
+            f'{" "*indent}The {ORANGE}{axis}{CLEAR}-coordinate of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
+        ]
+    options += [
         f'{" "*indent}The {ORANGE}total{CLEAR} number of spaces on the board',
-        f'{" "*indent}The number of spaces in a {ORANGE}row{CLEAR}.',
-        f'{" "*indent}The number of spaces in a {ORANGE}column{CLEAR}.',
         f'{" "*indent}The number of spaces of a {ORANGE}certain type{CLEAR}.',
         f'{" "*indent}The space at {ORANGE}specific coordinates{CLEAR}.',
         f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-        f'{" "*indent}The {ORANGE}row{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-        f'{" "*indent}The {ORANGE}column{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR}.',
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.',
         f'{" "*indent}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.',
@@ -1193,74 +1261,46 @@ def spinTheInformationWheel():
     print(f'\x1B[A\x1B[2K{result}')
     time.sleep(1)
     indent += 1
-    if result == f'{" "*(indent-1)}The {ORANGE}row{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = (n+1, m+1)
-        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[0]]
-        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-    if result == f'{" "*(indent-1)}The {ORANGE}column{CLEAR} of the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = (n+1, m+1)
-        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != flamingoPos[1]]
-        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+    for axis in AXIS_ORDER:
+        if result == f'{" "*(indent-1)}The {ORANGE}{axis}{CLEAR}-coordinate of the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+            flamingoPos = tuple(np.argwhere(board == "flamingo")[0])
+            choices = [x for x in list(range(0,GRID_SIZE)) if x != flamingoPos[AXIS_ORDER.index(axis)]]
+            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}{axis} = {random.choice(choices)+1}{CLEAR}.')
+        if result == f'{" "*(indent-1)}The number of spaces in a {ORANGE}{axis}{CLEAR}-plane.':
+            axisNum = random.randint(1, GRID_SIZE)
+            count = len([space for space in [tuple(x) for x in np.argwhere(board != None)] if space[AXIS_ORDER.index(axis)] == axisNum-1])
+            print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""} in {ORANGE}{axis} = {axisNum}{CLEAR}.')
+        if result == f'{" "*(indent-1)}The {ORANGE}{axis}{CLEAR}-coordinate of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
+            flamingoPos = tuple(np.argwhere(board == "flamingo")[0])
+            possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
+            destination = possibleMoves[0]['destination']
+            choices = [x for x in list(range(0,GRID_SIZE)) if x != destination[AXIS_ORDER.index(axis)]]
+            print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}{axis} = {random.choice(choices)+1}{CLEAR}.')
     if result == f'{" "*(indent-1)}The {ORANGE}total{CLEAR} number of spaces on the board':
-        count = sum([len([x for x in row if x != None]) for row in board])
+        count = len([tuple(x) for x in np.argwhere(board != None)])
         print(f'{" "*indent}In {ORANGE}total{CLEAR}, there {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""}.')
-    if result == f'{" "*(indent-1)}The number of spaces in a {ORANGE}row{CLEAR}.':
-        row = random.randint(1, GRID_SIZE)
-        count = len([x for x in board[row-1] if x != None])
-        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""} in {ORANGE}row {row}{CLEAR}.')
-    if result == f'{" "*(indent-1)}The number of spaces in a {ORANGE}column{CLEAR}.':
-        column = random.randint(1, GRID_SIZE)
-        count = len([x[column-1] for x in board if x[column-1] != None])
-        print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} space{"s" if count != 1 else ""} in {ORANGE}column {column}{CLEAR}.')
     if result == f'{" "*(indent-1)}The number of spaces of a {ORANGE}certain type{CLEAR}.':
         spaceType = random.choice(['empty', 'flamingo', 'home', 'shadow realm', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement', 'information'])
-        count = sum([len([x for x in row if x == spaceType]) for row in board])
+        count = len([tuple(x) for x in np.argwhere(board == spaceType)])
         print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {grammatiseSpaceType(spaceType, article=False)}{"s" if count != 1 else ""}.')
     if result == f'{" "*(indent-1)}The space at {ORANGE}specific coordinates{CLEAR}.':
-        row = random.randint(1, GRID_SIZE)
-        column = random.randint(1, GRID_SIZE)
-        space = board[row-1][column-1]
+        coords = tuple([random.randint(0, GRID_SIZE-1) for _ in range(NUM_DIMENSIONS)])
+        space = board[coords]
+        coordinates = ", ".join([f"{ORANGE}{axis}{CLEAR}: {GREEN}{coords[n]+1}{CLEAR}" for (n, axis) in enumerate(AXIS_ORDER)])
         if space == None:
-            print(f'{" "*indent}At ({ORANGE}row{CLEAR} {GREEN}{row}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{column}{CLEAR}) there is no space.')
+            print(f'{" "*indent}At ({coordinates}) there is no space.')
         else:
-            print(f'{" "*indent}At ({ORANGE}row{CLEAR} {GREEN}{row}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{column}{CLEAR}) there is {grammatiseSpaceType(board[row-1][column-1])}.')
+            print(f'{" "*indent}At ({coordinates}) there is {grammatiseSpaceType(space)}.')
     if result == f'{" "*(indent-1)}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = {"row": n, "col": m}
+        flamingoPos = tuple(np.argwhere(board == "flamingo")[0])
         possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
         destination = possibleMoves[0]['destination']
-        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {grammatiseSpaceType(board[destination["row"]][destination["col"]])}.')
-    if result == f'{" "*(indent-1)}The {ORANGE}row{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = {"row": n, "col": m}
-        possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
-        destination = possibleMoves[0]['destination']
-        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != destination['row']+1]
-        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}row {random.choice(choices)}{CLEAR}.')
-    if result == f'{" "*(indent-1)}The {ORANGE}column{CLEAR} of the space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR}.':
-        for n, row in enumerate(board):
-            for m, cell in enumerate(row):
-                if cell == 'flamingo':
-                    flamingoPos = {"row": n, "col": m}
-        possibleMoves = findPossibleMoves(paths, flamingoPos, True, highwayInformation)
-        destination = possibleMoves[0]['destination']
-        choices = [x for x in list(range(1,GRID_SIZE+1)) if x != destination['col']+1]
-        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {RED}not{CLEAR} in {ORANGE}column {random.choice(choices)}{CLEAR}.')
+        print(f'{" "*indent}The space {ORANGE}adjacent{CLEAR} to the {FLAMINGO_SPACE}flamingo space{CLEAR} is {grammatiseSpaceType(board[destination])}.')
     if result == f'{" "*(indent-1)}The number of {SHOP_SPACE}highways{CLEAR}.':
-        count = len([path for path in paths if path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row']])
+        count = len([path for path in paths if isThisPathAHighway(path)])
         print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {SHOP_SPACE}highway{"s" if count != 1 else ""}{CLEAR}.')
     if result == f'{" "*(indent-1)}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.':
-        count = len([path for path in paths if path['start']['col'] != path['end']['col'] and path['start']['row'] != path['end']['row'] and board[path['end']['row']][path['end']['col']] == 'shadow realm'])
+        count = len([path for path in paths if isThisPathAHighway(path) and board[path['end']] == 'shadow realm'])
         print(f'{" "*indent}There {"are" if count != 1 else "is"} {GREEN}{count}{CLEAR} {SHOP_SPACE}highway{"s" if count != 1 else ""}{CLEAR} leading to the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.')
     if result == f'{" "*(indent-1)}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.':
         count = len(quantumEntanglements)
@@ -1270,7 +1310,8 @@ def spinTheInformationWheel():
             print(f'{" "*indent}No spaces are {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
         else:
             space = random.choice(random.choice(quantumEntanglements))
-            print(f'{" "*indent}The space at ({ORANGE}row{CLEAR} {GREEN}{space["row"]+1}{CLEAR}, {ORANGE}column{CLEAR} {GREEN}{space["col"]+1}{CLEAR}) has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
+            coordinates = ", ".join([f"{ORANGE}{axis}{CLEAR}: {GREEN}{space[n]+1}{CLEAR}" for (n, axis) in enumerate(AXIS_ORDER)])
+            print(f'{" "*indent}The space at ({coordinates}) has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
     indent -= 3
 
 def spinTheFlamingoWheel():
@@ -1505,40 +1546,44 @@ def useItem():
                         #help i'm lost
                         if item == 'compass':
                             indent += 1
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 print(f'{" "*indent}The compass is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
                             else:
                                 possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                                 print(f'{" "*indent}Here is all of the information about the {ORANGE}Adjacent Spaces{CLEAR}:')
                                 indent += 1
-                                message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]["row"]][playerPositions[currentPlayer]["col"]], punctuation=False)}.'
+                                message = f'You are currently on {grammatiseSpaceType(board[playerPositions[currentPlayer]], punctuation=False)}.'
                                 for player, playerPosition in enumerate(playerPositions):
                                     if playerPosition == playerPositions[currentPlayer] and player != currentPlayer and player not in eliminatedPlayers:
                                         message += f' {RED}Player {player}{CLEAR} is also on this space.'
-                                for decorator in decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]:
+                                for decorator in decorators[playerPositions[currentPlayer]]:
                                     message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                 print(f'{" "*indent}{message}')
                                 for move in possibleMoves:
-                                    destinationSpaceType = board[move['destination']['row']][move['destination']['col']]
-                                    message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
+                                    destinationSpaceType = board[move['destination']]
+                                    if NUM_DIMENSIONS < 4:
+                                        message = f'If you move {GREEN}{move["direction"]}{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
+                                    else:
+                                        message = f'If you move in the {GREEN}{move["direction"]} direction{CLEAR}, you will land on {grammatiseSpaceType(destinationSpaceType, punctuation=False)}.'
                                     for player, playerPosition in enumerate(playerPositions):
                                         if playerPosition == move['destination'] and player not in eliminatedPlayers:
                                             message += f' {RED}Player {player}{CLEAR} is on this space.'
-                                    for decorator in decorators[move['destination']['row']][move['destination']['col']]:
+                                    for decorator in decorators[move['destination']]:
                                         message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                     print(f'{" "*indent}{message}')
                                 indent -= 1
                             indent -= 1
                         if item == 'f3 menu':
                             indent += 1
-                            print(f'{" "*indent}Your coordinates are: ({ORANGE}row{CLEAR}: {GREEN}{playerPositions[currentPlayer]["row"]+1}{CLEAR}, {ORANGE}column{CLEAR}: {GREEN}{playerPositions[currentPlayer]["col"]+1}{CLEAR}).')
+                            coordinates = ", ".join([f"{ORANGE}{axis}{CLEAR}: {GREEN}{playerPositions[currentPlayer][n]+1}{CLEAR}" for (n, axis) in enumerate(AXIS_ORDER)])
+                            print(f'{" "*indent}Your coordinates are: ({coordinates}).')
                             indent -= 1
                         if item == 'safeword':
-                            playerPositions[currentPlayer] = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+                            playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
                         #where's the flamingo
                         if item == 'red potion':
                             indent += 1
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 print(f'{" "*indent}The red potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
                             else:
                                 shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
@@ -1556,7 +1601,7 @@ def useItem():
                             indent -= 1
                         if item == 'green potion':
                             indent += 1
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 print(f'{" "*indent}The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
                             else:
                                 shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
@@ -1565,12 +1610,12 @@ def useItem():
                         if item == 'flamingo':
                             indent += 1
                             print(f'{" "*indent}Successfully placed a {FLAMINGO_SPACE}flamingo{CLEAR} on {GREEN}This Space{CLEAR}!')
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 indent += 1
                                 print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo{CLEAR} {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                                 indent -= 1
                             else:
-                                decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
+                                decorators[playerPositions[currentPlayer]].append({"type": 'flamingo', "placedBy": currentPlayer, "reward": 0})
                             indent -= 1
                         #violence is always the answer
                         if item == 'knife':
@@ -1592,40 +1637,38 @@ def useItem():
                             indent += 1
                             print(f'{" "*indent}Which direction would you like to shoot?')
                             indent += 1
-                            print(f'{" "*indent}0: Down')
-                            print(f'{" "*indent}1: Left')
-                            print(f'{" "*indent}2: Right')
-                            print(f'{" "*indent}3: Up')
+                            options = -1
+                            for direction in sorted(copy.deepcopy(ALL_DIRECTIONS)):
+                                options += 1
+                                if NUM_DIMENSIONS < 4:
+                                    print(f'{" "*indent}{options}: {GREEN}{direction.title()}{CLEAR}')
+                                else:
+                                    print(f'{" "*indent}{options}: In the {GREEN}{direction} direction{CLEAR}')
                             indent -= 1
-                            direction = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 3)
-                            if direction == '0':
-                                changing = 'row'
-                                same = 'col'
-                                plusOrMinus = 1
-                            if direction == '1':
-                                changing = 'col'
-                                same = 'row'
-                                plusOrMinus = -1
-                            if direction == '2':
-                                changing = 'col'
-                                same = 'row'
-                                plusOrMinus = 1
-                            if direction == '3':
-                                changing = 'row'
-                                same = 'col'
-                                plusOrMinus = 1
+                            direction = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                            direction = convertLanguageDirectionsToLetters([sorted(copy.deepcopy(ALL_DIRECTIONS))[int(direction)]])[0]
+                            plusOrMinus = (1 if direction[0] == '+' else -1)
+                            axis = AXIS_ORDER.index(direction[1])
+                            pos = list(copy.deepcopy(playerPositions[currentPlayer]))
                             foundSomeone = False
-                            currentPos = playerPositions[currentPlayer][changing]
-                            possibleTargets = [(n+1, playerPos) for n, playerPos in enumerate(playerPositions[1:]) if playerPos[same] == playerPositions[currentPlayer][same] and n not in eliminatedPlayers]
+                            consts = [a for a in AXIS_ORDER if a != direction[1]]
+                            possibleTargets = []
+                            for m, playerPos in enumerate(playerPositions[1:]):
+                                isInAxis = True
+                                for n, const in enumerate(consts):
+                                    if playerPos[AXIS_ORDER.index(const)] != playerPositions[currentPlayer][AXIS_ORDER.index(const)]:
+                                        isInAxis = False
+                                if isInAxis:
+                                    possibleTargets.append((m+1, playerPos))
                             peopleShot = 0
                             while not foundSomeone:
-                                currentPos += plusOrMinus
-                                if currentPos >= GRID_SIZE:
-                                    currentPos = 0
-                                if currentPos <= -1:
-                                    currentPos = GRID_SIZE-1
+                                pos[axis] += plusOrMinus
+                                if pos[axis] >= GRID_SIZE:
+                                    pos[axis] = 0
+                                if pos[axis] <= -1:
+                                    pos[axis] = GRID_SIZE-1
                                 for player, playerPosition in possibleTargets:
-                                    if playerPosition[changing] == currentPos:
+                                    if playerPosition == tuple(pos):
                                         foundSomeone = True
                                         peopleShot += 1
                                         if player != currentPlayer:
@@ -1649,18 +1692,18 @@ def useItem():
                             indent -= 1
                         if item == 'trap':
                             indent += 1
-                            decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
+                            decorators[playerPositions[currentPlayer]].append({"type": 'trap', "placedBy": currentPlayer, "reward": reward})
                             print(f'{" "*indent}Successfully placed a trap on {GREEN}This Space{CLEAR}!')
                             indent -= 1
                         if item == 'goblin':
                             indent += 1
                             print(f'{" "*indent}Successfully placed a goblin on {GREEN}This Space{CLEAR}!')
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 indent += 1
                                 print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
                                 indent -= 1
                             else:
-                                decorators[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
+                                decorators[playerPositions[currentPlayer]].append({"type": 'goblin', "placedBy": currentPlayer, "reward": reward})
                             indent -= 1
                         #movement stuff
                         if item == 'dumbells':
@@ -1713,12 +1756,12 @@ def useItem():
                         #miscellaneous
                         if item == 'gold potion':
                             indent += 1
-                            if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] == 'shadow realm':
+                            if board[playerPositions[currentPlayer]] == 'shadow realm':
                                 print(f'{" "*indent}The gold potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No {YELLOW}gold{CLEAR} was placed.')
                             else:
                                 possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
                                 chosenSpace = random.choice(possibleMoves)['destination']
-                                decorators[chosenSpace['row']][chosenSpace['col']].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
+                                decorators[chosenSpace].append({"type": 'gold', "placedBy": currentPlayer, "reward": reward})
                                 print(f'{" "*indent}Successfully placed {reward} gold on a random {ORANGE}Adjacent Space{CLEAR}!')
                             indent -= 1
                         if item == 'wand':
@@ -2847,37 +2890,50 @@ def playBoardQuiz(numQuestions, only=False):
                 continue
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         valid = False
-        while not valid: 
+        while not valid:
             moves = []
-            currentSpace = {"row": GRID_SIZE // 2, "col": GRID_SIZE // 2}
+            pureMoves = []
+            currentSpace = tuple(np.argwhere(board == "home")[0])
             valid = True
             for n in range(roundNum):
                 if valid:
                     possibleMoves = findPossibleMoves(paths, currentSpace, True, highwayInformation)
                     if len(moves) > 0:
-                        if 'down' in moves[-1]:
+                        if 'down' == pureMoves[-1]:
                             avoid = 'up'
-                        if 'up' in moves[-1]:
+                        if 'up' == pureMoves[-1]:
                             avoid = 'down'
-                        if 'left' in moves[-1]:
+                        if 'left' == pureMoves[-1]:
                             avoid = 'right'
-                        if 'right' in moves[-1]:
+                        if 'right' == pureMoves[-1]:
                             avoid = 'left'
+                        if 'forwards' == pureMoves[-1]:
+                            avoid = 'backwards'
+                        if 'backwards' == pureMoves[-1]:
+                            avoid = 'forwards'
+                        if '-' in pureMoves[-1]:
+                            avoid = f'+{pureMoves[-1][1]}'
+                        if '+' in pureMoves[-1]:
+                            avoid = f'-{pureMoves[-1][1]}'
                         possibleMoves = [move for move in possibleMoves if move['direction'] != avoid]
                     if len(possibleMoves) == 0:
                         valid = False
                     else:
                         move = random.choice(possibleMoves)
                         moves.append(f'{getColourFromFraction((numQuestions-n-1)/numQuestions)}{move["direction"]}{CLEAR}')
+                        pureMoves.append(move['direction'])
                         currentSpace = move['destination']
-                        if board[currentSpace['row']][currentSpace['col']] in ['shadow realm', 'flamingo']:
+                        if board[currentSpace] in ['shadow realm', 'flamingo']:
                             valid = False
-        correctAnswer = board[currentSpace['row']][currentSpace['col']]
+        correctAnswer = board[currentSpace]
         possibleAnswers = [correctAnswer]
         for _ in range(3):
             possibleAnswers.append(random.choice([x for x in ['empty', 'home', 'good', 'bad', 'shop', 'teleport', 'gambling', 'timewarp', 'papas wingeria', 'gym', 'quest', 'entanglement', 'information'] if x not in possibleAnswers]))
         random.shuffle(possibleAnswers)
-        print(f'{" "*indent}If you move {", ".join(moves)} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
+        if NUM_DIMENSIONS < 4:
+            print(f'{" "*indent}If you move {", ".join(moves)} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
+        else:
+            print(f'{" "*indent}If you move in the {", ".join(moves)} direction{"s" if len(moves) > 1 else ""} from the {HOME_SPACE}home{CLEAR} space, what space do you land on?')
         indent += 1
         for n, answer in enumerate(possibleAnswers):
             print(f'{" "*indent}{n+1}: {grammatiseSpaceType(answer, title=True)}')
@@ -3254,8 +3310,8 @@ def saveToFile(filename):
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
-    with open(f'saves/{filename}.json', 'w') as f:
-        json.dump(data,f)
+    with open(f'saves/{filename}.pkl', 'wb') as f:
+        pickle.dump(data,f)
 
 def redefineItemDescriptions():
     itemDescriptions = {
@@ -3357,7 +3413,7 @@ playerQuantumNotifications = [None]
 playerEliminationReturns = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
-    playerPositions.append({"row": GRID_SIZE // 2, "col": GRID_SIZE // 2})
+    playerPositions.append(tuple(np.argwhere(board == "home")[0]))
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
@@ -3373,7 +3429,7 @@ for _ in range(NUM_PLAYERS):
 
 numTimeMachines = 0
 
-blackHolePos = {"row": -1, "col": -1}
+blackHolePos = tuple([-1]*NUM_DIMENSIONS)
 blackHoleRadius = -1
 
 eliminatedPlayers = []
@@ -3456,7 +3512,7 @@ while running:
             continue
     timeTravelled = False
     #if in shadow realm, dont move
-    currentSpaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
+    currentSpaceType = board[playerPositions[currentPlayer]]
     if currentSpaceType == 'shadow realm':
         indent += 1
         print(f'{" "*indent}You must spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
@@ -3489,7 +3545,7 @@ while running:
                 print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
                 indent -= 1
             for _ in range(moves):
-                if board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
+                if board[playerPositions[currentPlayer]] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
                     indent += 1
                     #display move options
                     sure = False
@@ -3501,7 +3557,10 @@ while running:
                         print(f'{" "*indent}{options}: Stay Here')
                         for move in possibleMoves:
                             options += 1
-                            print(f'{" "*indent}{options}: Move {move["direction"]}')
+                            if NUM_DIMENSIONS < 4:
+                                print(f'{" "*indent}{options}: Move {GREEN}{move["direction"]}{CLEAR}')
+                            else:
+                                print(f'{" "*indent}{options}: Move in the {GREEN}{move["direction"]} direction{CLEAR}')
                         indent -= 1
                         choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
                         if int(choice) != 0 or CONFIRM_STAY_HERE == False:
@@ -3522,10 +3581,10 @@ while running:
                             #move
                             playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
                             evaluateDecorators()
-                            spaceType = board[playerPositions[currentPlayer]['row']][playerPositions[currentPlayer]['col']]
+                            spaceType = board[playerPositions[currentPlayer]]
                             if spaceType == 'flamingo' and playerRoles[currentPlayer] in ['Staller', 'Jester'] and OTHERS_CANT_SEE_FLAMINGO:
                                 spaceType = 'empty'
-                            if math.sqrt((playerPositions[currentPlayer]['row']-blackHolePos['row'])**2+(playerPositions[currentPlayer]['col']-blackHolePos['col'])**2) <= blackHoleRadius:
+                            if math.sqrt(sum([(playerPositions[currentPlayer][x]-blackHolePos[x])**2 for x in range(NUM_DIMENSIONS)])) <= blackHoleRadius:
                                 print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
                                 eliminatedPlayers.append(currentPlayer)
                                 hasBeenEliminated = True
@@ -3569,8 +3628,8 @@ while running:
             indent -= 1
             choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', len(dir))
             if choice != '0':
-                with open(f'saves/{dir[int(choice)-1]}', 'r') as f:
-                    data = json.load(f)
+                with open(f'saves/{dir[int(choice)-1]}', 'rb') as f:
+                    data = pickle.load(f)
                 currentPlayer = data["currentPlayer"]
                 roundNum = data["roundNum"]
                 board = data["board"]
@@ -3657,7 +3716,7 @@ while running:
                 print(f'{" "*indent}The {SHADOW_REALM_SPACE}black hole{CLEAR} has grown to a radius of {blackHoleRadius} space{"s" if blackHoleRadius != 1 else ""}.')
                 for n, playerPos in enumerate(playerPositions):
                     if n != 0 and n not in eliminatedPlayers:
-                        if math.sqrt((playerPos['row']-blackHolePos['row'])**2+(playerPos['col']-blackHolePos['col'])**2) <= blackHoleRadius:
+                        if math.sqrt(sum([(playerPositions[currentPlayer][x]-blackHolePos[x])**2 for x in range(NUM_DIMENSIONS)])) <= blackHoleRadius:
                             print(f'{" "*indent}{YELLOW}Player {n},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
                             eliminatedPlayers.append(n)
                             if len(eliminatedPlayers) == NUM_PLAYERS:
@@ -3734,38 +3793,37 @@ while running:
                     goblinsToAdd = []
                     flamingosToAdd = []
                     printed = False
-                    for n, row in enumerate(decorators):
-                        for m, cell in enumerate(row):
-                            for l, decorator in enumerate(cell):
-                                if decorator['type'] == 'goblin':
-                                    possibleMoves = findPossibleMoves(paths, {"row": n, "col": m}, True, highwayInformation)
-                                    chosenDestination = random.choice(possibleMoves)['destination']
-                                    decoratorsToRemove.append((n, m, l))
-                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
-                                    if board[chosenDestination['row']][chosenDestination['col']] == 'shadow realm':
-                                        indent += 1
-                                        print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
-                                        indent -= 1
-                                    else:
-                                        goblinsToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
-                                    printed = True
-                                if decorator['type'] == 'flamingo':
-                                    shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, {"row": n, "col": m}, highwayInformation)
-                                    decoratorsToRemove.append((n, m, l))
-                                    if len(shortestPathToFlamingo) == 1:
-                                        print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has reached the {FLAMINGO_SPACE}flamingo space{CLEAR} and will be despawned.')
-                                    else:
-                                        firstPath = shortestPathToFlamingo[0]
-                                        chosenDestination = firstPath['end']
-                                        flamingosToAdd.append((chosenDestination['row'], chosenDestination['col'], decorator))
-                                        print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has moved!')
-                                    printed = True
+                    for cell in np.ndindex(board.shape):
+                        for n, decorator in enumerate(decorators[cell]):
+                            if decorator['type'] == 'goblin':
+                                possibleMoves = findPossibleMoves(paths, cell, True, highwayInformation)
+                                chosenDestination = random.choice(possibleMoves)['destination']
+                                decoratorsToRemove.append((cell, n))
+                                print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s goblin{CLEAR} has moved!')
+                                if board[chosenDestination] == 'shadow realm':
+                                    indent += 1
+                                    print(f'{" "*indent}The goblin {RED}got lost{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR} and died.')
+                                    indent -= 1
+                                else:
+                                    goblinsToAdd.append((chosenDestination, decorator))
+                                printed = True
+                            if decorator['type'] == 'flamingo':
+                                shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, cell, highwayInformation)
+                                decoratorsToRemove.append((cell, n))
+                                if len(shortestPathToFlamingo) == 1:
+                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has reached the {FLAMINGO_SPACE}flamingo space{CLEAR} and will be despawned.')
+                                else:
+                                    firstPath = shortestPathToFlamingo[0]
+                                    chosenDestination = firstPath['end']
+                                    flamingosToAdd.append((chosenDestination, decorator))
+                                    print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has moved!')
+                                printed = True
                     for decorator in sorted(decoratorsToRemove, reverse=True):
-                        decorators[decorator[0]][decorator[1]].pop(decorator[2])
+                        decorators[decorator[0]].pop(decorator[1])
                     for goblin in goblinsToAdd:
-                        decorators[goblin[0]][goblin[1]].append(goblin[2])
+                        decorators[goblin[0]].append(goblin[1])
                     for flamingo in flamingosToAdd:
-                        decorators[flamingo[0]][flamingo[1]].append(flamingo[2])
+                        decorators[flamingo[0]].append(flamingo[1])
                     if printed:
                         print('-'*50)
 
