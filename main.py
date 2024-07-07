@@ -301,24 +301,39 @@ def generateBoard():
     print('generating image...')
     return board, paths, decorators, pathDecorators
 
-def generateImage(board, paths, quantumEntanglements):
+def generateImage(board, paths, quantumEntanglements, debug=False):
     os.system('rm -rf map')
     os.mkdir('map')
-    font = ImageFont.truetype('font/Montserrat-SemiBold.ttf', 20)
+    axisFont = ImageFont.truetype('font/Montserrat-SemiBold.ttf', 40)
     for axis1 in AXIS_ORDER:
         for axis2 in AXIS_ORDER[AXIS_ORDER.index(axis1)+1:]:
+            if debug:
+                print(f' generating image {axis1}{axis2}...')
+            allImgs = {}
+            
             axis1Num = AXIS_ORDER.index(axis1)
             axis2Num = AXIS_ORDER.index(axis2)
             consts = [axis for axis in AXIS_ORDER if axis not in [axis1, axis2]]
             for constNums, _ in np.ndenumerate(np.full([GRID_SIZE]*len(consts), None)):
-                width = GRID_SIZE*100
-                height = GRID_SIZE*100
+                width = GRID_SIZE*100+100
+                height = GRID_SIZE*100+100
 
-                mainImg = Image.new('RGBA', (width,height), ImageColor.getcolor('#ffffff', 'RGBA'))
+                if NUM_DIMENSIONS > 2:
+                    mainImg = Image.new('RGBA', (width,height), ImageColor.getcolor('#ffffff00', 'RGBA'))
+                else:
+                    mainImg = Image.new('RGBA', (width,height), ImageColor.getcolor('#ffffff', 'RGBA'))
                 draw = ImageDraw.Draw(mainImg)
+                
+                draw.line((65,15,65,GRID_SIZE*100-45), fill=ImageColor.getcolor('#000000', 'RGBA'), width=15)
+                draw.regular_polygon((65,GRID_SIZE*100-45, 30), 3, 180, fill=ImageColor.getcolor('#000000', 'RGBA'))
+                draw.text((10,(GRID_SIZE*100)//2-20), axis1, fill=ImageColor.getcolor('#000000', 'RGBA'), font=axisFont)
+                
+                draw.line((100+15,GRID_SIZE*100+35,100+GRID_SIZE*100-45,GRID_SIZE*100+35), fill=ImageColor.getcolor('#000000', 'RGBA'), width=15)
+                draw.regular_polygon((100+GRID_SIZE*100-45,GRID_SIZE*100+35, 30), 3, 270, fill=ImageColor.getcolor('#000000', 'RGBA'))
+                draw.text((100+(GRID_SIZE*100)//2-(axisFont.getlength(axis2))//2,GRID_SIZE*100+45), axis2, fill=ImageColor.getcolor('#000000', 'RGBA'), font=axisFont)
 
                 for path in paths:
-                    rectCoords = (path['start'][axis2Num]*100+50, path['start'][axis1Num]*100+50, path['end'][axis2Num]*100+50, path['end'][axis1Num]*100+50)
+                    rectCoords = (path['start'][axis2Num]*100+50+100, path['start'][axis1Num]*100+50, path['end'][axis2Num]*100+50+100, path['end'][axis1Num]*100+50)
                     if isThisPathAHighway(path):
                         startIsInPlane = True
                         endIsInPlane = True
@@ -327,7 +342,7 @@ def generateImage(board, paths, quantumEntanglements):
                                 startIsInPlane = False
                             if path['end'][AXIS_ORDER.index(const)] != constNums[n]:
                                 endIsInPlane = False
-                        if startIsInPlane or endIsInPlane:
+                        if startIsInPlane and endIsInPlane:
                             draw.line(rectCoords, fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
                     else:
                         isInPlane = True
@@ -338,30 +353,15 @@ def generateImage(board, paths, quantumEntanglements):
                             if path['oneWay']:
                                 draw.line(rectCoords, fill=ImageColor.getcolor('#696969', 'RGBA'), width=10)
                                 if path['end'][axis2Num] > path['start'][axis2Num] and path['end'][axis1Num] == path['start'][axis1Num]: #right
-                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100, int(path['start'][axis1Num]*100+50), 15), 3, 270, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100+100, int(path['start'][axis1Num]*100+50), 15), 3, 270, fill=ImageColor.getcolor('#696969', 'RGBA'))
                                 if path['end'][axis2Num] < path['start'][axis2Num] and path['end'][axis1Num] == path['start'][axis1Num]: #left
-                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100, int(path['start'][axis1Num]*100+50), 15), 3, 90, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                    draw.regular_polygon((math.ceil((path['end'][axis2Num]+path['start'][axis2Num])/2)*100+100, int(path['start'][axis1Num]*100+50), 15), 3, 90, fill=ImageColor.getcolor('#696969', 'RGBA'))
                                 if path['end'][axis2Num] == path['start'][axis2Num] and path['end'][axis1Num] > path['start'][axis1Num]: #down
-                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 180, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50+100), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 180, fill=ImageColor.getcolor('#696969', 'RGBA'))
                                 if path['end'][axis2Num] == path['start'][axis2Num] and path['end'][axis1Num] < path['start'][axis1Num]: #up
-                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
+                                    draw.regular_polygon((int(path['start'][axis2Num]*100+50+100), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
                             else:
                                 draw.line(rectCoords, fill=ImageColor.getcolor('#000000', 'RGBA'), width=10)
-                for entanglement in quantumEntanglements:
-                    firstIsInPlane = True
-                    secondIsInPlane = True
-                    for n, const in enumerate(consts):
-                        if entanglement[0][AXIS_ORDER.index(const)] != constNums[n]:
-                            firstIsInPlane = False
-                        if entanglement[1][AXIS_ORDER.index(const)] != constNums[n]:
-                            secondIsInPlane = False
-                    if firstIsInPlane or secondIsInPlane:
-                        if entanglement[0][axis2Num] == entanglement[1][axis2Num]:
-                            draw.line((entanglement[0][axis2Num]*100+65, entanglement[0][axis1Num]*100+50, entanglement[1][axis2Num]*100+65, entanglement[1][axis1Num]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
-                        elif entanglement[0][axis1Num] == entanglement[1][axis1Num]:
-                            draw.line((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+65, entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+65), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
-                        else:
-                            draw.line((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+50, entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                 spaces = [tuple(x) for x in np.argwhere(board != None)]
                 for space in spaces:
                     isInPlane = True
@@ -400,40 +400,141 @@ def generateImage(board, paths, quantumEntanglements):
                             colour = '#ff580a'
                         if cell == 'information':
                             colour = '#ffffff'
-                        draw.rectangle((space[axis2Num]*100+15, space[axis1Num]*100+15, space[axis2Num]*100+85, space[axis1Num]*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
-                for path in paths:
-                    if isThisPathAHighway(path):
-                        startIsInPlane = True
-                        endIsInPlane = True
-                        for n, const in enumerate(consts):
-                            if path['start'][AXIS_ORDER.index(const)] != constNums[n]:
-                                startIsInPlane = False
-                            if path['end'][AXIS_ORDER.index(const)] != constNums[n]:
-                                endIsInPlane = False
-                        if not (startIsInPlane and endIsInPlane):
-                            if startIsInPlane:
-                                coordinates = ",".join([f"{axis}:{path['end'][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
-                                draw.text((path['end'][axis2Num]*100+50, path['end'][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#000088', 'RGBA'), font=font)
-                            if endIsInPlane:
-                                coordinates = ",".join([f"{axis}:{path['start'][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
-                                draw.text((path['start'][axis2Num]*100+50, path['start'][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#000088', 'RGBA'), font=font)
-                for entanglement in quantumEntanglements:
-                    firstIsInPlane = True
-                    secondIsInPlane = True
-                    for n, const in enumerate(consts):
-                        if entanglement[0][AXIS_ORDER.index(const)] != constNums[n]:
-                            firstIsInPlane = False
-                        if entanglement[1][AXIS_ORDER.index(const)] != constNums[n]:
-                            secondIsInPlane = False
-                    if not (startIsInPlane and endIsInPlane):
-                        if firstIsInPlane:
-                            coordinates = ",".join([f"{axis}:{entanglement[1][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
-                            draw.text((entanglement[1][axis2Num]*100+50, entanglement[1][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#882905', 'RGBA'), font=font)
-                        if secondIsInPlane:
-                            coordinates = ",".join([f"{axis}:{entanglement[0][n]+1}" for (n, axis) in enumerate(AXIS_ORDER)])
-                            draw.text((entanglement[0][axis2Num]*100+50, entanglement[0][axis1Num]*100+50), f'({coordinates})', fill=ImageColor.getcolor('#882905', 'RGBA'), font=font)
-                    
-                mainImg.save(f'map/{axis1}{axis2},{",".join([f"{const}={constNums[n]+1}" for (n, const) in enumerate(consts)])}.png', 'PNG')
+                        draw.rectangle((space[axis2Num]*100+15+100, space[axis1Num]*100+15, space[axis2Num]*100+85+100, space[axis1Num]*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
+                
+                if NUM_DIMENSIONS > 2:
+                    name = f'{axis1}{axis2},{",".join([f"{const}={constNums[n]+1}" for (n, const) in enumerate(consts)])}'
+                else:
+                    name = f'{axis1}{axis2}'
+                allImgs[name] = mainImg
+                if NUM_DIMENSIONS == 2:
+                    mainImg.save(f'map/{name}.png', 'PNG')
+            
+            highways = [path for path in paths if isThisPathAHighway(path)]
+            highwayCoords = []
+            for n, highway in enumerate(highways):
+                highwayCoords.append([highway['start'][axis2Num]*100+50+100, highway['start'][axis1Num]*100+50, highway['end'][axis2Num]*100+50+100, highway['end'][axis1Num]*100+50])
+            entanglementCoords = []
+            for n, entanglement in enumerate(quantumEntanglements):
+                entanglementCoords.append([entanglement[0][axis2Num]*100+50+100, entanglement[0][axis1Num]*100+50, entanglement[1][axis2Num]*100+50+100, entanglement[1][axis1Num]*100+50])
+            
+            width = GRID_SIZE*100+100
+            height = GRID_SIZE*100+100
+            doneConsts = []
+            for n, const in enumerate(consts):
+                doneConsts.append(const)
+                remainingConsts = [c for c in consts if c not in doneConsts]
+                remainingConstNums = np.ndenumerate(np.full([GRID_SIZE]*len(remainingConsts), None))
+                if n % 2 == 0: #stack horizontal
+                    newHighwayCoords = []
+                    for m, highway in enumerate(highwayCoords):
+                        newHighwayCoords.append([highways[m]['start'][AXIS_ORDER.index(const)]*width+highway[0], highway[1], highways[m]['end'][AXIS_ORDER.index(const)]*width+highway[2], highway[3]])
+                    highwayCoords = newHighwayCoords
+                    newEntanglementCoords = []
+                    for m, entanglement in enumerate(entanglementCoords):
+                        newEntanglementCoords.append([quantumEntanglements[m][0][AXIS_ORDER.index(const)]*width+entanglement[0], entanglement[1], quantumEntanglements[m][1][AXIS_ORDER.index(const)]*width+entanglement[2], entanglement[3]])
+                    entanglementCoords = newEntanglementCoords
+                    for remainingConstNum, _ in remainingConstNums:
+                        img = Image.new('RGBA', (width*GRID_SIZE,height+100), ImageColor.getcolor('#ffffff00', 'RGBA'))
+                        draw = ImageDraw.Draw(img)
+                        relevantImgs = []
+                        relevantKeys = []
+                        for key in allImgs:
+                            relevant = True
+                            if f'{const}=' in key:
+                                if len(remainingConsts) > 0:
+                                    for m, rConst in enumerate(remainingConsts):
+                                        if f'{rConst}={remainingConstNum[m]+1}' not in key:
+                                            relevant = False
+                                else:
+                                    relevant = True
+                            else:
+                                relevant = False
+                            if relevant:
+                                relevantImgs.append(allImgs[key])
+                                relevantKeys.append(key)
+                        if len(remainingConsts) == 0:
+                            draw.rectangle((0,0,width*GRID_SIZE,height+100), fill=ImageColor.getcolor('#ffffff', 'RGBA'))
+                            for highway in highwayCoords:
+                                draw.line(highway, fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
+                            for n, entanglement in enumerate(entanglementCoords):
+                                if entanglement[0] == entanglement[2]:
+                                    draw.line((entanglement[0]+15, entanglement[1], entanglement[2]+15, entanglement[3]), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                elif entanglement[1] == entanglement[3]:
+                                    draw.line((entanglement[0], entanglement[1]+15, entanglement[2], entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                else:
+                                    draw.line(entanglement, fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        for m, relevantImg in enumerate(relevantImgs):
+                            img.paste(relevantImg, (m*width, 0), mask=relevantImg)
+                        draw.line((15,height+35,GRID_SIZE*width-45,height+35), fill=ImageColor.getcolor('#000000', 'RGBA'), width=15)
+                        draw.regular_polygon((GRID_SIZE*width-45,height+35, 30), 3, 270, fill=ImageColor.getcolor('#000000', 'RGBA'))
+                        draw.text(((width*GRID_SIZE)//2-(axisFont.getlength(const))//2,height+45), const, fill=ImageColor.getcolor('#000000', 'RGBA'), font=axisFont)
+                        for key in relevantKeys:
+                            del allImgs[key]
+                        if len(remainingConsts) > 0:
+                            name = f'{axis1}{axis2},{",".join([f"{rConst}={remainingConstNum[m]+1}" for (m, rConst) in enumerate(remainingConsts)])}'
+                        else:
+                            name = f'{axis1}{axis2}'
+                        allImgs[name] = img
+                        if len(remainingConsts) == 0:
+                            img.save(f'map/{name}.png', 'PNG')
+                    width = width*GRID_SIZE
+                    height = height+100
+                else: #stack vertical
+                    newHighwayCoords = []
+                    for m, highway in enumerate(highwayCoords):
+                        newHighwayCoords.append([highway[0]+100, highways[m]['start'][AXIS_ORDER.index(const)]*height+highway[1], highway[2]+100, highways[m]['end'][AXIS_ORDER.index(const)]*height+highway[3]])
+                    highwayCoords = newHighwayCoords
+                    newEntanglementCoords = []
+                    for m, entanglement in enumerate(entanglementCoords):
+                        newEntanglementCoords.append([entanglement[0]+100, quantumEntanglements[m][0][AXIS_ORDER.index(const)]*height+entanglement[1], entanglement[2]+100, quantumEntanglements[m][1][AXIS_ORDER.index(const)]*height+entanglement[3]])
+                    entanglementCoords = newEntanglementCoords
+                    for remainingConstNum, _ in remainingConstNums:
+                        img = Image.new('RGBA', (width+100,height*GRID_SIZE), ImageColor.getcolor('#ffffff00', 'RGBA'))
+                        draw = ImageDraw.Draw(img)
+                        relevantImgs = []
+                        relevantKeys = []
+                        for key in allImgs:
+                            relevant = True
+                            if f'{const}=' in key:
+                                if len(remainingConsts) > 0:
+                                    for m, rConst in enumerate(remainingConsts):
+                                        if f'{rConst}={remainingConstNum[m]+1}' not in key:
+                                            relevant = False
+                                else:
+                                    relevant = True
+                            else:
+                                relevant = False
+                            if relevant:
+                                relevantImgs.append(allImgs[key])
+                                relevantKeys.append(key)
+                        if len(remainingConsts) == 0:
+                            draw.rectangle((0,0,width+100,height*GRID_SIZE), fill=ImageColor.getcolor('#ffffff', 'RGBA'))
+                            for highway in highwayCoords:
+                                draw.line(tuple(highway), fill=ImageColor.getcolor('#0000ff', 'RGBA'), width=10)
+                            for n, entanglement in enumerate(entanglementCoords):
+                                if entanglement[0] == entanglement[2]:
+                                    draw.line((entanglement[0]+15, entanglement[1], entanglement[2]+15, entanglement[3]), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                elif entanglement[1] == entanglement[3]:
+                                    draw.line((entanglement[0], entanglement[1]+15, entanglement[2], entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                else:
+                                    draw.line(entanglement, fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        for m, relevantImg in enumerate(relevantImgs):
+                            img.paste(relevantImg, (100, m*height), mask=relevantImg)
+                        draw.line((65,15,65,GRID_SIZE*height-45), fill=ImageColor.getcolor('#000000', 'RGBA'), width=15)
+                        draw.regular_polygon((65,GRID_SIZE*height-45, 30), 3, 180, fill=ImageColor.getcolor('#000000', 'RGBA'))
+                        draw.text((10,(GRID_SIZE*height)//2-20), const, fill=ImageColor.getcolor('#000000', 'RGBA'), font=axisFont)
+                        for key in relevantKeys:
+                            del allImgs[key]
+                        if len(remainingConsts) > 0:
+                            name = f'{axis1}{axis2},{",".join([f"{rConst}={remainingConstNum[m]+1}" for (m, rConst) in enumerate(remainingConsts)])}'
+                        else:
+                            name = f'{axis1}{axis2}'
+                        allImgs[name] = img
+                        if len(remainingConsts) == 0:
+                            img.save(f'map/{name}.png', 'PNG')
+                    width = width+100
+                    height = height*GRID_SIZE
 
 def isThisPathAHighway(path):
     for dimension in range(NUM_DIMENSIONS):
@@ -1025,6 +1126,9 @@ def spinTheBadWheel():
             board = fillSpaces(board, 'shop', 1, 'empty')
         if changeType == 'addSpeedSpace':
             board = fillSpaces(board, random.choice(['papas wingeria', 'gym']), 1, 'empty')
+        indent += 1
+        print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
+        indent -= 1
         generateImage(board, paths, quantumEntanglements)
     if result == f'{" "*indent}The sign of your {YELLOW}gold{CLEAR} has swapped!':
         playerGolds[currentPlayer] *= -1
@@ -1829,6 +1933,9 @@ def useItem():
                                     if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
                                         gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 itemDescriptions = redefineItemDescriptions()
+                                indent += 1
+                                print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
+                                indent -= 1
                                 generateImage(board, paths, quantumEntanglements)
                                 indent -= 2
                                 return 'continue'
@@ -2224,6 +2331,9 @@ def entanglementSpace():
     while firstSpace == secondSpace:
         secondSpace = selectRandomSpace(board)
     quantumEntanglements.append([firstSpace, secondSpace])
+    indent += 1
+    print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
+    indent -= 1
     generateImage(board, paths, quantumEntanglements)
     indent += 1
     if len(quantumEntanglements) == 5:
@@ -3346,7 +3456,7 @@ def redefineItemDescriptions():
 board, paths, decorators, pathDecorators = generateBoard()
 quantumEntanglements = []
 
-generateImage(board, paths, quantumEntanglements)
+generateImage(board, paths, quantumEntanglements, debug=True)
 highwayInformation = decideHighwayInformation(board, paths)
 
 itemPrices = {
