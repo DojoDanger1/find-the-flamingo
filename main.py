@@ -2451,6 +2451,7 @@ def evaluateVote(final):
         indent -= 1
         print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will have a chance every {ORANGE}5 rounds{CLEAR} to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
         print(f'{" "*indent}If you instead vote out a {CYAN}Finder{CLEAR}, they will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+        print(f'{" "*indent}The {PINK}Jester{CLEAR} will also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR} after this vote.')
     else:
         print(f'{" "*indent}The player you vote out will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
         print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, the {RED}Staller{CLEAR} role will be passed onto one of the {CYAN}Finders{CLEAR}.')
@@ -2521,6 +2522,10 @@ def evaluateVote(final):
             print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
             eliminatedPlayers.append(voted)
             playerEliminationReturns[voted] = roundNum+(VOTING_FREQUENCY//4)
+            if final:
+                indent += 1
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                indent -= 1
             indent -= 1
         if playerRoles[voted] == 'Staller':
             indent += 1
@@ -2540,6 +2545,10 @@ def evaluateVote(final):
                 eliminatedPlayers.append(voted)
                 print(f'{" "*indent}{CYAN}Finders{CLEAR}, every {ORANGE}5 rounds{CLEAR} one of you will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
                 print(f'{" "*indent}If you fail, you will be {RED}permanently eliminated{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                indent -= 1
             indent -= 1
         if playerRoles[voted] == 'Jester':
             indent += 1
@@ -2549,12 +2558,15 @@ def evaluateVote(final):
             won = spinTheFlamingoWheel()
             if not won:
                 print(f'{" "*indent}{RED}You lost!{CLEAR}')
-                print(f'{" "*indent}The role of {PINK}Jester{CLEAR} must now be reassinged.')
-                oldJester = playerRoles.index('Jester')
-                finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-                playerRoles[random.choice(finders)] = 'Jester'
-                playerRoles[oldJester] = 'Finder'
-                rearrangeRoles = True
+                if not final:
+                    print(f'{" "*indent}The role of {PINK}Jester{CLEAR} must now be reassinged.')
+                    oldJester = playerRoles.index('Jester')
+                    finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
+                    playerRoles[random.choice(finders)] = 'Jester'
+                    playerRoles[oldJester] = 'Finder'
+                    rearrangeRoles = True
+                else:
+                    print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
             else:
                 print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
                 jesterWon = True
@@ -3706,8 +3718,9 @@ while running:
                             playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
                             evaluateDecorators()
                             spaceType = board[playerPositions[currentPlayer]]
-                            if spaceType == 'flamingo' and playerRoles[currentPlayer] in ['Staller', 'Jester'] and OTHERS_CANT_SEE_FLAMINGO:
-                                spaceType = 'empty'
+                            if spaceType == 'flamingo' and OTHERS_CANT_SEE_FLAMINGO:
+                                if (roundNum <= STALLER_WIN and playerRoles[currentPlayer] in ['Staller', 'Jester']) or (roundNum > STALLER_WIN and playerRoles[currentPlayer] == 'Staller'):
+                                    spaceType = 'empty'
                             if math.sqrt(sum([(playerPositions[currentPlayer][x]-blackHolePos[x])**2 for x in range(NUM_DIMENSIONS)])) <= blackHoleRadius:
                                 print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
                                 eliminatedPlayers.append(currentPlayer)
