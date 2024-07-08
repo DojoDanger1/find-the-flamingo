@@ -362,6 +362,16 @@ def generateImage(board, paths, quantumEntanglements, debug=False):
                                     draw.regular_polygon((int(path['start'][axis2Num]*100+50+100), math.ceil((path['end'][axis1Num]+path['start'][axis1Num])/2)*100, 15), 3, 0, fill=ImageColor.getcolor('#696969', 'RGBA'))
                             else:
                                 draw.line(rectCoords, fill=ImageColor.getcolor('#000000', 'RGBA'), width=10)
+                if NUM_DIMENSIONS == 2:
+                    for entanglement in quantumEntanglements:
+                        if entanglement[0][0] == entanglement[1][0]:
+                            draw.line((entanglement[0][1]*100+50+100, entanglement[0][0]*100+50+15, entanglement[1][1]*100+50+100, entanglement[1][0]*100+50+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        elif entanglement[0][1] == entanglement[1][1]:
+                            draw.line((entanglement[0][1]*100+50+100+15, entanglement[0][0]*100+50, entanglement[1][1]*100+50+100+15, entanglement[1][0]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        elif {"start": entanglement[0], "end": entanglement[1], "oneWay": False} in paths or {"start": entanglement[1], "end": entanglement[0], "oneWay": False} in paths:
+                            draw.line((entanglement[0][1]*100+50+100+15, entanglement[0][0]*100+50+15, entanglement[1][1]*100+50+100+15, entanglement[1][0]*100+50+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                        else:
+                            draw.line((entanglement[0][1]*100+50+100, entanglement[0][0]*100+50, entanglement[1][1]*100+50+100, entanglement[1][0]*100+50), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                 spaces = [tuple(x) for x in np.argwhere(board != None)]
                 for space in spaces:
                     isInPlane = True
@@ -462,6 +472,8 @@ def generateImage(board, paths, quantumEntanglements, debug=False):
                                     draw.line((entanglement[0]+15, entanglement[1], entanglement[2]+15, entanglement[3]), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                                 elif entanglement[1] == entanglement[3]:
                                     draw.line((entanglement[0], entanglement[1]+15, entanglement[2], entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                elif {"start": quantumEntanglements[n][0], "end": quantumEntanglements[n][1], "oneWay": False} in paths or {"start": quantumEntanglements[n][1], "end": quantumEntanglements[n][0], "oneWay": False} in paths:
+                                    draw.line((entanglement[0]+15, entanglement[1]+15, entanglement[2]+15, entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                                 else:
                                     draw.line(entanglement, fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                         for m, relevantImg in enumerate(relevantImgs):
@@ -517,6 +529,8 @@ def generateImage(board, paths, quantumEntanglements, debug=False):
                                     draw.line((entanglement[0]+15, entanglement[1], entanglement[2]+15, entanglement[3]), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                                 elif entanglement[1] == entanglement[3]:
                                     draw.line((entanglement[0], entanglement[1]+15, entanglement[2], entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
+                                elif {"start": quantumEntanglements[n][0], "end": quantumEntanglements[n][1], "oneWay": False} in paths or {"start": quantumEntanglements[n][1], "end": quantumEntanglements[n][0], "oneWay": False} in paths:
+                                    draw.line((entanglement[0]+15, entanglement[1]+15, entanglement[2]+15, entanglement[3]+15), fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                                 else:
                                     draw.line(entanglement, fill=ImageColor.getcolor('#ff580a', 'RGBA'), width=10)
                         for m, relevantImg in enumerate(relevantImgs):
