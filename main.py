@@ -897,7 +897,6 @@ def evaluateSpaceType(spaceType):
             print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
         else:
             targetTime = min(1+3*(NUM_PLAYERS-len(eliminatedPlayers)),len(prevPlayerPositions))
-            playerRoles[player] = prevPlayerRoles[-targetTime][player]
             playerPositions[player] = prevPlayerPositions[-targetTime][player]
             playerInventories[player] = prevPlayerInventories[-targetTime][player]
             playerGolds[player] = prevPlayerGolds[-targetTime][player]
@@ -913,7 +912,6 @@ def evaluateSpaceType(spaceType):
             playerEliminationReturns[player] = prevPlayerEliminationReturns[-targetTime][player]
             for _ in range(targetTime-1):
                 for i in range(1, len(prevPlayerPositions)):
-                    prevPlayerRoles[(-1)*i][player] = copy.deepcopy(prevPlayerRoles[(-1)*(i+1)][player])
                     prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
                     prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
                     prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
