@@ -20,12 +20,13 @@ BIAS = 0.05
 #game settings
 NUM_PLAYERS = 5
 ROLES_ENABLED = True
+CHAOS_MODE = True
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
-STALLER_WIN = 250
-VOTING_FREQUENCY = 50
+STALLER_WIN = 150
+VOTING_FREQUENCY = 30
 OTHERS_CANT_SEE_FLAMINGO = True
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -36,6 +37,7 @@ GYM_PROGRESS_REQUIRED = 2
 WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
 LYING_GAME_DIFFICULTY = 4
+ACID_PRICE = 5
 CONFIRM_STAY_HERE = True
 
 #assertions
@@ -47,6 +49,7 @@ assert 0 < PROBABILITY_ONE_WAY and PROBABILITY_ONE_WAY <= 1, 'probability one wa
 assert 0 < BIAS and BIAS <= 1-PERCENTAGE_PATHS, f'bias must be between 0 and {1-PERCENTAGE_PATHS}'
 assert NUM_PLAYERS >= 1, 'number of players must be greater than or equal to 1!'
 assert ROLES_ENABLED == False or (ROLES_ENABLED == True and NUM_PLAYERS > 3), 'games with less than 4 players cannot have roles enabled!'
+assert CHAOS_MODE == False or (CHAOS_MODE == True and ROLES_ENABLED == True), 'if chaos mode is enabled, roles must also be enabled!'
 assert STALLER_WIN % VOTING_FREQUENCY == 0, 'staller win must be an integer multiple of voting frequency!'
 assert STARTING_SPEED > 0, 'starting speed must be positive!'
 assert SHOP_PURCHACE_LIMIT > 0, 'shop purchase limit must be positive!'
@@ -75,6 +78,7 @@ CYAN = getColour(0, 217, 255)
 TURQUOISE = getColour(0, 255, 183)
 GRAY = getColour(69, 69, 69)
 PINK = getColour(227, 61, 208)
+DARK_GREEN = getColour(0, 153, 36)
 
 EMPTY_SPACE = getColour(138, 138, 138)
 FLAMINGO_SPACE = getColour(255, 0, 234)
@@ -909,7 +913,6 @@ def evaluateSpaceType(spaceType):
             playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
             playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
             playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
-            playerEliminationReturns[player] = prevPlayerEliminationReturns[-targetTime][player]
             for _ in range(targetTime-1):
                 for i in range(1, len(prevPlayerPositions)):
                     prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
@@ -924,7 +927,6 @@ def evaluateSpaceType(spaceType):
                     prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                     prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
-                    prevPlayerEliminationReturns[(-1)*i][player] = copy.deepcopy(prevPlayerEliminationReturns[(-1)*(i+1)][player])
             indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
@@ -989,6 +991,16 @@ def evaluateDecorators():
             indent += 1
             print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} is on this space!')
             indent -= 1
+        if decorator['type'] == 'acid' and decorator['placedBy'] != currentPlayer:
+            indent += 1
+            print(f'{" "*indent}Fortunately, you landed on {RED}Player {decorator["placedBy"]}\'s acid{CLEAR}!')
+            indent += 1
+            print(f'{" "*indent}They must give you {YELLOW}{decorator["reward"]} gold{CLEAR}.')
+            playerGolds[decorator['placedBy']] -= decorator["reward"]
+            playerGolds[currentPlayer] += decorator["reward"]
+            print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
+            decoratorsToRemove.append(n)
+            indent -= 2
         time.sleep(0.5)
     for decorator in sorted(decoratorsToRemove, reverse=True):
         decorators[playerPositions[currentPlayer]].pop(decorator)
@@ -1598,6 +1610,7 @@ def printItemList(itemList):
 def useItem():
     global indent
     global playerRoles
+    global playerSpecialAbilities
     global playerPositions
     global playerInventories
     global playerFoodInventories
@@ -1611,6 +1624,8 @@ def useItem():
     global playerFrozens
     global playerQuantumNotifications
     global playerEliminationReturns
+    global playerPoisoneds
+    global playerHealedPoisons
     global itemPrices
     global itemRewards
     global itemDescriptions
@@ -1621,6 +1636,7 @@ def useItem():
     global blackHolePos
     global blackHoleRadius
     global eliminatedPlayers
+    global mewChance
     done = False
     indent += 1
     itemsUsed = []
@@ -1893,6 +1909,7 @@ def useItem():
                             numEliminated = len(eliminatedPlayers)
                             if len(prevPlayerPositions) >= 1+NUM_PLAYERS-numEliminated:
                                 playerRoles = prevPlayerRoles[-1-NUM_PLAYERS+numEliminated]
+                                playerSpecialAbilities = prevPlayerSpecialAbilities[-1-NUM_PLAYERS+numEliminated]
                                 playerPositions = prevPlayerPositions[-1-NUM_PLAYERS+numEliminated]
                                 playerInventories = prevPlayerInventories[-1-NUM_PLAYERS+numEliminated]
                                 playerGolds = prevPlayerGolds[-1-NUM_PLAYERS+numEliminated]
@@ -1906,6 +1923,8 @@ def useItem():
                                 playerFrozens = prevPlayerFrozens[-1-NUM_PLAYERS+numEliminated]
                                 playerQuantumNotifications = prevPlayerQuantumNotifications[-1-NUM_PLAYERS+numEliminated]
                                 playerEliminationReturns = prevPlayerEliminationReturns[-1-NUM_PLAYERS+numEliminated]
+                                playerPoisoneds = prevPlayerPoisoneds[-1-NUM_PLAYERS+numEliminated]
+                                playerHealedPoisons = prevPlayerHealedPoisons[-1-NUM_PLAYERS+numEliminated]
                                 itemPrices = prevItemPrices[-1-NUM_PLAYERS+numEliminated]
                                 itemRewards = prevItemRewards[-1-NUM_PLAYERS+numEliminated]
                                 decorators = prevDecorators[-1-NUM_PLAYERS+numEliminated]
@@ -1915,8 +1934,10 @@ def useItem():
                                 blackHolePos = prevBlackHolePos[-1-NUM_PLAYERS+numEliminated]
                                 blackHoleRadius = prevBlackHoleRadius[-1-NUM_PLAYERS+numEliminated]
                                 eliminatedPlayers = prevEliminatedPlayers[-1-NUM_PLAYERS+numEliminated]
+                                mewChance = prevMewChance[-1-NUM_PLAYERS+numEliminated]
                                 for _ in range(NUM_PLAYERS-numEliminated):
                                     prevPlayerRoles.pop(-1)
+                                    prevPlayerSpecialAbilities.pop(-1)
                                     prevPlayerPositions.pop(-1)
                                     prevPlayerInventories.pop(-1)
                                     prevPlayerGolds.pop(-1)
@@ -1930,6 +1951,8 @@ def useItem():
                                     prevPlayerFrozens.pop(-1)
                                     prevPlayerQuantumNotifications.pop(-1)
                                     prevPlayerEliminationReturns.pop(-1)
+                                    prevPlayerPoisoneds.pop(-1)
+                                    prevPlayerHealedPoisons.pop(-1)
                                     prevItemPrices.pop(-1)
                                     prevItemRewards.pop(-1)
                                     prevDecorators.pop(-1)
@@ -2285,12 +2308,13 @@ def visitWingeria():
     
 def visitGym():
     global indent
+    global mewChance
     indent += 1
     print(f'{" "*indent}Which workout would you like to do?')
     indent += 1
     print(f'{" "*indent}0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
     print(f'{" "*indent}1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
-    print(f'{" "*indent}2: Mewing - {RED}1 in 100 chance{CLEAR} of doubling {GYM_SPACE}speed{CLEAR} and {YELLOW}gold{CLEAR}.')
+    print(f'{" "*indent}2: Mewing - {RED}{int(mewChance*100)}% chance{CLEAR} of doubling {GYM_SPACE}speed{CLEAR} and {YELLOW}gold{CLEAR}.')
     indent -= 1
     choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 2))
     if choice == 0:
@@ -2319,7 +2343,7 @@ def visitGym():
         indent -= 1
     if choice == 2:
         indent += 1
-        if random.random() <= 0.01:
+        if random.random() <= mewChance:
             print(f'{" "*indent}{GREEN}Your mewing paid off!{CLEAR}')
             playerSpeeds[currentPlayer] *= 2
             print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
@@ -2382,7 +2406,7 @@ def entanglementSpace():
     indent -= 1
     return hasBeenEliminated
 
-def printRoles(roles):
+def printRoles(roles, specialAbilities):
     global indent
     os.system('clear')
     for player in range(1, NUM_PLAYERS+1):
@@ -2393,6 +2417,7 @@ def printRoles(roles):
         print(f'{" "*indent}Ensure that {RED}no other player{CLEAR} can see the screen.')
         indent -= 1
         input(f'{TURQUOISE}Press Enter when you are ready {CLEAR}')
+        print(f'{"-"*50}')
         indent += 1
         print(f'{" "*indent}Your role is the {grammatiseRole(roles[player])}.')
         if playerRoles[player] == 'Finder':
@@ -2424,6 +2449,84 @@ def printRoles(roles):
             if OTHERS_CANT_SEE_FLAMINGO:
                 print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
             indent -= 1
+        if CHAOS_MODE:
+            print(f'{"-"*50}')
+            if specialAbilities[player] == 'None':
+                print(f'{" "*indent}You {RED}do not{CLEAR} have a special ability.')
+            else:
+                print(f'{" "*indent}Your special ability is the {grammatiseRole(specialAbilities[player])}.')
+                if specialAbilities[player] == 'Murderer':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    print(f'{" "*indent}They will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+                    indent += 1
+                    if 'Medic' in specialAbilities:
+                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from {RED}murder{CLEAR}')
+                    indent -= 1
+                    print(f'{" "*indent}The {YELLOW}remaining players{CLEAR} will be alerted during the {ORANGE}voting results{CLEAR}.')
+                    indent -= 1
+                if specialAbilities[player] == 'Toxicologist':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will not be notified.')
+                    indent -= 1
+                    print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will begin to feel various {DARK_GREEN}symptoms{CLEAR} over the next {ORANGE}{VOTING_FREQUENCY} rounds{CLEAR}.')
+                    print(f'{" "*indent}{DARK_GREEN}Symptoms{CLEAR} will be given at random, including:')
+                    indent += 1
+                    print(f'{" "*indent}Not being able to move,')
+                    print(f'{" "*indent}Loosing {GYM_SPACE}speed{CLEAR},')
+                    print(f'{" "*indent}Throwing up {GREEN}acid{CLEAR}, which will act the same as a {CYAN}trap{CLEAR}',)
+                    indent -= 1
+                    print(f'{" "*indent}And will end with them being {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} before the next vote.')
+                    if 'Medic' in specialAbilities:
+                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} will be able to heal a {DARK_GREEN}poisoned{CLEAR} player by occupying the {ORANGE}same space{CLEAR} as them.')
+                    indent -= 1
+                if specialAbilities[player] == 'Seer':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    print(f'{" "*indent}You will find out the {YELLOW}chosen player\'s{CLEAR} role {GREEN}and{CLEAR} special ability.')
+                    indent += 1
+                    print(f'{" "*indent}Only you will see this {INFORMATION_SPACE}information{CLEAR}.')
+                    indent -= 2
+                if specialAbilities[player] == 'Guesser':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}You {RED}cannot{CLEAR} choose yourself.')
+                    indent -= 1
+                    print(f'{" "*indent}If you guess {GREEN}correctly{CLEAR}, you will also be able to use {YELLOW}that player\'s{CLEAR} special ability.')
+                    print(f'{" "*indent}If you guess {RED}incorrectly{CLEAR}, you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+                    if 'Murderer' in specialAbilities:
+                        indent += 1
+                        print(f'{" "*indent}It will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} you.')
+                        indent -= 1
+                    indent -= 1
+                if specialAbilities[player] == 'Medic':
+                    indent += 1
+                    if 'Murderer' in specialAbilities:
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {RED}murder{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                        indent -= 1
+                    if 'Toxicologist' in specialAbilities:
+                        print(f'{" "*indent}If you land on the {ORANGE}same space{CLEAR} as a player who has been {DARK_GREEN}poisoned{CLEAR} by the {DARK_GREEN}Toxicologist{CLEAR},')
+                        print(f'{" "*indent}They will be {GREEN}healed{CLEAR} {ORANGE}{VOTING_FREQUENCY//10} to {VOTING_FREQUENCY//3} rounds{CLEAR} later.')
+                    indent -= 1
+                if specialAbilities[player] == 'Cleaner':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent -= 1
+                if specialAbilities[player] == 'Mewer':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent -= 1
+                if specialAbilities[player] == 'Swapper':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}You may choose yourself.')
+                    indent -= 2
         indent -= 1
         print('-'*50)
         input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
@@ -2432,6 +2535,11 @@ def printRoles(roles):
 def evaluateVote(final):
     global indent
     global currentPlayer
+    global voteSwaps
+    global murderedPlayers
+    global shieldedPlayers
+    global guesserFailed
+    #voting preamble
     os.system('clear')
     if final:
         print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
@@ -2460,6 +2568,7 @@ def evaluateVote(final):
     indent -= 2
     print('-'*50)
     input(f'{TURQUOISE}Press Enter when you are ready to vote {CLEAR}')
+    #actual voting
     voteOrder = list(range(1, NUM_PLAYERS+1))
     random.shuffle(voteOrder)
     votes = [None]
@@ -2467,6 +2576,10 @@ def evaluateVote(final):
     for _ in range(NUM_PLAYERS):
         votes.append(0)
         individualVotes.append(0)
+    voteSwaps = []
+    murderedPlayers = []
+    shieldedPlayers = []
+    guesserFailed = False
     for player in voteOrder:
         if player not in eliminatedPlayers:
             currentPlayer = player
@@ -2482,7 +2595,36 @@ def evaluateVote(final):
             votes[vote] += 1
             individualVotes[player] = vote
             indent -= 1
+            if CHAOS_MODE:
+                if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic'):
+                    print('-'*50)
+                    print(f'Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player])}')
+                    indent += 1
+                    print(f'{" "*indent}Would you like to use your special ability?')
+                    indent += 1
+                    print(f'{" "*indent}0: No')
+                    print(f'{" "*indent}1: Yes')
+                    indent -= 1
+                    useAbility = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                    if useAbility == 1:
+                        indent += 1
+                        evalSpecialAbility(playerSpecialAbilities[player])
+                        indent -= 1
+                    indent -= 1
+            print('-'*50)
+            input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
     currentPlayer = 1
+    #make swaps from the swapper
+    for swap in voteSwaps:
+        temp = votes[swap[0]]
+        votes[swap[0]] = votes[swap[1]]
+        votes[swap[1]] = temp
+        for n, individualVote in enumerate(individualVotes):
+            if individualVote == swap[0]:
+                individualVotes[n] = swap[1]
+            elif individualVote == swap[1]:
+                individualVotes[n] = swap[0]
+    #reveal voting results
     os.system('clear')
     if final:
         print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
@@ -2502,6 +2644,7 @@ def evaluateVote(final):
             print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted for {YELLOW}Player {individualVotes[player]}{CLEAR}')
             time.sleep(0.75)
     indent -= 1
+    #evaluation
     rearrangeRoles = False
     jesterWon = False
     if tie:
@@ -2535,8 +2678,12 @@ def evaluateVote(final):
                 print(f'{" "*indent}The role of {RED}Staller{CLEAR} must now be reassinged.')
                 oldStaller = playerRoles.index('Staller')
                 finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-                playerRoles[random.choice(finders)] = 'Staller'
+                newStaller = random.choice(finders)
+                playerRoles[newStaller] = 'Staller'
                 playerRoles[oldStaller] = 'Finder'
+                if CHAOS_MODE:
+                    playerSpecialAbilities[newStaller] = random.choice(['Murderer', 'Toxicologist'])
+                    playerSpecialAbilities[oldStaller] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
                 rearrangeRoles = True
             else:
                 print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you have been {RED}permanently eliminated{CLEAR} from the game.')
@@ -2560,8 +2707,12 @@ def evaluateVote(final):
                     print(f'{" "*indent}The role of {PINK}Jester{CLEAR} must now be reassinged.')
                     oldJester = playerRoles.index('Jester')
                     finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-                    playerRoles[random.choice(finders)] = 'Jester'
+                    newJester = random.choice(finders)
+                    playerRoles[newJester] = 'Jester'
                     playerRoles[oldJester] = 'Finder'
+                    if CHAOS_MODE:
+                        playerSpecialAbilities[newJester] = random.choice(['Seer', 'Guesser'])
+                        playerSpecialAbilities[oldJester] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
                     rearrangeRoles = True
                 else:
                     print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
@@ -2570,15 +2721,167 @@ def evaluateVote(final):
                 jesterWon = True
             indent -= 1
         indent -= 1
+    #evaluate murder
+    for player in range(1, NUM_PLAYERS+1):
+        if player not in eliminatedPlayers:
+            if player in murderedPlayers and player not in shieldedPlayers:
+                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
+                indent += 1
+                print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
+                eliminatedPlayers.append(player)
+                playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
+                indent -= 1
+            elif player in murderedPlayers and player in shieldedPlayers:
+                print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+            elif guesserFailed:
+                if player == playerSpecialAbilities.index('Guesser'):
+                    print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
+                    indent += 1
+                    print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
+                    eliminatedPlayers.append(player)
+                    playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
+                    indent -= 1
+    #continue to game
     print('-'*50)
     if not jesterWon:
         if rearrangeRoles:
             input(f'{TURQUOISE}Press Enter when you are ready to reveal the new roles {CLEAR}')
-            printRoles(playerRoles)
+            printRoles(playerRoles, playerSpecialAbilities)
         else:
             input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
         os.system('clear')
     return jesterWon
+
+def evalSpecialAbility(specialAbility):
+    global indent
+    global mewChance
+    global guesserFailed
+    if specialAbility == 'Murderer':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {RED}murder{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
+        murderedPlayers.append(chosenPlayer)
+    if specialAbility == 'Toxicologist':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {DARK_GREEN}poison{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
+        playerPoisoneds[chosenPlayer] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+5*(VOTING_FREQUENCY//6), "eliminationReturn": roundNum+6*(VOTING_FREQUENCY//6)}
+    if specialAbility == 'Seer':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {CYAN}see the role{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
+        indent += 1
+        print(f'{" "*indent}{YELLOW}Player {chosenPlayer}{CLEAR} is a {grammatiseRole(playerRoles[chosenPlayer])}.')
+        if playerSpecialAbilities[chosenPlayer] == 'None':
+            print(f'{" "*indent}They {RED}do not{CLEAR} have a special ability.')
+        else:
+            print(f'{" "*indent}Their special ability is a {grammatiseRole(playerSpecialAbilities[chosenPlayer])}.')
+        indent -= 1
+    if specialAbility == 'Guesser':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {YELLOW}guess the special ability{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
+        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Seer', 'Guesser', 'Medic', 'Cleaner', 'Mewer', 'Swapper']
+        indent += 1
+        print(f'{" "*indent}What special ability do you think {YELLOW}Player {chosenPlayer}{CLEAR} has?')
+        indent += 1
+        for n, ability in enumerate(allAbilities):
+            print(f'{" "*indent}{n}: {grammatiseRole(ability)}')
+        indent -= 1
+        guess = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', len(allAbilities)))
+        indent += 1
+        if allAbilities[guess] == playerSpecialAbilities[chosenPlayer]:
+            if playerSpecialAbilities[chosenPlayer] == 'None':
+                print(f'{" "*indent}That is {GREEN}correct{CLEAR}!')
+            else:
+                print(f'{" "*indent}That is {GREEN}correct{CLEAR}! You now must use the ability of the {grammatiseRole(playerSpecialAbilities[chosenPlayer])}.')
+            indent += 1
+            if playerSpecialAbilities[chosenPlayer] == 'None' or (playerSpecialAbilities[chosenPlayer] == 'Medic' and 'Toxicologist' in playerSpecialAbilities):
+                print(f'{" "*indent}{RED}Unfortunately,{CLEAR} this player does not have anything to do right now...')
+            else:
+                evalSpecialAbility(playerSpecialAbilities[chosenPlayer])
+            indent -= 1
+        else:
+            print(f'{" "*indent}That is {RED}incorrect{CLEAR}! you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
+            guesserFailed = True
+        indent -= 2
+    if specialAbility == 'Medic':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GREEN}shield{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
+        shieldedPlayers.append(chosenPlayer)
+    if specialAbility == 'Cleaner':
+        for _ in range(len(quantumEntanglements)//2):
+            quantumEntanglements.remove(random.choice(quantumEntanglements))
+        print(f'{" "*indent}There are now {GREEN}{len(quantumEntanglements)}{CLEAR} {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.')
+        indent += 1
+        print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
+        indent -= 1
+        generateImage(board, paths, quantumEntanglements)
+    if specialAbility == 'Mewer':
+        if mewChance != 1:
+            mewChance = round(mewChance+0.01, 2)
+        print(f'{" "*indent}The {GREEN}chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} is now {RED}{int(mewChance*100)}%{CLEAR}.')
+    if specialAbility == 'Swapper':
+        candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers and player != currentPlayer]
+        if len(candidates) <= 1:
+            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        else:
+            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
+            valid = False
+            while not valid:
+                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
+                if player2 == player1:
+                    indent += 1
+                    print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
+                    indent -= 1
+                else:
+                    valid = True
+            voteSwaps.append([player1, player2])
+
+def evaluatePoison():
+    global indent
+    global allowedToMove
+    if roundNum == playerHealedPoisons[currentPlayer] and playerPoisoneds[currentPlayer] != {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}:
+        indent += 1
+        print(f'{" "*indent}It appears you recently crossed paths with a {GREEN}Medic{CLEAR}, and so you are no longer {DARK_GREEN}poisoned{CLEAR}!')
+        playerPoisoneds[currentPlayer] = {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}
+        playerHealedPoisons[currentPlayer] = -1
+        indent -= 1
+    if playerPoisoneds[currentPlayer]['symptomStart'] <= roundNum and roundNum < playerPoisoneds[currentPlayer]['elimination']:
+        poisonEffect = random.choice(['nothing','nothing','nothing','nothing','nothing','no move','no move','loose speed','loose speed','acid'])
+        if poisonEffect == 'no move' and board[playerPositions[currentPlayer]] != 'shadow realm':
+            indent += 1
+            print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you {RED}cannot move{CLEAR} this turn.')
+            allowedToMove = False
+            indent -= 1
+        if poisonEffect == 'loose speed':
+            indent += 1
+            lostSpeed = round(random.randint(2,7)/100,2)
+            print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have lost {GYM_SPACE}{lostSpeed} speed{CLEAR}.')
+            playerSpeeds[currentPlayer] -= lostSpeed
+            playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
+            if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
+                playerSpeeds[currentPlayer] = MINIMUM_SPEED
+            print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
+            indent -= 1
+        if poisonEffect == 'acid':
+            indent += 1
+            print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have thrown up {GREEN}acid{CLEAR} on this space!')
+            decorators[playerPositions[currentPlayer]].append({"type": 'acid', "placedBy": currentPlayer, "reward": ACID_PRICE})
+            indent += 1
+            print(f'{" "*indent}The next time {ORANGE}someone{CLEAR} lands on this space, you must pay them {YELLOW}{ACID_PRICE} gold{CLEAR}. (as an apology)')
+            print(f'{" "*indent}The {GREEN}acid{CLEAR} will be removed afer.')
+            indent -= 2
+    elif roundNum == playerPoisoneds[currentPlayer]['elimination']:
+        indent += 1
+        print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//6)}{CLEAR}.')
+        indent += 1
+        print(f'{" "*indent}You will return right before the vote.')
+        indent -= 1
+        eliminatedPlayers.append(currentPlayer)
+        playerEliminationReturns[currentPlayer] = roundNum+(VOTING_FREQUENCY//6)
+        playerPoisoneds[currentPlayer] = {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}
+        allowedToMove = False
+        indent -= 1
+
+def checkForMedicHeal():
+    for player in range(1,NUM_PLAYERS+1):
+        if playerPositions[player] == playerPositions[currentPlayer]:
+            if playerSpecialAbilities[currentPlayer] == 'Medic' and playerPoisoneds[player] != {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}:
+                playerHealedPoisons[player] = roundNum + random.randint(3,10)
+            elif playerSpecialAbilities[player] == 'Medic' and playerPoisoneds[currentPlayer] != {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}:
+                playerHealedPoisons[currentPlayer] = roundNum + random.randint(3,10)
 
 def playBlackjack(bet=0):
     global indent
@@ -3380,6 +3683,42 @@ def grammatiseRole(role):
         return f'{RED}Staller{CLEAR}'
     if role == 'Jester':
         return f'{PINK}Jester{CLEAR}'
+    if role == 'None':
+        return 'None'
+    if role == 'Murderer':
+        return f'{RED}Murderer{CLEAR}'
+    if role == 'Toxicologist':
+        return f'{DARK_GREEN}Toxicologist{CLEAR}'
+    if role == 'Seer':
+        return f'{CYAN}Seer{CLEAR}'
+    if role == 'Guesser':
+        return f'{YELLOW}Guesser{CLEAR}'
+    if role == 'Medic':
+        return f'{GREEN}Medic{CLEAR}'
+    if role == 'Cleaner':
+        return f'{SHOP_SPACE}Cleaner{CLEAR}'
+    if role == 'Mewer':
+        return f'{GYM_SPACE}Mewer{CLEAR}'
+    if role == 'Swapper':
+        return f'{ORANGE}Swapper{CLEAR}'
+
+def getAbilityDescription(specialAbility):
+    if specialAbility == 'Murderer':
+        return f'choose a player to {RED}murder{CLEAR}'
+    if specialAbility == 'Toxicologist':
+        return f'choose a player to {DARK_GREEN}poison{CLEAR}'
+    if specialAbility == 'Seer':
+        return f'choose a player to {CYAN}have their role revealed{CLEAR}'
+    if specialAbility == 'Guesser':
+        return f'guess a player\'s {YELLOW}special ability{CLEAR}'
+    if specialAbility == 'Medic':
+        return f'choose a player to {GREEN}sheild{CLEAR} from {RED}murder{CLEAR}'
+    if specialAbility == 'Cleaner':
+        return f'{SHOP_SPACE}remove half{CLEAR} of the {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}'
+    if specialAbility == 'Mewer':
+        return f'{GREEN}increase the chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} by {RED}1%{CLEAR}'
+    if specialAbility == 'Swapper':
+        return f'{ORANGE}swap{CLEAR} the votes that any {YELLOW}2 players{CLEAR} recieve'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
@@ -3404,7 +3743,9 @@ def saveToFile(filename):
         "blackHolePos": blackHolePos,
         "blackHoleRadius": blackHoleRadius,
         "eliminatedPlayers": eliminatedPlayers,
+        "mewChance": mewChance,
         "playerRoles": playerRoles,
+        "playerSpecialAbilities": playerSpecialAbilities,
         "playerPositions": playerPositions,
         "playerInventories": playerInventories,
         "playerGolds": playerGolds,
@@ -3418,6 +3759,8 @@ def saveToFile(filename):
         "playerFrozens": playerFrozens,
         "playerQuantumNotifications": playerQuantumNotifications,
         "playerEliminationReturns": playerEliminationReturns,
+        "playerPoisoneds": playerPoisoneds,
+        "playerHealedPoisons": playerHealedPoisons,
         "itemPrices": itemPrices,
         "itemRewards": itemRewards,
         "prevBoards": prevBoards,
@@ -3427,7 +3770,9 @@ def saveToFile(filename):
         "prevBlackHolePos": prevBlackHolePos,
         "prevBlackHoleRadius": prevBlackHoleRadius,
         "prevEliminatedPlayers": prevEliminatedPlayers,
+        "prevMewChance": prevMewChance,
         "prevPlayerRoles": prevPlayerRoles,
+        "prevPlayerSpecialAbilities": prevPlayerSpecialAbilities,
         "prevPlayerPositions": prevPlayerPositions,
         "prevPlayerInventories": prevPlayerInventories,
         "prevPlayerGolds": prevPlayerGolds,
@@ -3441,6 +3786,8 @@ def saveToFile(filename):
         "prevPlayerFrozens": prevPlayerFrozens,
         "prevPlayerQuantumNotifications": prevPlayerQuantumNotifications,
         "prevPlayerEliminationReturns": prevPlayerEliminationReturns,
+        "prevPlayerPoisoneds": prevPlayerPoisoneds,
+        "prevPlayerHealedPoisons": prevPlayerHealedPoisons,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
@@ -3532,6 +3879,7 @@ itemSectionRanges = {
 itemDescriptions = redefineItemDescriptions()
 
 playerRoles = [None]
+playerSpecialAbilities = [None]
 playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
@@ -3545,8 +3893,11 @@ playerWaitingForEvents = [None]
 playerFrozens = [None]
 playerQuantumNotifications = [None]
 playerEliminationReturns = [None]
+playerPoisoneds = [None]
+playerHealedPoisons = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
+    playerSpecialAbilities.append('None')
     playerPositions.append(tuple(np.argwhere(board == "home")[0]))
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
@@ -3560,6 +3911,8 @@ for _ in range(NUM_PLAYERS):
     playerFrozens.append(False)
     playerQuantumNotifications.append(0)
     playerEliminationReturns.append(-1)
+    playerPoisoneds.append({"symptomStart": -1, "elimination": -1, "eliminationReturn": -1})
+    playerHealedPoisons.append(-1)
 
 numTimeMachines = 0
 
@@ -3568,7 +3921,10 @@ blackHoleRadius = -1
 
 eliminatedPlayers = []
 
+mewChance = 0.01
+
 prevPlayerRoles = [copy.deepcopy(playerRoles)]
+prevPlayerSpecialAbilities = [copy.deepcopy(playerSpecialAbilities)]
 prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
@@ -3582,6 +3938,8 @@ prevPlayerWaitingForEvents = [copy.deepcopy(playerWaitingForEvents)]
 prevPlayerFrozens = [copy.deepcopy(playerFrozens)]
 prevPlayerQuantumNotifications = [copy.deepcopy(playerQuantumNotifications)]
 prevPlayerEliminationReturns = [copy.deepcopy(playerEliminationReturns)]
+prevPlayerPoisoneds = [copy.deepcopy(playerPoisoneds)]
+prevPlayerHealedPoisons = [copy.deepcopy(playerHealedPoisons)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
@@ -3591,6 +3949,7 @@ prevQuantumEntanglements = [copy.deepcopy(quantumEntanglements)]
 prevBlackHolePos = [copy.deepcopy(blackHolePos)]
 prevBlackHoleRadius = [copy.deepcopy(blackHoleRadius)]
 prevEliminatedPlayers = [copy.deepcopy(eliminatedPlayers)]
+prevMewChance = [copy.deepcopy(mewChance)]
 
 indent = 0
 
@@ -3598,7 +3957,15 @@ indent = 0
 if ROLES_ENABLED:
     playerRoles[random.randint(1,NUM_PLAYERS)] = 'Staller'
     playerRoles[random.choice([x for x in list(range(1,NUM_PLAYERS+1)) if playerRoles[x] == 'Finder'])] = 'Jester'
-    printRoles(playerRoles)
+    if CHAOS_MODE:
+        for player, role in enumerate(playerRoles):
+            if role == 'Staller':
+                playerSpecialAbilities[player] = random.choice(['Murderer', 'Toxicologist'])
+            elif role == 'Jester':
+                playerSpecialAbilities[player] = random.choice(['Seer', 'Guesser'])
+            elif role == 'Finder':
+                playerSpecialAbilities[player] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
+    printRoles(playerRoles, playerSpecialAbilities)
 
 running = True
 currentPlayer = 1
@@ -3645,9 +4012,12 @@ while running:
             os.system('clear')
             continue
     timeTravelled = False
-    #if in shadow realm, dont move
+    #conditions on allowed to move
+    allowedToMove = True
+    evaluatePoison()
     currentSpaceType = board[playerPositions[currentPlayer]]
     if currentSpaceType == 'shadow realm':
+        allowedToMove = False
         indent += 1
         print(f'{" "*indent}You must spin the {SHADOW_REALM_SPACE}Shadow Wheel{CLEAR}.')
         spinTheShadowWheel()
@@ -3659,81 +4029,82 @@ while running:
                 if useItem() == 'continue':
                     os.system('clear')
                     continue
-    else:
-        if playerFrozens[currentPlayer]:
-            indent += 1
-            print(f'{" "*indent}Unfortunately, you are {CYAN}frozen{CLEAR}! You cannot move this turn.')
-            playerFrozens[currentPlayer] = False
-            indent -= 1
+    if playerFrozens[currentPlayer] and allowedToMove:
+        allowedToMove = False
+        indent += 1
+        print(f'{" "*indent}Unfortunately, you are {CYAN}frozen{CLEAR}! You cannot move this turn.')
+        playerFrozens[currentPlayer] = False
+        indent -= 1
+    if allowedToMove:
+        if random.random() < round(playerSpeeds[currentPlayer]%1, 4):
+            moves = math.ceil(playerSpeeds[currentPlayer])
         else:
-            if random.random() < round(playerSpeeds[currentPlayer]%1, 4):
-                moves = math.ceil(playerSpeeds[currentPlayer])
-            else:
-                moves = math.floor(playerSpeeds[currentPlayer])
-            if moves == 0:
+            moves = math.floor(playerSpeeds[currentPlayer])
+        if moves == 0:
+            allowedToMove = False
+            indent += 1
+            print(f'{" "*indent}Due to your {RED}immense weight{CLEAR}, you unfortunately cannot move this turn. (your speed is {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR})')
+            indent -= 1
+        elif moves >= 2:
+            indent += 1
+            print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
+            indent -= 1
+        for _ in range(moves):
+            if board[playerPositions[currentPlayer]] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
                 indent += 1
-                print(f'{" "*indent}Due to your {RED}immense weight{CLEAR}, you unfortunately cannot move this turn. (your speed is {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR})')
-                indent -= 1
-            elif moves >= 2:
-                indent += 1
-                print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
-                indent -= 1
-            for _ in range(moves):
-                if board[playerPositions[currentPlayer]] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
+                #display move options
+                sure = False
+                while not sure:
+                    print(f'{" "*indent}Where would you like to move?')
+                    possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
+                    options = 0
                     indent += 1
-                    #display move options
-                    sure = False
-                    while not sure:
-                        print(f'{" "*indent}Where would you like to move?')
-                        possibleMoves = findPossibleMoves(paths, playerPositions[currentPlayer], True, highwayInformation)
-                        options = 0
-                        indent += 1
-                        print(f'{" "*indent}{options}: Stay Here')
-                        for move in possibleMoves:
-                            options += 1
-                            if NUM_DIMENSIONS < 4:
-                                print(f'{" "*indent}{options}: Move {GREEN}{move["direction"]}{CLEAR}')
-                            else:
-                                print(f'{" "*indent}{options}: Move in the {GREEN}{move["direction"]} direction{CLEAR}')
-                        indent -= 1
-                        choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
-                        if int(choice) != 0 or CONFIRM_STAY_HERE == False:
-                            sure = True
+                    print(f'{" "*indent}{options}: Stay Here')
+                    for move in possibleMoves:
+                        options += 1
+                        if NUM_DIMENSIONS < 4:
+                            print(f'{" "*indent}{options}: Move {GREEN}{move["direction"]}{CLEAR}')
                         else:
-                            print(f'{" "*indent}Are you sure?')
-                            indent += 1
-                            print(f'{" "*indent}0: No')
-                            print(f'{" "*indent}1: Yes')
-                            indent -= 1
-                            sure = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
-                    #evaluate option
-                    hasBeenEliminated = False
-                    if int(choice) != 0:
-                        allowedToMove = True
-                        evaluatePathDecorators()
-                        if allowedToMove:
-                            #move
-                            playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
-                            evaluateDecorators()
-                            spaceType = board[playerPositions[currentPlayer]]
-                            if spaceType == 'flamingo' and OTHERS_CANT_SEE_FLAMINGO:
-                                if (roundNum <= STALLER_WIN and playerRoles[currentPlayer] in ['Staller', 'Jester']) or (roundNum > STALLER_WIN and playerRoles[currentPlayer] == 'Staller'):
-                                    spaceType = 'empty'
-                            if math.sqrt(sum([(playerPositions[currentPlayer][x]-blackHolePos[x])**2 for x in range(NUM_DIMENSIONS)])) <= blackHoleRadius:
-                                print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
-                                eliminatedPlayers.append(currentPlayer)
-                                hasBeenEliminated = True
-                            if not hasBeenEliminated:
-                                hasBeenEliminated = evaluateSpaceType(spaceType)
+                            print(f'{" "*indent}{options}: Move in the {GREEN}{move["direction"]} direction{CLEAR}')
                     indent -= 1
-                    #ask for item use
-                    if not hasBeenEliminated:
-                        timeTravelled = False
-                        if running == True:
-                            if len(playerInventories[currentPlayer]) > 0:
-                                if useItem() == 'continue':
-                                    timeTravelled = True
-                                    break
+                    choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', options)
+                    if int(choice) != 0 or CONFIRM_STAY_HERE == False:
+                        sure = True
+                    else:
+                        print(f'{" "*indent}Are you sure?')
+                        indent += 1
+                        print(f'{" "*indent}0: No')
+                        print(f'{" "*indent}1: Yes')
+                        indent -= 1
+                        sure = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                #evaluate option
+                hasBeenEliminated = False
+                if int(choice) != 0:
+                    evaluatePathDecorators()
+                    if allowedToMove:
+                        #move
+                        playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
+                        checkForMedicHeal()
+                        evaluateDecorators()
+                        spaceType = board[playerPositions[currentPlayer]]
+                        if spaceType == 'flamingo' and OTHERS_CANT_SEE_FLAMINGO:
+                            if (roundNum <= STALLER_WIN and playerRoles[currentPlayer] in ['Staller', 'Jester']) or (roundNum > STALLER_WIN and playerRoles[currentPlayer] == 'Staller'):
+                                spaceType = 'empty'
+                        if math.sqrt(sum([(playerPositions[currentPlayer][x]-blackHolePos[x])**2 for x in range(NUM_DIMENSIONS)])) <= blackHoleRadius:
+                            print(f'{" "*indent}{YELLOW}Player {currentPlayer},{RED} You have been swallowed by the {SHADOW_REALM_SPACE}black hole{RED} and have been permanently ELIMINATED.{CLEAR}')
+                            eliminatedPlayers.append(currentPlayer)
+                            hasBeenEliminated = True
+                        if not hasBeenEliminated:
+                            hasBeenEliminated = evaluateSpaceType(spaceType)
+                indent -= 1
+                #ask for item use
+                if not hasBeenEliminated:
+                    timeTravelled = False
+                    if running == True:
+                        if len(playerInventories[currentPlayer]) > 0:
+                            if useItem() == 'continue':
+                                timeTravelled = True
+                                break
     if timeTravelled:
         os.system('clear')
         continue
@@ -3776,7 +4147,9 @@ while running:
                 blackHolePos = data["blackHolePos"]
                 blackHoleRadius = data["blackHoleRadius"]
                 eliminatedPlayers = data["eliminatedPlayers"]
+                mewChance = data["mewChance"]
                 playerRoles = data["playerRoles"]
+                playerSpecialAbilities = data["playerSpecialAbilities"]
                 playerPositions = data["playerPositions"]
                 playerInventories = data["playerInventories"]
                 playerGolds = data["playerGolds"]
@@ -3790,6 +4163,8 @@ while running:
                 playerFrozens = data["playerFrozens"]
                 playerQuantumNotifications = data["playerQuantumNotifications"]
                 playerEliminationReturns = data["playerEliminationReturns"]
+                playerPoisoneds = data["playerPoisoneds"]
+                playerHealedPoisons = data["playerHealedPoisons"]
                 itemPrices = data["itemPrices"]
                 itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
@@ -3799,7 +4174,9 @@ while running:
                 prevBlackHolePos = data["prevBlackHolePos"]
                 prevBlackHoleRadius = data["prevBlackHoleRadius"]
                 prevEliminatedPlayers = data["prevEliminatedPlayers"]
+                prevMewChance = data["prevMewChance"]
                 prevPlayerRoles = data["prevPlayerRoles"]
+                prevPlayerSpecialAbilities = data["prevPlayerSpecialAbilities"]
                 prevPlayerPositions = data["prevPlayerPositions"]
                 prevPlayerInventories = data["prevPlayerInventories"]
                 prevPlayerGolds = data["prevPlayerGolds"]
@@ -3813,6 +4190,8 @@ while running:
                 prevPlayerFrozens = data["prevPlayerFrozens"]
                 prevPlayerQuantumNotifications = data["prevPlayerQuantumNotifications"]
                 prevPlayerEliminationReturns = data["prevPlayerEliminationReturns"]
+                prevPlayerPoisoneds = data["prevPlayerPoisoneds"]
+                prevPlayerHealedPoisons = data["prevPlayerHealedPoisons"]
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
@@ -3822,6 +4201,7 @@ while running:
         os.system('clear')
         #store backups
         prevPlayerRoles.append(copy.deepcopy(playerRoles))
+        prevPlayerSpecialAbilities.append(copy.deepcopy(playerSpecialAbilities))
         prevPlayerPositions.append(copy.deepcopy(playerPositions))
         prevPlayerInventories.append(copy.deepcopy(playerInventories))
         prevPlayerGolds.append(copy.deepcopy(playerGolds))
@@ -3835,6 +4215,8 @@ while running:
         prevPlayerFrozens.append(copy.deepcopy(playerFrozens))
         prevPlayerQuantumNotifications.append(copy.deepcopy(playerQuantumNotifications))
         prevPlayerEliminationReturns.append(copy.deepcopy(playerEliminationReturns))
+        prevPlayerPoisoneds.append(copy.deepcopy(playerPoisoneds))
+        prevPlayerHealedPoisons.append(copy.deepcopy(playerHealedPoisons))
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
@@ -3844,6 +4226,7 @@ while running:
         prevBlackHolePos.append(copy.deepcopy(blackHolePos))
         prevBlackHoleRadius.append(copy.deepcopy(blackHoleRadius))
         prevEliminatedPlayers.append(copy.deepcopy(eliminatedPlayers))
+        prevMewChance.append(copy.deepcopy(mewChance))
         #expand black hole
         if blackHoleRadius > -1:
             if random.random() <= 0.5:
@@ -3864,6 +4247,11 @@ while running:
             if currentPlayer > NUM_PLAYERS:
                 currentPlayer = 1
                 loopedOver = True
+            for player, returnRound in enumerate(playerEliminationReturns):
+                if player != 0:
+                    if returnRound == roundNum or (returnRound == roundNum+1 and loopedOver):
+                        eliminatedPlayers.remove(player)
+                        playerEliminationReturns[player] = -1
             while currentPlayer in eliminatedPlayers:
                 currentPlayer += 1
                 if currentPlayer > NUM_PLAYERS:
@@ -3871,7 +4259,7 @@ while running:
                     loopedOver = True
             if loopedOver:
                 roundNum += 1
-                if (roundNum % VOTING_FREQUENCY == 1) and ROLES_ENABLED and (roundNum <= STALLER_WIN + 1):
+                if (roundNum % VOTING_FREQUENCY == 1) and ROLES_ENABLED and (roundNum <= STALLER_WIN + 1) and (NUM_PLAYERS - len(eliminatedPlayers) >= 3):
                     if roundNum == STALLER_WIN + 1:
                         jesterWon = evaluateVote(final=True)
                     else:
@@ -3879,6 +4267,12 @@ while running:
                     if jesterWon:
                         winner = playerRoles.index('Jester')
                         running = False
+                    elif NUM_PLAYERS - len(eliminatedPlayers) == 0:
+                        winner = 0
+                        running = False
+                if running == True:
+                    while currentPlayer in eliminatedPlayers:
+                        currentPlayer += 1
                 if roundNum > STALLER_WIN and roundNum % 5 == 1 and running == True:
                     padding = math.floor((50-6-len(str(roundNum)))/2)
                     print(f'{" "*padding}{ORANGE}Round {roundNum}{CLEAR}')
@@ -3917,11 +4311,6 @@ while running:
                         else:
                             winner = chosen
                             running = False
-                for player, returnRound in enumerate(playerEliminationReturns):
-                    if player != 0:
-                        if returnRound == roundNum:
-                            eliminatedPlayers.remove(player)
-                            playerEliminationReturns[player] = -1
                 if running == True:
                     #evaluate misc turns
                     decoratorsToRemove = []
