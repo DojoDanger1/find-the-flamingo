@@ -2476,7 +2476,7 @@ def printRoles(roles, specialAbilities):
                     indent += 1
                     print(f'{" "*indent}Not being able to move,')
                     print(f'{" "*indent}Loosing {GYM_SPACE}speed{CLEAR},')
-                    print(f'{" "*indent}Throwing up {GREEN}acid{CLEAR}, which will act the same as a {CYAN}trap{CLEAR}',)
+                    print(f'{" "*indent}Throwing up {GREEN}acid{CLEAR}, which will act the same as a {CYAN}trap{CLEAR} but in reverse,',)
                     indent -= 1
                     print(f'{" "*indent}And will end with them being {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} before the next vote.')
                     if 'Medic' in specialAbilities:
