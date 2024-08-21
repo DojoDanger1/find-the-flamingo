@@ -33,7 +33,7 @@ CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
-GYM_PROGRESS_REQUIRED = 2
+GYM_PROGRESS_REQUIRED = 3
 WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
 LYING_GAME_DIFFICULTY = 4
@@ -913,6 +913,7 @@ def evaluateSpaceType(spaceType):
             playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
             playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
             playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
+            playerGreenPotionTurns[player] = prevPlayerGreenPotionTurns[-targetTime][player]
             for _ in range(targetTime-1):
                 for i in range(1, len(prevPlayerPositions)):
                     prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
@@ -927,6 +928,7 @@ def evaluateSpaceType(spaceType):
                     prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
                     prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
+                    prevPlayerGreenPotionTurns[(-1)*i][player] = copy.deepcopy(prevPlayerGreenPotionTurns[(-1)*(i+1)][player])
             indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
@@ -1571,12 +1573,12 @@ def goToTheShop(portable=False):
                 addToFoodInventory(itemPrices['ingredient bundle']*3)
             if random.random() < CHANCE_OF_SUPER_INFLATION:
                 itemPrices[item] *= 2
-                if item in itemRewards.keys():
+                if item in itemRewards.keys() and item != 'green potion':
                     itemRewards[item] *= 2
                     itemDescriptions = redefineItemDescriptions()
             elif random.random() < CHANCE_OF_INFLATION:
                 itemPrices[item] += 1
-                if item in itemRewards.keys():
+                if item in itemRewards.keys() and item != 'green potion':
                     itemRewards[item] += 1
                     itemDescriptions = redefineItemDescriptions()
     if tab > 0:
@@ -1626,6 +1628,7 @@ def useItem():
     global playerEliminationReturns
     global playerPoisoneds
     global playerHealedPoisons
+    global playerGreenPotionTurns
     global itemPrices
     global itemRewards
     global itemDescriptions
@@ -1733,11 +1736,8 @@ def useItem():
                             indent -= 1
                         if item == 'green potion':
                             indent += 1
-                            if board[playerPositions[currentPlayer]] == 'shadow realm':
-                                print(f'{" "*indent}The green potion is {RED}useless{CLEAR} in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}. No information was given.')
-                            else:
-                                shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-                                print(f'{" "*indent}The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+                            playerGreenPotionTurns[currentPlayer] += reward
+                            print(f'{" "*indent}For the next {GREEN}{playerGreenPotionTurns[currentPlayer]}{CLEAR} round{"s" if playerGreenPotionTurns[currentPlayer] != 1 else ""}, you will know how many moves away the {FLAMINGO_SPACE}flamingo{CLEAR} space is!')
                             indent -= 1
                         if item == 'flamingo':
                             indent += 1
@@ -1925,6 +1925,7 @@ def useItem():
                                 playerEliminationReturns = prevPlayerEliminationReturns[-1-NUM_PLAYERS+numEliminated]
                                 playerPoisoneds = prevPlayerPoisoneds[-1-NUM_PLAYERS+numEliminated]
                                 playerHealedPoisons = prevPlayerHealedPoisons[-1-NUM_PLAYERS+numEliminated]
+                                playerGreenPotionTurns = prevPlayerGreenPotionTurns[-1-NUM_PLAYERS+numEliminated]
                                 itemPrices = prevItemPrices[-1-NUM_PLAYERS+numEliminated]
                                 itemRewards = prevItemRewards[-1-NUM_PLAYERS+numEliminated]
                                 decorators = prevDecorators[-1-NUM_PLAYERS+numEliminated]
@@ -1953,6 +1954,7 @@ def useItem():
                                     prevPlayerEliminationReturns.pop(-1)
                                     prevPlayerPoisoneds.pop(-1)
                                     prevPlayerHealedPoisons.pop(-1)
+                                    prevPlayerGreenPotionTurns.pop(-1)
                                     prevItemPrices.pop(-1)
                                     prevItemRewards.pop(-1)
                                     prevDecorators.pop(-1)
@@ -2313,7 +2315,7 @@ def visitGym():
     print(f'{" "*indent}Which workout would you like to do?')
     indent += 1
     print(f'{" "*indent}0: Squats - Increase your {GYM_SPACE}speed{CLEAR}.')
-    print(f'{" "*indent}1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing.')
+    print(f'{" "*indent}1: Bicep Curls - Increase the {YELLOW}gold{CLEAR} you get from stealing and {CYAN}green potion{CLEAR} duration.')
     print(f'{" "*indent}2: Mewing - {RED}{int(mewChance*100)}% chance{CLEAR} of doubling {GYM_SPACE}speed{CLEAR} and {YELLOW}gold{CLEAR}.')
     indent -= 1
     choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your choice:{CLEAR} ', 2))
@@ -2332,9 +2334,9 @@ def visitGym():
         print(f'{" "*indent}Your {GYM_SPACE}gym progress{CLEAR} is now {GREEN}{playerProgress[currentPlayer]["gym"]}{CLEAR} out of {GREEN}{GYM_PROGRESS_REQUIRED}{CLEAR}')
         if playerProgress[currentPlayer]["gym"] == GYM_PROGRESS_REQUIRED:
             indent += 1
-            print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You now steal one more {YELLOW}gold{CLEAR}.')
             playerProgress[currentPlayer]["gym"] = 0
             playerStealBonus[currentPlayer] += 1
+            print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You now steal one more {YELLOW}gold{CLEAR} and your {CYAN}green potions{CLEAR} last {ORANGE}{1+playerStealBonus[currentPlayer]} rounds{CLEAR}.')
             for n, item in enumerate(playerInventories[currentPlayer]):
                 if ';' in item and 'time machine' not in item:
                     split = item.split(';')
@@ -3761,6 +3763,7 @@ def saveToFile(filename):
         "playerEliminationReturns": playerEliminationReturns,
         "playerPoisoneds": playerPoisoneds,
         "playerHealedPoisons": playerHealedPoisons,
+        "playerGreenPotionTurns": playerGreenPotionTurns,
         "itemPrices": itemPrices,
         "itemRewards": itemRewards,
         "prevBoards": prevBoards,
@@ -3788,6 +3791,7 @@ def saveToFile(filename):
         "prevPlayerEliminationReturns": prevPlayerEliminationReturns,
         "prevPlayerPoisoneds": prevPlayerPoisoneds,
         "prevPlayerHealedPoisons": prevPlayerHealedPoisons,
+        "prevPlayerGreenPotionTurns": prevPlayerGreenPotionTurns,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
@@ -3802,7 +3806,7 @@ def redefineItemDescriptions():
         "safeword": f'Return to the {HOME_SPACE}home space{CLEAR}.',
         #where's the flamingo
         "red potion": f'Tells you where to go to get closer to the {FLAMINGO_SPACE}flamingo space{CLEAR}.',
-        "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is.',
+        "green potion": f'Tells you how many moves away the {FLAMINGO_SPACE}flamingo space{CLEAR} is for the next {ORANGE}{itemRewards["green potion"]} round{"s" if itemRewards["green potion"] != 1 else ""}{CLEAR}.',
         "flamingo": f'Moves towards the {FLAMINGO_SPACE}flamingo space{CLEAR} at the end of the {RED}last player\'s{CLEAR} turn.',
         #violence is always the answer
         "knife": f'Steal {YELLOW}{itemRewards["knife"]} gold{CLEAR} from another player if they are on the same space as you.',
@@ -3859,6 +3863,8 @@ itemPrices = {
 }
 
 itemRewards = {
+    #where's the flamingo
+    "green potion": 1,
     #violence is always the answer
     "knife": itemPrices['knife'] + 1,
     "gun": itemPrices['gun'] + 1,
@@ -3895,6 +3901,7 @@ playerQuantumNotifications = [None]
 playerEliminationReturns = [None]
 playerPoisoneds = [None]
 playerHealedPoisons = [None]
+playerGreenPotionTurns = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
     playerSpecialAbilities.append('None')
@@ -3913,6 +3920,7 @@ for _ in range(NUM_PLAYERS):
     playerEliminationReturns.append(-1)
     playerPoisoneds.append({"symptomStart": -1, "elimination": -1, "eliminationReturn": -1})
     playerHealedPoisons.append(-1)
+    playerGreenPotionTurns.append(0)
 
 numTimeMachines = 0
 
@@ -3940,6 +3948,7 @@ prevPlayerQuantumNotifications = [copy.deepcopy(playerQuantumNotifications)]
 prevPlayerEliminationReturns = [copy.deepcopy(playerEliminationReturns)]
 prevPlayerPoisoneds = [copy.deepcopy(playerPoisoneds)]
 prevPlayerHealedPoisons = [copy.deepcopy(playerHealedPoisons)]
+prevPlayerGreenPotionTurns = [copy.deepcopy(playerGreenPotionTurns)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
@@ -3987,6 +3996,12 @@ while running:
         for quest in playerQuests[currentPlayer]:
             print(f'{" "*indent}{questTextFromDict(quest, progress=True)}')
         indent -= 2
+    if playerGreenPotionTurns[currentPlayer] > 0 and board[playerPositions[currentPlayer]] != 'shadow realm':
+        indent += 1
+        shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
+        print(f'{" "*indent}The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+        playerGreenPotionTurns[currentPlayer] -= 1
+        indent -= 1
     evaluateEntanglement()
     #check for waiting events
     for event in playerWaitingForEvents[currentPlayer]:
@@ -4165,6 +4180,7 @@ while running:
                 playerEliminationReturns = data["playerEliminationReturns"]
                 playerPoisoneds = data["playerPoisoneds"]
                 playerHealedPoisons = data["playerHealedPoisons"]
+                playerGreenPotionTurns = data["playerGreenPotionTurns"]
                 itemPrices = data["itemPrices"]
                 itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
@@ -4192,6 +4208,7 @@ while running:
                 prevPlayerEliminationReturns = data["prevPlayerEliminationReturns"]
                 prevPlayerPoisoneds = data["prevPlayerPoisoneds"]
                 prevPlayerHealedPoisons = data["prevPlayerHealedPoisons"]
+                prevPlayerGreenPotionTurns = data["prevPlayerGreenPotionTurns"]
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
@@ -4217,6 +4234,7 @@ while running:
         prevPlayerEliminationReturns.append(copy.deepcopy(playerEliminationReturns))
         prevPlayerPoisoneds.append(copy.deepcopy(playerPoisoneds))
         prevPlayerHealedPoisons.append(copy.deepcopy(playerHealedPoisons))
+        prevPlayerGreenPotionTurns.append(copy.deepcopy(playerGreenPotionTurns))
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
