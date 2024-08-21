@@ -1009,10 +1009,9 @@ def evaluateDecorators():
     for goblin in goblinsToAdd:
         decorators[goblin[0]].append(goblin[1])
 
-def evaluatePathDecorators():
+def evaluatePathDecorators(chosenPath):
     global indent
     global allowedToMove
-    chosenPath = possibleMoves[int(choice)-1]['path']
     for n, path in enumerate(paths):
         if path == chosenPath:
             for decorator in pathDecorators[n]:
@@ -1040,6 +1039,31 @@ def evaluatePathDecorators():
                                     done = True
                                 indent -= 1
                         indent -= 1
+
+def checkForFatPeople(destination):
+    global indent
+    global allowedToMove
+    for player in range(1,NUM_PLAYERS+1):
+        if playerPositions[player] == destination and random.random() < max(1.5-playerSpeeds[player]-playerSpeeds[currentPlayer], 0) and player != currentPlayer:
+            indent += 1
+            print(f'{" "*indent}Unfortunately, due to your and {YELLOW}Player {player}\'s{CLEAR} {GRAY}(statistically speaking){CLEAR} {PAPAS_WINGERIA_SPACE}fat asses{CLEAR}, you {RED}cannot{CLEAR} move onto this space, as there is no room.')
+            allowedToMove = False
+            indent -= 1
+
+def checkForSquashedPeople():
+    global indent
+    for player in range(1,NUM_PLAYERS+1):
+        if playerPositions[player] == playerPositions[currentPlayer] and random.random() < 2*(max(0.75-playerSpeeds[currentPlayer], 0)) and playerSpeeds[currentPlayer] < playerSpeeds[player] and player != currentPlayer:
+            indent += 1
+            print(f'{" "*indent}{RED}Uh oh!{CLEAR} It looks like you have {PAPAS_WINGERIA_SPACE}squished{CLEAR} {YELLOW}Player {player}{CLEAR}! {GRAY}(you didn\'t see them under all your belly fat){CLEAR}')
+            indent += 1
+            print(f'{" "*indent}{YELLOW}Player {player}{CLEAR}, you have been {RED}eliminated{CLEAR} for {ORANGE}1 round{CLEAR}.')
+            eliminatedPlayers.append(player)
+            if player < currentPlayer:
+                playerEliminationReturns[player] = roundNum+2
+            else:
+                playerEliminationReturns[player] = roundNum+1
+            indent -= 2
 
 def spinWheelVisually(options):
     print('')
@@ -4095,11 +4119,13 @@ while running:
                 #evaluate option
                 hasBeenEliminated = False
                 if int(choice) != 0:
-                    evaluatePathDecorators()
+                    evaluatePathDecorators(possibleMoves[int(choice)-1]['path'])
+                    checkForFatPeople(possibleMoves[int(choice)-1]['destination'])
                     if allowedToMove:
                         #move
                         playerPositions[currentPlayer] = possibleMoves[int(choice)-1]['destination']
                         checkForMedicHeal()
+                        checkForSquashedPeople()
                         evaluateDecorators()
                         spaceType = board[playerPositions[currentPlayer]]
                         if spaceType == 'flamingo' and OTHERS_CANT_SEE_FLAMINGO:
