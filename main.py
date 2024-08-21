@@ -2839,14 +2839,14 @@ def evalSpecialAbility(specialAbility):
             mewChance = round(mewChance+0.01, 2)
         print(f'{" "*indent}The {GREEN}chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} is now {RED}{int(mewChance*100)}%{CLEAR}.')
     if specialAbility == 'Swapper':
-        candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers and player != currentPlayer]
+        candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers]
         if len(candidates) <= 1:
             print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
         else:
-            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
+            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
             valid = False
             while not valid:
-                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', False))
+                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
                 if player2 == player1:
                     indent += 1
                     print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
