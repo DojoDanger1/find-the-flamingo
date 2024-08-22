@@ -21,6 +21,9 @@ BIAS = 0.05
 NUM_PLAYERS = 5
 ROLES_ENABLED = True
 CHAOS_MODE = True
+STALLER_ABILITIES = ['Murderer', 'Toxicologist']
+JESTER_ABILITIES = ['Seer', 'Guesser']
+FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None']
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
@@ -2708,8 +2711,8 @@ def evaluateVote(final):
                 playerRoles[newStaller] = 'Staller'
                 playerRoles[oldStaller] = 'Finder'
                 if CHAOS_MODE:
-                    playerSpecialAbilities[newStaller] = random.choice(['Murderer', 'Toxicologist'])
-                    playerSpecialAbilities[oldStaller] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
+                    playerSpecialAbilities[newStaller] = random.choice(STALLER_ABILITIES)
+                    playerSpecialAbilities[oldStaller] = random.choice(FINDER_ABILITIES)
                 rearrangeRoles = True
             else:
                 print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you have been {RED}permanently eliminated{CLEAR} from the game.')
@@ -2737,8 +2740,8 @@ def evaluateVote(final):
                     playerRoles[newJester] = 'Jester'
                     playerRoles[oldJester] = 'Finder'
                     if CHAOS_MODE:
-                        playerSpecialAbilities[newJester] = random.choice(['Seer', 'Guesser'])
-                        playerSpecialAbilities[oldJester] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
+                        playerSpecialAbilities[newJester] = random.choice(JESTER_ABILITIES)
+                        playerSpecialAbilities[oldJester] = random.choice(FINDER_ABILITIES)
                     rearrangeRoles = True
                 else:
                     print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
@@ -3993,11 +3996,11 @@ if ROLES_ENABLED:
     if CHAOS_MODE:
         for player, role in enumerate(playerRoles):
             if role == 'Staller':
-                playerSpecialAbilities[player] = random.choice(['Murderer', 'Toxicologist'])
+                playerSpecialAbilities[player] = random.choice(STALLER_ABILITIES)
             elif role == 'Jester':
-                playerSpecialAbilities[player] = random.choice(['Seer', 'Guesser'])
+                playerSpecialAbilities[player] = random.choice(JESTER_ABILITIES)
             elif role == 'Finder':
-                playerSpecialAbilities[player] = random.choice(['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None', 'None'])
+                playerSpecialAbilities[player] = random.choice(FINDER_ABILITIES)
     printRoles(playerRoles, playerSpecialAbilities)
 
 running = True
