@@ -908,6 +908,7 @@ def evaluateSpaceType(spaceType):
             playerInventories[player] = prevPlayerInventories[-targetTime][player]
             playerGolds[player] = prevPlayerGolds[-targetTime][player]
             playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+            playerMinimumSpeeds[player] = prevPlayerMinimumSpeeds[-targetTime][player]
             playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
             playerProgress[player] = prevPlayerProgress[-targetTime][player]
             playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
@@ -923,6 +924,7 @@ def evaluateSpaceType(spaceType):
                     prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
                     prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
                     prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                    prevPlayerMinimumSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerMinimumSpeeds[(-1)*(i+1)][player])
                     prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
                     prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
                     prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
@@ -1645,6 +1647,7 @@ def useItem():
     global playerFoodInventories
     global playerGolds
     global playerSpeeds
+    global playerMinimumSpeeds
     global playerProgress
     global playerStealBonus
     global playerInvestmentBonus
@@ -1880,8 +1883,8 @@ def useItem():
                                 for player in playersOnCurrentSpot:
                                     playerSpeeds[player] -= 0.1
                                     playerSpeeds[player] = round(playerSpeeds[player], 4)
-                                    if playerSpeeds[player] < MINIMUM_SPEED:
-                                        playerSpeeds[player] = MINIMUM_SPEED
+                                    if playerSpeeds[player] < playerMinimumSpeeds[player]:
+                                        playerSpeeds[player] = playerMinimumSpeeds[player]
                                     print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
                             indent -= 1
                         if item == 'freeze ray':
@@ -1941,6 +1944,7 @@ def useItem():
                                 playerInventories = prevPlayerInventories[-1-NUM_PLAYERS+numEliminated]
                                 playerGolds = prevPlayerGolds[-1-NUM_PLAYERS+numEliminated]
                                 playerSpeeds = prevPlayerSpeeds[-1-NUM_PLAYERS+numEliminated]
+                                playerMinimumSpeeds = prevPlayerMinimumSpeeds[-1-NUM_PLAYERS+numEliminated]
                                 playerFoodInventories = prevPlayerFoodInventories[-1-NUM_PLAYERS+numEliminated]
                                 playerProgress = prevPlayerProgress[-1-NUM_PLAYERS+numEliminated]
                                 playerStealBonus = prevPlayerStealBonus[-1-NUM_PLAYERS+numEliminated]
@@ -1970,6 +1974,7 @@ def useItem():
                                     prevPlayerInventories.pop(-1)
                                     prevPlayerGolds.pop(-1)
                                     prevPlayerSpeeds.pop(-1)
+                                    prevPlayerMinimumSpeeds.pop(-1)
                                     prevPlayerFoodInventories.pop(-1)
                                     prevPlayerProgress.pop(-1)
                                     prevPlayerStealBonus.pop(-1)
@@ -2287,8 +2292,8 @@ def visitWingeria():
     print(f'{" "*indent}You ordered {order}.')
     playerSpeeds[currentPlayer] -= cost
     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-    if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
-        playerSpeeds[currentPlayer] = MINIMUM_SPEED
+    if playerSpeeds[currentPlayer] < playerMinimumSpeeds[currentPlayer]:
+        playerSpeeds[currentPlayer] = playerMinimumSpeeds[currentPlayer]
     print(f'{" "*indent}You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
     updateQuests('eatChicken', totalMeats)
     if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0:
@@ -2307,8 +2312,8 @@ def visitWingeria():
             else:
                 playerSpeeds[player] -= cost
                 playerSpeeds[player] = round(playerSpeeds[player], 4)
-                if playerSpeeds[player] < MINIMUM_SPEED:
-                    playerSpeeds[player] = MINIMUM_SPEED
+                if playerSpeeds[player] < playerMinimumSpeeds[player]:
+                    playerSpeeds[player] = playerMinimumSpeeds[player]
             indent += 1
             print(f'{" "*indent}{RED}Player {player}{CLEAR} now has {GYM_SPACE}{playerSpeeds[player]} speed{CLEAR}.')
             indent -= 1
@@ -2374,10 +2379,18 @@ def visitGym():
         indent += 1
         if random.random() <= mewChance:
             print(f'{" "*indent}{GREEN}Your mewing paid off!{CLEAR}')
+            indent += 1
+            playerMinimumSpeeds[currentPlayer] = playerSpeeds[currentPlayer]
             playerSpeeds[currentPlayer] *= 2
+            playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
             print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
             playerGolds[currentPlayer] *= 2
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+            indent -= 1
+            print(f'{" "*indent}Due to your {GYM_SPACE}incredible new physique{CLEAR}, your minimum speed has increased!')
+            indent += 1
+            print(f'{" "*indent}You can now no longer go below {GREEN}{playerMinimumSpeeds[currentPlayer]}{CLEAR} {GYM_SPACE}speed{CLEAR}.')
+            indent -= 1
         else:
             print(f'{" "*indent}{RED}Unfortunately,{CLEAR} your {GYM_SPACE}{random.randint(1, 24)} hour mewing exercise{CLEAR} did nothing!')
         indent -= 1
@@ -2880,8 +2893,8 @@ def evaluatePoison():
             print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have lost {GYM_SPACE}{lostSpeed} speed{CLEAR}.')
             playerSpeeds[currentPlayer] -= lostSpeed
             playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
-            if playerSpeeds[currentPlayer] < MINIMUM_SPEED:
-                playerSpeeds[currentPlayer] = MINIMUM_SPEED
+            if playerSpeeds[currentPlayer] < playerMinimumSpeeds[currentPlayer]:
+                playerSpeeds[currentPlayer] = playerMinimumSpeeds[currentPlayer]
             print(f'{" "*indent}Your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
             indent -= 1
         if poisonEffect == 'acid':
@@ -3779,6 +3792,7 @@ def saveToFile(filename):
         "playerInventories": playerInventories,
         "playerGolds": playerGolds,
         "playerSpeeds": playerSpeeds,
+        "playerMinimumSpeeds": playerMinimumSpeeds,
         "playerFoodInventories": playerFoodInventories,
         "playerProgress": playerProgress,
         "playerStealBonus": playerStealBonus,
@@ -3807,6 +3821,7 @@ def saveToFile(filename):
         "prevPlayerInventories": prevPlayerInventories,
         "prevPlayerGolds": prevPlayerGolds,
         "prevPlayerSpeeds": prevPlayerSpeeds,
+        "prevPlayerMinimumSpeeds": prevPlayerMinimumSpeeds,
         "prevPlayerFoodInventories": prevPlayerFoodInventories,
         "prevPlayerProgress": prevPlayerProgress,
         "prevPlayerStealBonus": prevPlayerStealBonus,
@@ -3917,6 +3932,7 @@ playerPositions = [None]
 playerInventories = [None]
 playerGolds = [None]
 playerSpeeds = [None]
+playerMinimumSpeeds = [None]
 playerFoodInventories = [None]
 playerProgress = [None]
 playerStealBonus = [None]
@@ -3936,6 +3952,7 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
+    playerMinimumSpeeds.append(MINIMUM_SPEED)
     playerFoodInventories.append(copy.deepcopy(STARTING_FOOD_INVENTORY))
     playerProgress.append(copy.deepcopy({"gym": 0, "wingeria": 0}))
     playerStealBonus.append(0)
@@ -3964,6 +3981,7 @@ prevPlayerPositions = [copy.deepcopy(playerPositions)]
 prevPlayerInventories = [copy.deepcopy(playerInventories)]
 prevPlayerGolds = [copy.deepcopy(playerGolds)]
 prevPlayerSpeeds = [copy.deepcopy(playerSpeeds)]
+prevPlayerMinimumSpeeds = [copy.deepcopy(playerMinimumSpeeds)]
 prevPlayerFoodInventories = [copy.deepcopy(playerFoodInventories)]
 prevPlayerProgress = [copy.deepcopy(playerProgress)]
 prevPlayerStealBonus = [copy.deepcopy(playerStealBonus)]
@@ -4198,6 +4216,7 @@ while running:
                 playerInventories = data["playerInventories"]
                 playerGolds = data["playerGolds"]
                 playerSpeeds = data["playerSpeeds"]
+                playerMinimumSpeeds = data["playerMinimumSpeeds"]
                 playerFoodInventories = data["playerFoodInventories"]
                 playerProgress = data["playerProgress"]
                 playerStealBonus = data["playerStealBonus"]
@@ -4226,6 +4245,7 @@ while running:
                 prevPlayerInventories = data["prevPlayerInventories"]
                 prevPlayerGolds = data["prevPlayerGolds"]
                 prevPlayerSpeeds = data["prevPlayerSpeeds"]
+                prevPlayerMinimumSpeeds = data["prevPlayerMinimumSpeeds"]
                 prevPlayerFoodInventories = data["prevPlayerFoodInventories"]
                 prevPlayerProgress = data["prevPlayerProgress"]
                 prevPlayerStealBonus = data["prevPlayerStealBonus"]
@@ -4252,6 +4272,7 @@ while running:
         prevPlayerInventories.append(copy.deepcopy(playerInventories))
         prevPlayerGolds.append(copy.deepcopy(playerGolds))
         prevPlayerSpeeds.append(copy.deepcopy(playerSpeeds))
+        prevPlayerMinimumSpeeds.append(copy.deepcopy(playerMinimumSpeeds))
         prevPlayerFoodInventories.append(copy.deepcopy(playerFoodInventories))
         prevPlayerProgress.append(copy.deepcopy(playerProgress))
         prevPlayerStealBonus.append(copy.deepcopy(playerStealBonus))
