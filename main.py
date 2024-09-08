@@ -2537,13 +2537,12 @@ def printRoles(roles, specialAbilities):
                     indent += 1
                     print(f'{" "*indent}You {RED}cannot{CLEAR} choose yourself.')
                     indent -= 1
-                    print(f'{" "*indent}If you guess {GREEN}correctly{CLEAR}, you will also be able to use {YELLOW}that player\'s{CLEAR} special ability.')
-                    print(f'{" "*indent}If you guess {RED}incorrectly{CLEAR}, you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-                    if 'Murderer' in specialAbilities:
-                        indent += 1
-                        print(f'{" "*indent}It will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} you.')
-                        indent -= 1
-                    indent -= 1
+                    print(f'{" "*indent}If you guess {GREEN}correctly{CLEAR}, you will be able to either {RED}murder{CLEAR} {YELLOW}that player{CLEAR}, or use {YELLOW}that player\'s{CLEAR} special ability.')
+                    print(f'{" "*indent}If you guess {RED}incorrectly{CLEAR}, you will be {RED}murdered{CLEAR}.')
+                    indent += 1
+                    print(f'{" "*indent}For any {RED}murder{CLEAR}, it will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} that player.')
+                    print(f'{" "*indent}They/you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}')
+                    indent -= 2
                 if specialAbilities[player] == 'Medic':
                     indent += 1
                     if 'Murderer' in specialAbilities:
@@ -2766,6 +2765,7 @@ def evaluateVote(final):
     #evaluate murder
     for player in range(1, NUM_PLAYERS+1):
         if player not in eliminatedPlayers:
+            time.sleep(1)
             if player in murderedPlayers and player not in shieldedPlayers:
                 print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
                 indent += 1
@@ -2825,15 +2825,29 @@ def evalSpecialAbility(specialAbility):
         guess = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', len(allAbilities)))
         indent += 1
         if allAbilities[guess] == playerSpecialAbilities[chosenPlayer]:
-            if playerSpecialAbilities[chosenPlayer] == 'None':
-                print(f'{" "*indent}That is {GREEN}correct{CLEAR}!')
-            else:
-                print(f'{" "*indent}That is {GREEN}correct{CLEAR}! You now must use the ability of the {grammatiseRole(playerSpecialAbilities[chosenPlayer])}.')
+            print(f'{" "*indent}That is {GREEN}correct{CLEAR}!')
             indent += 1
             if playerSpecialAbilities[chosenPlayer] == 'None' or (playerSpecialAbilities[chosenPlayer] == 'Medic' and 'Toxicologist' in playerSpecialAbilities):
                 print(f'{" "*indent}{RED}Unfortunately,{CLEAR} this player does not have anything to do right now...')
+                print(f'{" "*indent}Would you like to {RED}murder{CLEAR} this player instead?')
+                indent += 1
+                print(f'{" "*indent}0: No')
+                print(f'{" "*indent}1: Yes')
+                indent -= 1
+                choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                if choice == 1:
+                    murderedPlayers.append(chosenPlayer)
             else:
-                evalSpecialAbility(playerSpecialAbilities[chosenPlayer])
+                print(f'{" "*indent}Would you like to use the ability of the {grammatiseRole(playerSpecialAbilities[chosenPlayer])} or {RED}murder{CLEAR} this player?')
+                indent += 1
+                print(f'{" "*indent}0: Use {grammatiseRole(playerSpecialAbilities[chosenPlayer])} special ability')
+                print(f'{" "*indent}1: {RED}Murder{CLEAR} player {chosenPlayer}')
+                indent -= 1
+                choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                if choice == 0:
+                    evalSpecialAbility(playerSpecialAbilities[chosenPlayer])
+                if choice == 1:
+                    murderedPlayers.append(chosenPlayer)
             indent -= 1
         else:
             print(f'{" "*indent}That is {RED}incorrect{CLEAR}! you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
