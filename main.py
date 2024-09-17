@@ -99,8 +99,75 @@ QUEST_SPACE = getColour(176, 0, 230)
 ENTANGLEMENT_SPACE = getColour(255, 88, 10)
 INFORMATION_SPACE = getColour(175, 175, 175)
 
+def definePapasColours(colouring):
+    global PAPAS_CLEAR
+    global PAPAS_BROWN
+    global PAPAS_MAROON
+    global PAPAS_RED
+    global PAPAS_ORANGE
+    global PAPAS_ORANGE_YELLOW
+    global PAPAS_YELLOW
+    global PAPAS_GREEN
+    global PAPAS_DARK_GREEN
+    global PAPAS_TURQUOISE
+    global PAPAS_CYAN
+    global PAPAS_BLUE
+    global PAPAS_PURPLE
+    global PAPAS_PINK
+    global PAPAS_GRAY
+    if colouring:
+        PAPAS_CLEAR = '\033[0m'
+        PAPAS_BROWN = getColour(133, 60, 1)
+        PAPAS_MAROON = getColour(148, 14, 4)
+        PAPAS_RED = getColour(255, 0, 0)
+        PAPAS_ORANGE = getColour(255, 123, 8)
+        PAPAS_ORANGE_YELLOW = getColour(255, 162, 0)
+        PAPAS_YELLOW = getColour(255, 210, 8)
+        PAPAS_GREEN = getColour(0, 255, 0) #game
+        PAPAS_DARK_GREEN = getColour(0, 153, 36)
+        PAPAS_TURQUOISE = getColour(0, 199, 192) #qty
+        PAPAS_CYAN = getColour(0, 217, 255)
+        PAPAS_BLUE = getColour(0, 98, 255) #cooks
+        PAPAS_PURPLE = getColour(176, 0, 230) #positioning a
+        PAPAS_PINK = getColour(227, 61, 208) #positioning b
+        PAPAS_GRAY = getColour(69, 69, 69) #info
+    else:
+        PAPAS_CLEAR = ''
+        PAPAS_BROWN = ''
+        PAPAS_MAROON = ''
+        PAPAS_RED = ''
+        PAPAS_ORANGE = ''
+        PAPAS_ORANGE_YELLOW = ''
+        PAPAS_YELLOW = ''
+        PAPAS_GREEN = ''
+        PAPAS_DARK_GREEN = ''
+        PAPAS_TURQUOISE = ''
+        PAPAS_CYAN = ''
+        PAPAS_BLUE = ''
+        PAPAS_PURPLE = ''
+        PAPAS_PINK = ''
+        PAPAS_GRAY = ''
+
 #wingeria ingredients
-WINGERIA_INGREDIENTS = ingredients = {"allTime": {"meats": ["Chicken Wings", "Boneless Wings", "Chicken Strips", "Shrimp", "Tofu Skewers", "Hog Wings"], "sauces": ["BBQ Sauce", "Buffalo Sauce", "Spicy Garlic Sauce", "Calypso Sauce", "Atomic Sauce", "Honey Mustard Sauce", "Teriyaki Sauce", "Medium Sauce", "Parmesan Sauce", "Wild Onion Sauce", "Wasabi Sauce", "Smoky Bacon Sauce", "Thai Chili Sauce", "Blazeberry Sauce", "Alabama BBQ Sauce", "Nashville Hot Sauce", "Peri Peri Sauce", "Aji Amarillo Sauce", "Carolina Sauce", "Tikka Masala Sauce", "Sriracha Sauce", "Adobo Sauce"], "sides": ["Carrots", "Celery", "Red Peppers", "Green Peppers", "French Fries", "Cheese Cubes", "Curly Fries", "Potato Skins", "Taquitos"], "dips": ["Blue Cheese Dip", "Ranch Dip", "Awesome Sauce Dip", "Kung Pao Dip", "Zesty Pesto Dip", "Lemon Butter", "Southwest Dip", "Hummus", "Artichoke Dip", "Guacamole", "Blackberry Remoulade"]}, "january": [{"name": "New Year", "sauces": ["Rainbow-livian Sauce", "Poutine Sauce"], "sides": ["Pizza Poppers"], "dips": ["Cheezy Whip"]}], "february": [{"name": "Mardi Gras", "sauces": ["Muffuletta Sauce", "Vieux Carr\u00e9 Sauce"], "sides": ["Crawdads"], "dips": ["Creole Crab Dip"]}], "march": [{"name": "Lucky Lucky Matsuri", "sauces": ["Gochujang Sauce", "Ginger Miso Sauce"], "sides": ["Kobumaki"], "dips": ["Karashi Mayo"]}], "april": [{"name": "Big Top Carnival", "sauces": ["Salted Caramel Sauce", "Candy Apple Sauce"], "sides": ["Corn Dogs"], "dips": ["PB&J Dip"]}], "may": [{"name": "OnionFest", "sauces": ["Sarge's Revenge Sauce"], "sides": ["Cocktail Onions"], "dips": ["French Onion Dip"]}], "june": [{"name": "Summer Luau", "sauces": ["Kilauea Sauce", "Hulu Hula Sauce"], "sides": ["Luau Musubi"], "dips": ["Mango-Chili Dip"]}], "july": [{"name": "Starlight BBQ", "sauces": ["Lone Star Pit Sauce", "Mambo Sauce"], "sides": ["BBQ Ribs"], "dips": ["Coleslaw"]}], "august": [{"name": "BavariaFest", "sauces": ["Doppelbock Sauce", "W\u00fcrzig Sauce"], "sides": ["Wiesswurst"], "dips": ["Bierk\u00e4se Dip"]}], "september": [{"name": "Maple Mornings", "sauces": ["Maple Glaze", "Sunrise Sauce"], "sides": ["Bacon"], "dips": ["Shirred Egg"]}], "october": [{"name": "Halloween", "sauces": ["La Catrina Sauce", "Ecto Sauce"], "sides": ["Mummy Dogs"], "dips": ["Purple Pesto"]}], "november": [{"name": "Thanksgiving", "sauces": ["Peppered Pumpkin Sauce", "Wojapi Sauce"], "sides": ["Sweet Potato Wedges"], "dips": ["Gravy"]}], "december": [{"name": "Christmas", "sauces": ["Cranberry Chili Sauce", "Krampus Sauce"], "sides": ["Roasted Asparagus"], "dips": ["Risalamande"]}]}
+ALL_PAPAS_INGREDIENTS = {
+    'freezeria': {'allTime': {'cups': ['Small', 'Medium', 'Large'], 'mixables': ['Blueberry', 'Nutty Butter Cup', 'Strawberry', 'Cookie Dough', 'Creameo Bits', 'Marshmallow', 'Pineapple', "Yum n' M", 'Birthday Cake', 'Fudge Brownie', 'Blackberry', 'Cherry Cordial', 'Cinnamon Roll', 'Cotton Puff', 'Kiwi', 'Peach', "S'more", 'Caramel Apple', 'Peppermint', 'Raspberry Crumble', 'Stroopwafel'], 'syrups': ['Chocolate Syrup', 'Vanilla Syrup', 'Strawberry Syrup', 'Mint Syrup', 'Banana Syrup', 'Rainbow Sherbert Syrup', 'Purple Burple Syrup', 'Cotton Candy Syrup', 'Pink Lemonade Syrup', 'Red Velvet Syrup', 'Pistachio Syrup', 'Neapolitan Syrup', 'Huckleberry Syrup', 'Blue Moon Syrup', 'Espresso Syrup', 'Pumpkin Pie Syrup', 'Chai Tea Syrup', 'Tutti Frutti Syrup', 'Ube Syrup', 'Dreamsicle Syrup', 'Moon Mist Syrup', 'Citri-Shock Syrup'], 'blends': ['Chunky', 'Regular', 'Smooth'], 'whippedCreams': ['Whipped Cream', 'Chocolate Mousse', 'Strawberry Fluff', 'Lemon Chiffon', 'Maui Meringue'], 'sauceToppings': ['Chocolate', 'Strawberry', 'Butterscotch', 'Blueberry', 'White Chocolate', 'Sugarplum', 'Dreamsicle', 'Key Lime', 'Mango', 'Luau Punch', 'Pawpaw', 'Birch Beer'], 'shakers': ['Nuts', 'Rainbow Sprinkles', 'Chocolate Chips', 'Shaved Mints', 'Tropical Charms', 'Wildberry Derps', 'Shaved Coconut', 'Pomegranate', 'Lollipop Bits'], 'placeableToppings': ['Cherry', 'Creameo', 'Banana', 'Cookie', 'Gummy Onion', 'Waffle Cone Wedge', 'Cloudberry', 'Hazlenut Swizzle', 'Gummy Worm', 'Dipped Pretzel', 'White Chocolate Truffle', 'Mint Square', 'Strawberry Wafers', 'Cotton Candy Creameo', 'Blondie']}, 'january': [{'name': 'New Year', 'mixables': ['Confetti Pie-Tart'], 'syrups': ['Tutti Frutti Syrup'], 'whippedCreams': ['Rainbow Whip'], 'sauceToppings': ['Flavor X'], 'shakers': ['Countdown Candies'], 'placeableToppings': ['Gummy Worm']}], 'february': [{'name': "Valentine's Day", 'mixables': ['Alexandertorte'], 'syrups': ['Cherry Cheesecake Syrup'], 'whippedCreams': ['Rose Hip Whip'], 'sauceToppings': ['Love Potion'], 'shakers': ['X and O Sprinkles'], 'placeableToppings': ['Candy Heart']}], 'march': [{'name': "St. Paddy's Day", 'mixables': ['Green Emerald Cake'], 'syrups': ['Pistachio Syrup'], 'whippedCreams': ['Irish Cream'], 'sauceToppings': ["Pot O' Gold"], 'shakers': ['Lucky Sevens'], 'placeableToppings': ['Clover Cookie']}], 'april': [{'name': 'Easter', 'mixables': ['Cotton Puff'], 'syrups': ['Wildberry Shake Syrup'], 'whippedCreams': ['Bubblegum Whip'], 'sauceToppings': ['Blue Nimbus'], 'shakers': ['Jelly Beans'], 'placeableToppings': ['Marshmallow Cheep']}], 'may': [{'name': 'Big Top Carnival', 'mixables': ['Animal Crackers'], 'syrups': ['SuperFan Syrup'], 'whippedCreams': ['Blue Raspberry Cream'], 'sauceToppings': ['Creameo'], 'shakers': ['Lollipop Bits'], 'placeableToppings': ['Saltwater Taffy']}], 'june': [{'name': 'Volcano Gala', 'mixables': ['Lava Cake'], 'syrups': ['Caramuri Syrup'], 'whippedCreams': ['Sainforest Whip'], 'sauceToppings': ['Buriti'], 'shakers': ['Pyroclastic Crunch'], 'placeableToppings': ['Sugar Glass Leaf']}], 'july': [{'name': 'Starlight Jubilee', 'mixables': ['Mulberry Medley'], 'syrups': ['Powsicle Syrup'], 'whippedCreams': ['Rocket Whip'], 'sauceToppings': ['Cherrybomb'], 'shakers': ['Star Sprinkles'], 'placeableToppings': ['Almond Snap Cookie']}], 'august': [{'name': 'Portallini Feast', 'mixables': ['Tiramisu'], 'syrups': ['Spumoni Syrup'], 'whippedCreams': ['Cannoli Cream'], 'sauceToppings': ['Amarena'], 'shakers': ['Portallini Confetti'], 'placeableToppings': ['Pizzelle']}], 'september': [{'name': 'Maple Mornings', 'mixables': ['Donut Pieces'], 'syrups': ['Honey Syrup'], 'whippedCreams': ['Mocha Cream'], 'sauceToppings': ['Maple'], 'shakers': ['Golden CinnaMunchies'], 'placeableToppings': ['Chocolate Bacon']}], 'october': [{'name': 'Halloween', 'mixables': ['Bonfire Toffee'], 'syrups': ['Tiger Tail Syrup'], 'whippedCreams': ['Scream Cream'], 'sauceToppings': ['Black Mist'], 'shakers': ['Spooky Sprinkles'], 'placeableToppings': ['Candy Jack-O-Lantern']}], 'november': [{'name': 'Thanksgiving', 'mixables': ['Candied Pecans'], 'syrups': ['Pumpkin Pie Syrup'], 'whippedCreams': ['Snickerdoodle Cream'], 'sauceToppings': ['Candy Corn'], 'shakers': ['Autumn Leaves'], 'placeableToppings': ['Haystack']}], 'december': [{'name': 'Christmas', 'mixables': ['Peppermints'], 'syrups': ['Wintergreen Frost Syrup'], 'whippedCreams': ['Eggnog Cream'], 'sauceToppings': ["Santa's Cookie"], 'shakers': ['Holly Tartz'], 'placeableToppings': ['Mini Candy Cane']}]},
+    'mocharia': {'allTime': {'milks': ['Skim', 'Strawberry', 'Soy', 'Chocolate', 'Blueberry'], 'temperatures': ['Hot', 'Cold'], 'espressos': ['City Roast', 'Decaf Roast', 'French Roast', 'New England Roast'], 'cups': ['Small', 'Medium', 'Large'], 'syrups': ['Chocolate', 'Red Velvet', 'Salted Caramel', 'Sugarplum', 'Orance Mocha', 'Blue Nimbus', 'Cinnamon Dolce', 'Honey', 'Marshmallow'], 'ices': ['Ice Cubes', 'Crushed Ice'], 'powders': ['Matcha', 'Lavender', 'Hibiscus', 'Chai', 'Aprajita'], 'creams': ['Butterscotch', 'Strawberry', 'Whipped', 'Chocolate Mousse', 'Lemon Chiffon', 'Moon Mist', 'Wildberry Shake', 'Peach', 'Creameo'], 'toppings': ['Cinnamon Sugar', 'Cocoa Powder', 'Crushed Pistachios', 'Shaved Chocolate', 'Toasted Coconut', 'Mini Mallows', 'Ground Nutmeg', 'Citrus Zest', 'Rainbow Sprinkles'], 'canoliShells': ['Chocolate', 'Classic', 'Pizzelle', 'Battenberg', 'Caramel Apple', 'Pineapple Upside-Down']}, 'january': [{'name': 'New Year', 'milks': ['Unicorn'], 'syrups': ['Flavour X'], 'powders': ['Midnight Shimmer'], 'creams': ['Rainbow Meringue'], 'toppings': ['Fruity Hoops'], 'canoliShells': ['Dirt Cake']}], 'february': [{'name': "Valentine's Day", 'milks': ['Lollipop'], 'syrups': ['Cherry Cheesecake'], 'powders': ['White Chocolate'], 'creams': ['Neapolitan'], 'toppings': ['X and O Sprinkles'], 'canoliShells': ['Cupid']}], 'march': [{'name': "St. Paddy's Day", 'milks': ['Irish Cream'], 'syrups': ['Mint'], 'powders': ['Gold Rush'], 'creams': ['Green Emerald'], 'toppings': ['Shamrock Sprinkles'], 'canoliShells': ['Celtic']}], 'april': [{'name': 'Cherry Blossom Festival', 'milks': ['Shiruko Soy'], 'syrups': ['Honeydew'], 'powders': ['Sakura'], 'creams': ['Azuki Fluff'], 'toppings': ['Sugar Petals'], 'canoliShells': ['Egg Waffle']}], 'may': [{'name': 'Cinco de Mayo', 'milks': ['Horchata'], 'syrups': ['Mamey'], 'powders': ['Champurrado'], 'creams': ['Tres Leches Whipped'], 'toppings': ['Cinco Swirls'], 'canoliShells': ['Churro']}], 'june': [{'name': 'Summer Luau', 'milks': ['Piña Colada'], 'syrups': ['Luau Punch'], 'powders': ['Mango'], 'creams': ['Maui Meringue'], 'toppings': ['Tropcial Charms'], 'canoliShells': ['Sunburst']}], 'july': [{'name': 'Starlight Jubilee', 'milks': ['Cherrybomb'], 'syrups': ['Jubilee Jelly'], 'powders': ['Almond Snap'], 'creams': ['Powsicle'], 'toppings': ['Crackle Crumbs'], 'canoliShells': ['Starlight']}], 'august': [{'name': 'Groovstock', 'milks': ['Golden'], 'syrups': ['Ginger Haze'], 'powders': ["Rockin' Rooibos"], 'creams': ['Blues-berry'], 'toppings': ['Crimson and Clove'], 'canoliShells': ['Far Out']}], 'september': [{'name': 'SugarPlex FilmFest', 'milks': ['Root Beer Float'], 'syrups': ['Golden Age'], 'powders': ['Dr. Cherry'], 'creams': ['Dual Licorice Whipped'], 'toppings': ['Butterzinger Bits'], 'canoliShells': ['Shell Noir']}], 'october': [{'name': 'Halloween', 'milks': ['Screamsicle'], 'syrups': ["Witch's Brew"], 'powders': ['Shadowberry'], 'creams': ['Phantom Fluff'], 'toppings': ['Spooky Sprinkles'], 'canoliShells': ['Frankenoli']}], 'november': [{'name': 'Thanksgiving', 'milks': ['Pecan'], 'syrups': ['Pumpkin Spice'], 'powders': ['Snickerdoodle'], 'creams': ['Candy Corn'], 'toppings': ['Autumn Leaves Sprinkles'], 'canoliShells': ['Harvest Stripe']}], 'december': [{'name': 'Christmas', 'milks': ['Eggnog'], 'syrups': ['Santa Cookie'], 'powders': ['Peppermint'], 'creams': ['Snowpuff'], 'toppings': ['Elf Sugar'], 'canoliShells': ['Gingerbread']}]},
+    'hotDoggeria': {'allTime': {'sausages': ['Frankfurter', 'Italian Sausage', 'Kielbasa', 'Veggie', 'Cheddarwurst'], 'buns': ['Regular Bun', 'Chigago Bun', 'Hoagie Roll', 'Pretzel Bun', 'Pumpernickel Roll'], 'toppings': ['Cheese', 'Chili', 'Relish', 'Onions', 'Marinara Sauce', 'Sauerkraut', 'Pineapple Relish', 'Fajita Veggies', 'Salsa', 'Mushrooms', 'Jalapeños', 'Ketchup', 'Mustard', "Papa's Ballpark Mustard", 'Mayo', 'Hot Sauce', 'Wild Onion Sauce', 'Southwest Sauce'], 'placeableToppings': ['3 Tomato Wedges', '3 Sport Peppers', 'a Pickle Slice', 'a Bacon Slice'], 'cups': ['Small', 'Medium', 'Large'], 'sodas': ['Fizzo', 'Hyper Green', 'Diet Fizzo', 'Dr. Cherry', 'Lemon Mist', 'Tangerine Pop', 'Root Beer', 'Purple Burple'], 'popcorn': ['Buttered Popcorn', 'Candy Jack Popcorn', 'Kettle Corn', 'Chocolate Popcorn', 'Red Hot Popcorn', 'Cinnamon Swirl Popcorn', 'Cheddar Corn', 'Cotton Puffs']}, 'january': [{'name': 'New Year', 'buns': ['Fried Chicken Bun'], 'toppings': ['Fruity Hoops', 'Cheezy Whip'], 'sodas': ['Fizzo Quartz'], 'popcorn': ['X Puffs']}], 'february': [{'name': 'Valentines Day', 'buns': ['Beetbread Bun'], 'toppings': ['Sundried Tomatoes', 'Strawberry Vinaigrette'], 'sodas': ['Razzle Dazzle'], 'popcorn': ['Cherry Cordial Corn']}], 'march': [{'name': "St. Paddy's Day", 'buns': ['Barmbrack Bun'], 'toppings': ['Sage Derby Cheese', 'Irish Parsley Sauce'], 'sodas': ['Shamrock Splash'], 'popcorn': ['Paddy Popcorn']}], 'april': [{'name': 'Easter', 'buns': ['Paska Bun'], 'toppings': ['Blue Cheese Crumbles', 'Blackberry Remoulade'], 'sodas': ['Lavender Frost'], 'popcorn': []}], 'may': [{'name': 'Cinco de Mayo', 'buns': ['Bollio Bun'], 'toppings': ['Fire Tortilla Strips', 'Enchilada Sauce'], 'sodas': ['Mango de Mayo'], 'popcorn': ['Cancha Corn']}, {'name': 'Cherry Blossom Festival', 'buns': ['Melon Pan Bun'], 'toppings': ['Radish Sprouts', 'Wasabi Mayo'], 'sodas': ['Sakura Spritz'], 'popcorn': ['Yomogi Popcorn']}], 'june': [{'name': 'Summer Luau', 'buns': ['Hawaiian Bun'], 'toppings': ['Poke', 'Calypso Sauce'], 'sodas': ["Poppin' Coolada"], 'popcorn': ['Tropical Charms Popcorn']}], 'july': [{'name': 'Starlight BBQ', 'buns': ['Somked Cheddar Bun'], 'toppings': ['Pulled Pork', 'Lone Star Pit Sauce'], 'sodas': ['Starlight Sparkler'], 'popcorn': ['Jubilee Popcorn']}], 'august': [{'name': 'Groovstock', 'buns': ['Campargain Bun'], 'toppings': ['Kale', 'Karmic Korma Sauce'], 'sodas': ['Ginger Haze'], 'popcorn': ['Artisanal Truffle Corn']}, {'name': 'Comet Con', 'buns': ['Lunar Loaf Bun'], 'toppings': ['Pulsar Pesto', 'Space Ration ZX85'], 'sodas': ['Hyper Green'], 'popcorn': ['Pluto Puffs']}], 'september': [{'name': 'Maple Mornings', 'buns': ['French Toast Bun'], 'toppings': ['Hash Browns', 'Sausage Gravy'], 'sodas': ['Breakfast Blast'], 'popcorn': ['Bacon Jack Popcorn']}, {'name': 'SugarPlex FilmFest', 'buns': ['Hollywood Bun'], 'toppings': ['Boston Beanies', 'Blockbuster Butter'], 'sodas': ['Fizzo Gold'], 'popcorn': ['Raisin Duds Popcorn']}], 'october': [{'name': 'Halloween', 'buns': ['Pan de Muerto Bun'], 'toppings': ['Spooky Slaw', 'La Catrina Sauce'], 'sodas': ['Black Mist'], 'popcorn': ['Tarantula Puffs']}], 'november': [{'name': 'Thanksgiving', 'buns': [], 'toppings': ['Stuffing', 'Gravy'], 'sodas': ['Dream Cream'], 'popcorn': ['Pumpkin Spice Popcorn']}], 'december': [{'name': 'Christmas', 'buns': ['Fruitcake Bun'], 'toppings': ['Cranbery Chutney', 'Eggnog Aioli'], 'sodas': ['Dr. Dasher'], 'popcorn': ['Frostcap Crunch']}]},
+    'burgeria': {'allTime': {'grills': ['Rare', 'Regular', 'Well Done'], 'toppings': ['American Cheese', 'Lettuce', 'Onions', 'Pickles', 'Tomato', 'Bacon', 'Swiss Cheese', 'Mushrooms', 'Pepperjack Cheese', 'Onion Rings', 'Jalapeños', 'Fried Egg', 'BBQ Sauce', 'Ketchup', 'Mayo', 'Mustard', 'Awesome Sauce']}},
+    'pastaria': {'allTime': {'pastas': ['Macaroni', 'Spaghetti', 'Gnocchi', 'Ravioli', 'Fettuchine', 'Bowtie', 'Penne', 'Radiatori'], 'cooks': ['Al-Dente', 'Regularly Done'], 'sauces': ['Creamy Alfredo', "Papa's Marinara", 'Three Cheese', 'Garlic Basil', 'Beefy Bolognese'], 'shakers': ['Parmesan Cheese', 'Grated Mozzarella', 'Crushida Pepper', 'Italian Seasoning', 'Black Pepper'], 'placeableToppings': ['Meatballs', 'Mushrooms', 'Chicken', 'Sausage', 'Tomatoes', 'Shrimp', 'Clams', 'Onions', 'Prosciutto', 'Fried Calamari', 'Green Peppers', 'Grilled Polenta'], 'breads': ['Garlic Breadstick', 'Cheesy Bread', 'Focaccia', 'Poppyseed Roll', 'Crescent Roll', 'Pepperoni Bread']}, 'january': [{'name': 'New Year', 'pastas': ['Rainbow Gramigna'], 'sauces': ['Midnight Marsala'], 'shakers': ['Rainbow Peppercorn'], 'placeableToppings': ['Cheese Cubes']}, {'name': 'Lunar New Year', 'pastas': ['Longevity Noodles'], 'sauces': ['XO Sauce'], 'shakers': ['Sesame Seeds'], 'placeableToppings': ['Potstickers']}], 'february': [{'name': "Valentine's Day", 'pastas': ['Valentini'], 'sauces': ['Heartbeet Arrabbiata'], 'shakers': ['Spiced Safron'], 'placeableToppings': ['Cherry Tomatoes']}, {'name': 'Mardi Gras', 'pastas': ['Jambalaya Rice'], 'sauces': ['Zydeco Gumbo'], 'shakers': ['Creole Rub'], 'placeableToppings': ['Gator Bites']}], 'march': [{'name': "St. Paddy's Day", 'pastas': ['Cloveroni'], 'sauces': ['Zesty Pesto'], 'shakers': ['Lucky Dust'], 'placeableToppings': ['Broccoli']}], 'april': [{'name': 'Romana Wedding', 'pastas': ['Fiori Risoni'], 'sauces': ['Cathedral Carbonara'], 'shakers': ['Bouquet Blend'], 'placeableToppings': ['Pickled Eggs']}], 'may': [{'name': 'ChiliFest', 'pastas': ['Cellentani'], 'sauces': ["Rico's Chili"], 'shakers': ['Cheddar Cheese'], 'placeableToppings': ['Chili Pepper']}], 'june': [{'name': 'Summer Luau', 'pastas': ['Shells'], 'sauces': ['Pineapple Pancetta'], 'shakers': ['Lemon Herb'], 'placeableToppings': ['Glazed Ham']}], 'july': [{'name': 'Starlight Jubilee', 'pastas': ['Stellini'], 'sauces': ['Rocket Ragu'], 'shakers': ['Blue Cheese'], 'placeableToppings': ['Provolone Stars']}], 'august': [{'name': "Neptune's Feast", 'pastas': ['Crab Mezzelune'], 'sauces': ['Ventian Vongole'], 'shakers': ['Creole Rub', 'Bottarga'], 'placeableToppings': ['Anchovies']}], 'september': [{'name': 'Gondola 500', 'pastas': ['Mafaldine'], 'sauces': ['Hurry Curry'], 'shakers': ['Garlic Rush'], 'placeableToppings': ['Fried Ravioli']}], 'october': [{'name': 'Halloween', 'pastas': ['Vermicelli'], 'sauces': ['Purple Pesto'], 'shakers': ['Cauldron Powder'], 'placeableToppings': ['Mussels']}], 'november': [{'name': 'Thanksgiving', 'pastas': ['Harvest Tortellini'], 'sauces': ['Pumpkin Pomodoro'], 'shakers': ['Crushed Croutons'], 'placeableToppings': ['Roasted Turkey']}], 'december': [{'name': 'Christmas', 'pastas': ['Festive Rotini'], 'sauces': ['Roasred Romana'], 'shakers': ['Yule Spice'], 'placeableToppings': ['Basil Leaves']}]},
+    'cheeseria': {'allTime': {'breads': ['Flatbread', 'Marble Rye', 'Multigrain Bread', 'Sourdogh', 'Wheat Bread', 'White Bread', 'Rosemary Focaccia', 'Pumpernickel', 'Ciabatta', 'Three Cheese Bread', 'Pretzel Bread'], 'cheeses': ['American Cheese', 'Marble Colby Cheese', 'Pepperjack Cheese', 'Shredded Cheddar', 'Shredded Mozzarella', 'Swiss Cheese', 'Aged Gouda', 'Provolone Cheese', 'Asiago Cheese', 'Harvati Cheese', 'Gorgonzola Cheese'], 'fillings': ['Bacon', 'Diced Tomatoes', 'Shredded Lettuce', 'Sliced Ham', 'Sliced Turkey', 'Grilled Chicken', 'Jalapeños', 'Fajita Peppers', 'Pulled Pork', 'Sauteed Onions', 'Sliced Salami', 'Fried Egg', 'Philly Steak', 'Lobster Chunks', 'Corned Beef', 'Mushrooms', 'Deep-Fried Pickles', 'Sauerkraut', 'Olives', 'Ketchup', 'Mustard', 'Ranch', 'Buffalo Sauce', 'BBQ Sauce', 'Buffalo Sauce', 'Southwest Sauce', 'Wild Onion Sauce', 'Awesome Sauce', 'Honey Mustard', 'Balsamic Dressing'], 'timings': ['Lightly Done', 'Regularly Done', 'Well-Done'], 'fries': ['Curly Fries', 'French Fries', 'Waffle Fries', 'Sweet Potato Wedges', 'Crinkle Cut Fries'], 'fryToppings': ['Bacobites', 'Cheddar Topping', 'Ketchup', 'Ranch', 'BBQ Sauce', 'Jalapeños', "Rico's Chilli", 'Rosemary', 'Sour Cream', 'Awsome Sauce', 'Chives', 'Nacho Sauce', 'Fry Seasoning', 'Poutine']}, 'january': [{'name': 'New Year', 'breads': ['Cheddar Swirl Bread'], 'cheeses': ['Gruyere Cheese'], 'fillings': ["Mac n' Cheese", 'Parmesan Sauce'], 'fryToppings': ['Cheese Cubes', 'Parmesan Sauce']}], 'february': [{'name': "Valentine's Day", 'breads': ['Beetbread'], 'cheeses': ['Red Windsor Cheese'], 'fillings': ['Sun Dried Tomatoes', 'Strawberry Vinaigrette'], 'fryToppings': ['Salsa Criolla']}], 'march': [{'name': "St. Paddy's Day", 'breads': ['Barmbrack Bread'], 'cheeses': ['Sage Derby Cheese'], 'fillings': ['Corned Beef Hash', 'Irish Parsley Sauce'], 'fryToppings': []}, {'name': 'Holi', 'breads': ['Naan Bread'], 'cheeses': ['Paneer Cheese'], 'fillings': ['Pakoras', 'Bellulli Chutney'], 'fryToppings': ['Curry Powder', 'Bellulli Chutney']}], 'april': [{'name': 'Easter', 'breads': ['Paska Bread'], 'cheeses': ['Sirecz Cheese'], 'fillings': ['Pickled Eggs', 'Hollandaise Sauce'], 'fryToppings': ['Shredded Carrots', 'Hollandaise Sauce']}], 'may': [{'name': 'Cinco de Mayo', 'breads': ['Tortilla'], 'cheeses': ['Oaxaca Cheese'], 'fillings': ['Chorizo Sausage', 'Guacamole'], 'fryToppings': ['Black Beans', 'Guacamole']}], 'june': [{'name': 'Summer Luau', 'breads': ['Hawaiian Roll'], 'cheeses': ['Mango Cream Cheese'], 'fillings': ['Pineapple', 'Calypso Sauce'], 'fryToppings': ['Lemon Herb Seasoning']}], 'july': [{'name': 'Starlight BBQ', 'breads': ['Texas Toast'], 'cheeses': ['Smoked Cheddar'], 'fillings': ['Sliced Beef Brisket', 'Lone Star Pit Sauce'], 'fryToppings': ['Burnt Ends']}], 'august': [{'name': 'Portallini Fest', 'breads': ['Pepperoni Bread'], 'cheeses': ['Ricotta Cheese'], 'fillings': ['Meatballs', 'Marinara Sauce'], 'fryToppings': ['Sausage Crumbles', 'Marinara Sauce']}], 'september': [{'name': 'Maple Mornings', 'breads': ['Cinnamon Toast'], 'cheeses': ['Maple Jack Cheese'], 'fillings': ['Maple Mini Sausages', 'Maple Syrup'], 'fryToppings': []}, {'name': 'Pirate Bash', 'breads': ['Crossbone Bread'], 'cheeses': ['Calico Jack Cheese'], 'fillings': ['Anchovies', 'Blazeberry Sauce'], 'fryToppings': ['Caviar', 'Blazeberry Sauce']}], 'october': [{'name': 'Halloween', 'breads': ['Ecto Bread'], 'cheeses': ['Monster Muenster'], 'fillings': ['Spooky Slaw', 'Jackmomole'], 'fryToppings': ['Cauldron Powder', 'Jackmomole']}], 'november': [{'name': 'Thanksgiving', 'breads': ['Pumpkin Bread'], 'cheeses': ['Cheese Ball Spread'], 'fillings': ['Stuffing', 'Gravy'], 'fryToppings': ['Roasted Pumpkin Seeds', 'Gravy']}], 'december': [{'name': 'Christmas', 'breads': ['Fruitcake'], 'cheeses': ['Ginger Spice Cheese'], 'fillings': ['Roasted Goose', 'Cranberry Chutney'], 'fryToppings': ['Yule Spice', 'Cranberry Chutney']}]},
+    'cluckeria': {'allTime': {'meats': ['Chicken Breast', 'Chicken', 'Veggie', 'Fish Fillet', 'Schnitzel', 'Pork Chop', 'Country Steak', 'Eggplant', 'Cod', 'Soft Shell Crab'], 'breadings': ['Beer Batter', "Papa's Original Breading", 'Spicy Cajun Batter', 'Pretzel Crust Breading', 'Cheez Puff Breading', 'Panko Breading', 'Tempura Batter', 'Sweet Belgian Batter'], 'buns': ['Classic', 'Croissant', 'Sesame', 'Buttermilk Biscuit', 'Multigrain', 'Kaiser Onion Roll', 'Bagel', 'Brioche'], 'toppings': ['Bacon', 'Cheddar Cheese', 'Creamy Coleslaw', 'Jalapeños', 'Onion', 'Onion Straws', 'Pickles', 'Provolone Cheese', 'Summer Crisp Lettuce', 'Tomato', 'Red Cabbage Slaw', 'Watercress', 'Banana Peppers', 'Fried Egg', 'Grilled Portobello Cap', 'Pickled Red Onions', 'Radish Sprouts', 'Sliced Avocado', 'Pineapple Ring', 'Pepperjack Cheese', 'BBQ Sauce', 'Blazeberry Sauce', 'Buffalo Sauce', 'Honey Mustard Sauce', 'Marinara Sauce', 'Mayo', 'Teriyaki Sauce', 'Tartar Sauce', 'Nashville Hot Sauce', 'Country Gravy', 'Peri Peri Sauce', 'Paprikash Sauce', 'Sticky Bourbon Sauce', 'Coronation Sauce'], 'slushSizes': ['Small', 'Medium', 'Large'], 'slushFlavours': ['Black Cherry', 'Blue Raspberry', 'Cream Soda', 'Lemonade', 'Sour Apple', 'Tangerine', 'Watermelon', 'Sweet Tea', 'Root Beer', 'Purple Burple', 'Pineapple', 'Dragonfruit', 'Bubblegum', 'Kiwi']}, 'january': [{'name': 'New Year', 'buns': ['Rainbow Rye'], 'toppings': ['Bolician Chiles', 'Wild Onion Sauce', 'Potato Chips', 'Midnight Marsala'], 'slushFlavours': ['Tutti Frutti']}], 'february': [{'name': "Valentine's Day", 'buns': ['Pink Poppyseed'], 'toppings': ['Radicchio', 'Heartbeet Arrabbiata', 'Prosciutto', 'Nogada Sauce'], 'slushFlavours': ['Hot Rods']}], 'march': [{'name': 'Lucky Lucky Matsuri', 'buns': ['Cheung Chau'], 'toppings': ['Lotus Root', 'Karashi Mayo', 'Kimchi', 'Gochujang Sauce'], 'slushFlavours': ['Iyokan']}], 'april': [{'name': 'Easter', 'buns': ['Pasqua'], 'toppings': ['Pickled Carrots', 'Wildflower Carbonara', 'Mixed Microgreens', 'Blackberry Remoulade'], 'slushFlavours': ['Cotton Candy']}], 'may': [{'name': 'Comet Con', 'buns': ['Lunar Loaf'], 'toppings': ['Starfruit', 'Astro Elixir', 'Space Ration ZX26', 'Hyper Green Sauce'], 'slushFlavours': ['Galaxy Grape']}], 'june': [{'name': 'Summer Luau', 'buns': ['Hawaiian'], 'toppings': ['Kalua Ham', 'Mango Chili Sauce', 'Grilled Plantains', 'Hula Hula Sauce'], 'slushFlavours': ['Luau Punch']}], 'july': [{'name': 'Starlight BBQ', 'buns': ['Smoked Cheddar'], 'toppings': ["Mac n' Cheese", 'Mambo Sauce', 'Baked Beans', 'Lone Star Pit Sauce'], 'slushFlavours': ['Powsicle']}], 'august': [{'name': 'BavariaFest', 'buns': ['Pretzel'], 'toppings': ['Sauerkraut', 'Bierkäse', 'Bratwurst', 'Marzen Mustard'], 'slushFlavours': ['Blockmalz']}], 'september': [{'name': 'Maple Mornings', 'buns': ['Waffle'], 'toppings': ['Hash Brown Patty', 'Maple Syrup', 'Sausage Party', 'Hollandaise Sauce'], 'slushFlavours': ['Cinnamon Swirl']}], 'october': [{'name': 'Day of the Dead', 'buns': ['Pan de Muerto'], 'toppings': ['Chicharrones', 'La Catrina Sauce', 'Tamalito', 'Mole Mística'], 'slushFlavours': ['Chamoyada']}], 'november': [{'name': 'Thanksgiving', 'buns': ['Frybread'], 'toppings': ['Mashed Potatoes', 'Gravy', 'Turducken', 'Wojapi Sauce'], 'slushFlavours': ['Pumpkin Spice']}], 'december': [{'name': 'Christmas', 'buns': ['Jack Frost'], 'toppings': ['Canned Cranberry', 'Creamy Pistachio Sauce', 'Arugula Wreaths', 'Krampus Sauce'], 'slushFlavours': ['Dr. Dasher']}]},
+    'scooperia': {'allTime': {'doughs': ['Fudge', 'Traditional', 'Peanut Butter', 'Lemon Crinkle', 'Red Velvet', 'Oatmeal', 'Gingerbread', 'Snickerdoodle'], 'mixables': ['Chocolate Chips', 'Peanuts', 'White Chocolate Chips', "Yum n' Ms", 'Toffee Chunks', 'Pomegranate', 'Sugar Crystals', 'Dried Kiwi', 'Blackberry Bark', 'Coconut', 'Citrus Zest', 'Blueberries', 'Hot Rods', 'Butterzinger Bits', 'Raisins', 'Pretzel Bits', 'Mint Bar Chunks', 'Potato Chips'], 'iceCreams': ['Chocolate', 'Cookies and Cream', 'Strawberry', 'Vanilla', 'Mint Chocolate Chip', 'Purple Burple', 'Hokey Pokey', 'Spumoni', 'Raspberry Ripple', 'Pistachio', 'Blue Moon', 'Coco Coolada', 'Watermelon Chip', 'Cookie Dough', 'Tiger Tail', 'Rocky Road', 'Mocha Chocolate Chunk', 'Ambrosia', 'Moon Mist'], 'toppings': ['Whipped Cream', 'Chocolate Mousse', 'Chocolate Syrup', 'Strawberry Syrup', 'Butterscotch Syrup', 'Peanuts', 'Rainbow Sprinkles', 'Shaved Chocolate', 'Pistachios', 'Mini Mallows', 'Rock Candy', 'Cookie Dough Bits'], 'placeableToppings': ['Cherry', 'Waffle Cone', 'Salted Caramel', 'Chocolate Mint', 'Banana', 'Macaron', 'Sugarplum', 'Ladyfinger', 'Blueberry Swizzle']}, 'january': [{'name': 'New Year', 'mixables': ['Licorice Allsorts', 'Countdown Candies'], 'iceCreams': ['Tutti Frutti'], 'toppings': ['Licorice Allsorts', 'Flavour X Syrup'], 'placeableToppings': ['Rainbow Meringue']}], 'february': [{'name': "Valentine's Day", 'mixables': ['Candy Hearts', 'X and O Sprinkles'], 'iceCreams': ['Cherry Cordial'], 'toppings': ['Candy Hearts', 'Cherry Cheesecake Syrup'], 'placeableToppings': ['Chocolate Strawberry']}], 'march': [{'name': 'Holi', 'mixables': ['Holi Sugar', 'Dried Jackfruit'], 'iceCreams': ['Saffron Kulfi'], 'toppings': ['Holi Sugar', 'Kanji Syrup'], 'placeableToppings': ['Kaju Katli']}], 'april': [{'name': 'Cherry Blossom Festival', 'mixables': ['Konpeito', 'Cucumber Bubbles'], 'iceCreams': ['Hakuto'], 'toppings': ['Konpeito', 'Matcha Syrup'], 'placeableToppings': ['Sakuramochi']}, {'name': 'Easter', 'mixables': ['Jelly Beans', 'Spring Flowers'], 'iceCreams': ['Cremebury Egg'], 'toppings': ['Jelly Beans', 'Lavender Lemonade Syrup'], 'placeableToppings': ['Lavender Cheep']}], 'may': [{'name': 'OnionFest', 'mixables': ['Sourballs', 'Onion Zest'], 'iceCreams': ['Onion Overdrive'], 'toppings': ['Sourballs', 'Sugar Shallot Syrup'], 'placeableToppings': ['Gummy Onions']}, {'name': 'Cinco de Mayo', 'mixables': ['Cinco Swirls', 'Capirotada Blend'], 'iceCreams': ['Chamoyada'], 'toppings': ['Cinco Swirls', 'Champurrado Syrup'], 'placeableToppings': ['Churro']}], 'june': [{'name': 'Summer Luau', 'mixables': ['Tropical Charms', 'Splashberry Derps'], 'iceCreams': ['Passionfruit'], 'toppings': ['Tropical Charms', 'Luau Punch Syrup'], 'placeableToppings': ['Lemon Wedge']}], 'july': [{'name': 'Starlight Jubilee', 'mixables': ['Star Sprinkles', 'Crackle Crumbs'], 'iceCreams': ['Powsicle'], 'toppings': ['Star Sprinkles', 'Cherrybomb Syrup'], 'placeableToppings': ['Candy Rocket']}], 'august': [{'name': 'Baseball Season', 'mixables': ['Candy Jack', 'Sunflower Seeds'], 'iceCreams': ['Curveball Crunch'], 'toppings': ['Candy Jack', 'Peanut Butter Fluff'], 'placeableToppings': ['Candy Baseball']}], 'september': [{'name': 'Big Top Carnival', 'mixables': ['Chocolate Bacon', 'Lollipop Bits'], 'iceCreams': ['Caramel Apple'], 'toppings': ['Chocolate Bacon', 'Cotton Candy Syrup'], 'placeableToppings': ['Chocolate Banana']}], 'october': [{'name': 'Halloween', 'mixables': ['Shadowberry Derps', 'Scary Suga Eyes'], 'iceCreams': ['Cobweb Ripple'], 'toppings': ['Shadowberry Derps', "Witch's Brew Syrup"], 'placeableToppings': ['Gummy Spider']}], 'november': [{'name': 'Thanksgiving', 'mixables': ['Candy Corn', 'Pecans'], 'iceCreams': ['Pumpkin Pie'], 'toppings': ['Candy Corn', 'Crème Brulée Syrup'], 'placeableToppings': ['Buckeye']}], 'december': [{'name': 'Christmas', 'mixables': ["Holiday Yum n' Ms", 'Frostcaps'], 'iceCreams': ['Wintergreen Frost'], 'toppings': ["Holiday Yum n' Ms", "Santa's Cookie Syrup"], 'placeableToppings': ['Candy Cane']}]},
+    'pancakeria': {'allTime': {'bases': ['Pancake', 'French Toast', 'Waffle'], 'mixables': ['Blueberry Mix', 'Chocolate Chip Mix', 'Pecan Mix', 'Bacon Mix'], 'toppings': ['Blueberries', 'Chocolate Chips', 'Raspberries', 'Cinnamon', 'Powdered Sugar', 'Blueberry Syrup', 'Maple Syrup', 'Whipped Cream', 'Honey', 'Strawberry Syrup'], 'placeableToppings': ['Butter', 'Banana', 'Srawberry'], 'drinkSizes': ['Small', 'Large'], 'drinks': ['Coffee', 'Decaf', 'Tea', 'Orange Juice', 'Milk'], 'drinkExtras': ['Cream', 'Sugar', 'Ice', 'Cocoa']}, 'january': [{'name': 'New Year', 'toppings': ['Flavour X Drizzle', 'Countdown Crunch'], 'placeableToppings': ['Confetti Pie-Tart'], 'drinks': ['Sparkling Grape Juice']}], 'february': [{'name': "Valentine's Day", 'toppings': ['Red Velvet Syrup', 'Cheesecake Crumbles'], 'placeableToppings': ['Candy Heart'], 'drinks': ['Cranberry Juice']}], 'march': [{'name': "St. Paddy's Day", 'toppings': ['Mint Cream', 'Pistachios'], 'placeableToppings': ['Mint Creameo Cookie'], 'drinks': ['Irish Cream Coffee']}], 'april': [{'name': 'Cherry Blossom Festival', 'toppings': ['Kuromitsu Drizzle', 'Oiri'], 'placeableToppings': ['Wasanbon Blossom'], 'drinks': ['Matcha Tea']}, {'name': 'Easter', 'toppings': ['Cotton Candy Drizzle', 'Jelly Beans'], 'placeableToppings': ['Cremebury Egg'], 'drinks': ['Wildberry Shake']}], 'may': [{'name': 'Cinco de Mayo', 'toppings': ['Cajeta Syrup', 'Cinco Swirls'], 'placeableToppings': ['Guava Roll'], 'drinks': ['Horchata']}], 'june': [{'name': 'Summer Luau', 'toppings': ['Passionfruit Drizzle', 'Toasted Coconut'], 'placeableToppings': ['Pineapple Slice'], 'drinks': ['Luau Punch']}], 'july': [{'name': 'Starlight Jubilee', 'toppings': ['Rocket Whip', 'Blue Star Sprinkles'], 'placeableToppings': ['Star Cookie'], 'drinks': ['Powsicle Punch']}], 'august': [{'name': 'BavariaFest', 'toppings': ['Buttermilk Syrup', 'Gebrannte Mandeln'], 'placeableToppings': ['Linzer Augen'], 'drinks': ['Eiskaffee']}, {'name': 'SugarPlex FilmFest', 'toppings': ['Butterzinger Syrup', 'Raisin Duds'], 'placeableToppings': ['Sweetish Fish'], 'drinks': ['Fizzo Gold']}], 'september': [{'name': 'Pirate Bash', 'toppings': ['Skallywag Syrup', 'Black Pearl Crisps'], 'placeableToppings': ['Gummy Kraken'], 'drinks': ['Sunken Treasure Tea']}, {'name': 'Groovstock', 'toppings': ['Salted Caramel Drizzle', 'Trail Mix'], 'placeableToppings': ['Misson Fig'], 'drinks': ['Chai Reverb Tea']}], 'october': [{'name': 'Halloween', 'toppings': ['Scream Cream', 'Shadowberry Derps'], 'placeableToppings': ['Candy Corn'], 'drinks': ["Witch's Brew"]}], 'november': [{'name': 'Thanksgiving', 'toppings': ['Pumpkin Pie Drizzle', 'Streusel'], 'placeableToppings': ['Pecan Praline'], 'drinks': ['Pumpkin Spice Coffee']}], 'december': [{'name': 'Christmas', 'toppings': ['Candy Cane Drizzle', "Holiday Yum n' Ms"], 'placeableToppings': ['Christmas Jelly Cookie'], 'drinks': ['Eggnog']}]},
+    'cupcakeria': {'allTime': {'cakes': ['Chocolate', 'Vanilla', 'Blueberry', 'Strawberry', 'Carrot', 'Lemon', 'Red Velvet', 'Confetti', 'Zebra Stripe', 'Kiwi'], 'icings': ['Pink', 'White', 'Chocolate', 'Violet', 'Green', 'Teal', 'Dark Blue', 'Red', 'Black', 'Orange', 'Deep Purple', 'Mocha', 'Sunglow', 'Forest Green'], 'drizzles': ['Chocolate', 'Strawberry', 'Vanilla', 'Blue Moon', 'Apricot', 'Purple Burple'], 'shakers': ['Chocolate Chips', 'Rainbow Sprinkles', 'Shaved Coconut', 'Creameo Bits', 'Rock Candy', 'Lollipop Bits', 'Sourballs'], 'placeableToppings': ['Cherry', 'Marshmallow', 'Nutty Butter Cup', 'Cloudberry', 'Gummy Onion', 'Frosted Flower', 'Straberry Wafer', 'Salted Caramel']}, 'january': [{'name': 'New Year', 'cakes': [], 'drizzles': ['Flavor X'], 'shakers': ['Stache Sprinkles'], 'placeableToppings': ['New Year Topper', 'Streamer', 'Candle']}], 'february': [{'name': "Valentine's Day", 'cakes': ['Raspberry White Chocolate'], 'drizzles': ['Watermelon'], 'shakers': ['X and O Sprinkles'], 'placeableToppings': ['Chocolate Strawberry', 'Candy Heart', 'Frosted Rose']}], 'march': [{'name': "St. Paddy's Day", 'cakes': ['Green Emerald'], 'drizzles': ['Pistachio'], 'shakers': ['Mint Shavings'], 'placeableToppings': ['Mint Bar', 'Shamrock', 'Chocolate Coin']}], 'april': [{'name': 'Easter', 'cakes': ['Battenberg'], 'drizzles': ['Cotton Candy'], 'shakers': ['Jelly Beans'], 'placeableToppings': ['Bunny Ear Candy', 'Candy Egg', 'Tulip Cookie']}], 'may': [{'name': 'OnionFest', 'cakes': [], 'drizzles': [], 'shakers': [], 'placeableToppings': ['Sarge Gobstopper', 'Frosted Onion']}, {'name': 'Cinco de Mayo', 'cakes': ['Horchata'], 'drizzles': ['Cocoa Chipotle'], 'shakers': ['Cinco Swirls'], 'placeableToppings': ['Sombrero', 'Churro', 'Candy Cactus']}, {'name': 'Cherry Blossom Festival', 'cakes': ['Botamochi'], 'drizzles': ['Matcha'], 'shakers': ['Konpeito'], 'placeableToppings': ['Wasanbon Blossom', 'Uiro', 'Pogos']}], 'june': [{'name': 'Summer Luau', 'cakes': ['Seafoam'], 'drizzles': ['Honey'], 'shakers': ['Tropical Charms'], 'placeableToppings': ['Paper Umbrella', 'Gummy Pineapple', 'Bananas', 'Lemon Wedge']}], 'july': [{'name': 'Starlight Jubilee', 'cakes': ['Powsicle'], 'drizzles': ['Powsicle', 'Jubilee Jelly'], 'shakers': ['Silver Star Sprinkles'], 'placeableToppings': ['Candy Rocket', 'Festive Flag', 'White Chocolate Star']}], 'august': [{'name': 'Baseball Season', 'cakes': [], 'drizzles': ['Butterscotch'], 'shakers': ['Crushed Peanuts'], 'placeableToppings': ['Pretzel Bat', 'Candy Baseball', 'Popcorn']}, {'name': 'Big Top Carnival', 'cakes': ['Apple Crumb'], 'drizzles': ['Caramel Apple'], 'shakers': ['Popcorn'], 'placeableToppings': ['Cotton Candy', 'Saltwater Taffy', 'Chocolate Banana']}, {'name': 'SugarPlex FilmFest', 'cakes': ['Root Beer Float'], 'drizzles': ['Dr. Cherry'], 'shakers': ['Raisin Duds'], 'placeableToppings': ['Popcorn', 'Red Licorice', 'Blots']}], 'september': [{'name': 'Pirate Bash', 'cakes': [], 'drizzles': ['Blueberry Wave'], 'shakers': ['Canonball Gum'], 'placeableToppings': ['Anchor Cookie', 'Jolly Roger', 'Gummy Kraken']}, {'name': 'Comet Con', 'cakes': ['Cosmo'], 'drizzles': ['Hyper Green'], 'shakers': ['Asteriods'], 'placeableToppings': ['UFO Wafer', 'Astronaut Ice Cream', 'Bubble Planet']}, {'name': 'Maple Mornings', 'cakes': ['Cinnamon Roll'], 'drizzles': ['Maple Syrup'], 'shakers': ['Frosted Sugar Crunch'], 'placeableToppings': ['Mini Donut', 'Bacon', 'Waffle Stick']}], 'october': [{'name': 'Halloween', 'cakes': ['Tarantula'], 'drizzles': ['Licorice'], 'shakers': ['Spooky Sprinkles'], 'placeableToppings': ['Candy Jack-O-Lantern', 'Candy Corn', 'Sugar Skull']}], 'november': [{'name': 'Thanksgiving', 'cakes': ['Butter Pecan'], 'drizzles': ['Pumpkin Pie'], 'shakers': ['Autumn Leaves Sprinkles'], 'placeableToppings': ['Chocolate Acorn', 'Feather Cookie', 'Harvest Stripe Cookie']}], 'december': [{'name': 'Christmas', 'cakes': ['Holly Jolly'], 'drizzles': ['Santa Cookie', 'Candy Cane'], 'shakers': ['Crushed Candy Canes', 'Frostcaps'], 'placeableToppings': ['Candy Present', 'Gingerbread Man', 'Tree Cookie']}]},
+    'bakeria': {'allTime': {'crusts': ['Chocolate', 'Graham Cracker', 'Traditional', 'Creameo', 'Ladyfingers', 'Red Velvet', 'Vanilla Crispies', 'Chocolate Chip', 'Peanut Butter Swirl', 'Gingersnap'], 'fillings': ['Apple', 'Cherry', 'Pecan', 'Fudge', 'Banana', 'Toffee', 'Cheesecake', 'Strawberry', 'Key Lime', 'Marshmallow', 'Lemon', 'Sugarplum', 'Dragonfruit', 'Pineapple', 'Peach', 'Blueberry', 'Kiwi', 'Rhubarb', 'Purple Yam', 'Peanut Butter'], 'tops': ['Lattice Top', 'Streusel Topping', 'Vented Crust', 'Meringue Topping', 'Polka Dot Crust', 'Chocolate Crumb Topping', 'Chocolate Meringue', 'Slit Top Crust'], 'toppings': ['Caramel Syrup', 'Cherry Syrup', 'Whipped Cream', 'White Chocolate Syrup', 'Chocolate Mousse', 'Chocolate Syrup', 'Huckleberry Syrup', 'Crushed Peanuts', 'Shaved Chocolate', 'Pistachios', 'Crushed Wafers', 'Toasted Coconuts', 'Blueberries', 'Blackberry Bark', 'Citrus Zest'], 'placeableToppings': ['Banana Slices', 'Cherries', 'Chocolate Mousse Dollops', 'Raspberries', 'Blueberry Pie-Tarts', 'Kumquats', 'Grape Jelly Cookies', 'Butterscotch Smooches', 'Kiwi Slices'], 'toppingPlacements': ['the Outer Third', 'the Middle Third', 'the Inner Third', 'the Hole Pie', 'the Inner 2 Thirds', 'the Outer 2 Thirds', 'the Inner Third and the Outer Third']}, 'january': [{'name': 'New Year', 'fillings': ['Tutti Frutti'], 'tops': ['Spiral Crust'], 'toppings': ['Flavour X Syrup'], 'placeableToppings': ["Yum n' M Cookies", 'Rainbow Meringue Dollops']}], 'february': [{'name': "Valentine's Day", 'fillings': ['Pomegranate'], 'tops': ['Heart Crust'], 'toppings': ['Lollipop Drizzle'], 'placeableToppings': ['Heart Cookies', 'Macarons']}], 'march': [{'name': "St. Paddy's Day", 'fillings': ['Choco Mint Custard'], 'tops': ['Celtic Knot Crust'], 'toppings': ['Mint Syrup'], 'placeableToppings': ['Clover Cookies', 'Chocolate Coins']}], 'april': [{'name': 'Easter', 'fillings': ['Jellybean Jam'], 'tops': ['Flower Bloom Crust'], 'toppings': ['Wildberry Whip'], 'placeableToppings': ['Cremebury Eggs', 'Lavender Cheeps']}], 'may': [{'name': 'Cherry Blossom Festival', 'fillings': ['Hakuto Jelly'], 'tops': ['Cherry Blossom Crust'], 'toppings': ['Matcha Syrup'], 'placeableToppings': ['Sakuramochi', 'Blossom Cookies']}, {'name': 'Big Top Carnival', 'fillings': ['Circus Peanut'], 'tops': ['Tent Top Crust'], 'toppings': ['Cotton Candy Syrup'], 'placeableToppings': ['Saltwater Taffies', 'Animal Crackers']}], 'june': [{'name': 'Summer Luau', 'fillings': ['Passionfruit'], 'tops': ['Sunburnt Crust'], 'toppings': ['Luau Punch Drizzle'], 'placeableToppings': ['Madeleines', 'Maui Meringue Dollops']}], 'july': [{'name': 'Starlight Jubilee', 'fillings': ['Mulberry Medley'], 'tops': ['Star Crust'], 'toppings': ['Rocket Whip'], 'placeableToppings': ['Dipped Strawberries', 'White Chocolate Star']}], 'august': [{'name': 'Comet Con', 'fillings': ['Starfruit'], 'tops': ['Crater Crust'], 'toppings': ['Hyper Green Syrup'], 'placeableToppings': ['Astronaut Ice Creams', 'Planet Cookies']}, {'name': 'SugarPlex FilmFest', 'fillings': ['Dual Licorice'], 'tops': ['Film Reel Crust'], 'toppings': ['Hot Rods Syrup'], 'placeableToppings': ['Popcorns', 'Sweetish Fish']}], 'september': [{'name': 'Groovstock', 'fillings': ['Misson Fig Jam'], 'tops': ['Lightning Crust'], 'toppings': ['Chai Reverb Drizzle'], 'placeableToppings': ['Music Notes', 'Marshmallow Drums']}], 'october': [{'name': 'Halloween', 'fillings': ['Shadowberry'], 'tops': ['Spiderweb Crust'], 'toppings': ['Scream Cream'], 'placeableToppings': ['Skull Cookies', 'Candy Corns']}], 'november': [{'name': 'Thanksgiving', 'fillings': ['Pumpkin'], 'tops': ['Autumn Leaves Crust'], 'toppings': ['Candy Corn Drizzle'], 'placeableToppings': ['Harvest Leaf Cookies', 'Chocolate Acorns']}], 'december': [{'name': 'Christmas', 'fillings': ['Peppermint Swirl Cream'], 'tops': ['Snowflake Crust'], 'toppings': ['Candy Cane Drizzle'], 'placeableToppings': ['Frosted Wreaths', 'Frosted Gifts']}]},
+    'tacoMia': {'allTime': {'meats': ['Beef', 'Chicken', 'Pork', 'Steak'], 'shells': ['Hard Shell', 'Soft Shell', 'Pita Bread', 'Azul Ranch'], 'toppings': ['Cheese', 'Guacamole', 'Lettuce', 'Onions', 'Pinto Beans', 'Tomatoes', 'White Rice', 'Jalapeños', 'Peppers', 'Black Beans', 'Brown Rice', 'Refried Beans', 'Mild Sauce', 'Sour Cream', 'Hot Sauce', 'Nacho Cheese', 'Verde Sauce', 'Loco Mystery Sauce', 'Ancho Chile Sauce', 'Queso Blanco', 'Blazeberry Sauce'], 'chips': ['Chili Lime Tortillas', 'Traditional Chips', 'Blue Corn Chips', 'Multi-Grain Chips', 'Spicy Twists', 'Fiesta Chips', 'Nacho Cheese Chips', 'Pepperjack Rounds'], 'dips': ['Guacamole', 'Refried Beans', 'Nacho Cheese', 'Roasted Chili-Corn Salsa', 'Queso Blanco', 'Salsa Picante', 'Chile Serrano Salsa', 'Garlic Chipotle Dip', 'Pico de Gallo']}, 'january': [{'name': 'New Year', 'shells': ['Lava MunchMelt'], 'meats': ['Chorizo'], 'toppings': ['Fire Tortilla Strips', 'Diced Habaneros', 'Atomic Sauce']}], 'february': [{'name': "Valentine's Day", 'shells': ['Sundried Tomato Soft Shell'], 'meats': ['Anticucho'], 'toppings': ['Red Rice', 'Salsa Criolla', 'Nogada Sauce']}], 'march': [{'name': "St. Paddy's Day", 'shells': ['Cilantro Lime Soda Shell'], 'meats': ['Corned Beef Barbacoa'], 'toppings': ['Avocado', 'Diced Green Chiles', 'Creamy Tomatillo Sauce']}], 'april': [{'name': 'Easter', 'shells': ['Speckled'], 'meats': ['Battered Perch'], 'toppings': ['Spring Coleslaw', 'Blue Cheese Crumbles', 'Blackberry Remoulade']}], 'may': [{'name': 'Big Top Carnival', 'shells': ['Funnel Cake Shell'], 'meats': ['Corn Dog'], 'toppings': ['Chocolate Bacon', 'Cinnamon Swirl Popcorn', 'Caramel Apple Sauce']}, {'name': 'Cherry Blossom Festival', 'shells': ['Wonton Shell'], 'meats': ['Tofu'], 'toppings': ['Beni Shoga', 'Fried Crispy Noodles', 'Yum Yum Sauce']}], 'june': [{'name': 'Summer Luau', 'shells': ['Walking Taco Bag'], 'meats': ['Ahi Tuna'], 'toppings': ['Pineapple Salsa', 'Diced Kalua Ham', 'Mango Chilli Sauce']}], 'july': [{'name': 'Starlight BBQ', 'shells': ['Cornbread'], 'meats': ['Beef Brisket'], 'toppings': ['Fried Onion Rings', 'Baked Beans', 'Lone Star Pit Sauce']}], 'august': [{'name': 'BavariaFest', 'shells': ['Pretzel Crisp'], 'meats': ['Bratwurst'], 'toppings': ['Sauerkraut', 'Spätzle', 'Marzen Mustard']}, {'name': 'Portallini Feast', 'shells': ['Garlic and Olive Oil Piada'], 'meats': ['Gyro Meat'], 'toppings': ['Feta Cheese', 'Romaine Lettuce', 'Tzatziki']}], 'september': [{'name': 'Maple Mornings', 'shells': ['Waffle'], 'meats': ['Scrambled Eggs'], 'toppings': ['Hash Browns', 'Sausage Crumbles', 'Maple Syrup']}], 'october': [{'name': 'Halloween', 'shells': ['Midnight Crunch'], 'meats': ['Wild Boar'], 'toppings': ['Jack-o-Mole', 'Black Olives', 'La Catrina Sauce']}], 'november': [{'name': 'Thanksgiving', 'shells': ['Pumpkin Spice Tortilla'], 'meats': ['Turkey'], 'toppings': ['Southwest Stuffing', 'Diced Sweet Potatoes', 'Chichilo Mole']}], 'december': [{'name': 'Christmas', 'shells': ['Yule Spice Sizzler'], 'meats': ['Goose'], 'toppings': ['Cranberry Salsa', 'Pine Nuts', 'Chimichurri']}]},
+    'wingeria': {'allTime': {'meats': ['Chicken Wings', 'Boneless Wings', 'Chicken Strips', 'Shrimp', 'Tofu Skewers', 'Hog Wings'], 'sauces': ['BBQ Sauce', 'Buffalo Sauce', 'Spicy Garlic Sauce', 'Calypso Sauce', 'Atomic Sauce', 'Honey Mustard Sauce', 'Teriyaki Sauce', 'Medium Sauce', 'Parmesan Sauce', 'Wild Onion Sauce', 'Wasabi Sauce', 'Smoky Bacon Sauce', 'Thai Chili Sauce', 'Blazeberry Sauce', 'Alabama BBQ Sauce', 'Nashville Hot Sauce', 'Peri Peri Sauce', 'Aji Amarillo Sauce', 'Carolina Sauce', 'Tikka Masala Sauce', 'Sriracha Sauce', 'Adobo Sauce'], 'sides': ['Carrots', 'Celery', 'Red Peppers', 'Green Peppers', 'French Fries', 'Cheese Cubes', 'Curly Fries', 'Potato Skins', 'Taquitos'], 'dips': ['Blue Cheese Dip', 'Ranch Dip', 'Awesome Sauce Dip', 'Kung Pao Dip', 'Zesty Pesto Dip', 'Lemon Butter', 'Southwest Dip', 'Hummus', 'Artichoke Dip', 'Guacamole', 'Blackberry Remoulade']}, 'january': [{'name': 'New Year', 'sauces': ['Rainbow-livian Sauce', 'Poutine Sauce'], 'sides': ['Pizza Poppers'], 'dips': ['Cheezy Whip']}], 'february': [{'name': 'Mardi Gras', 'sauces': ['Muffuletta Sauce', 'Vieux Carré Sauce'], 'sides': ['Crawdads'], 'dips': ['Creole Crab Dip']}], 'march': [{'name': 'Lucky Lucky Matsuri', 'sauces': ['Gochujang Sauce', 'Ginger Miso Sauce'], 'sides': ['Kobumaki'], 'dips': ['Karashi Mayo']}], 'april': [{'name': 'Big Top Carnival', 'sauces': ['Salted Caramel Sauce', 'Candy Apple Sauce'], 'sides': ['Corn Dogs'], 'dips': ['PB&J Dip']}], 'may': [{'name': 'OnionFest', 'sauces': ["Sarge's Revenge Sauce"], 'sides': ['Cocktail Onions'], 'dips': ['French Onion Dip']}], 'june': [{'name': 'Summer Luau', 'sauces': ['Kilauea Sauce', 'Hulu Hula Sauce'], 'sides': ['Luau Musubi'], 'dips': ['Mango-Chili Dip']}], 'july': [{'name': 'Starlight BBQ', 'sauces': ['Lone Star Pit Sauce', 'Mambo Sauce'], 'sides': ['BBQ Ribs'], 'dips': ['Coleslaw']}], 'august': [{'name': 'BavariaFest', 'sauces': ['Doppelbock Sauce', 'Würzig Sauce'], 'sides': ['Wiesswurst'], 'dips': ['Bierkäse Dip']}], 'september': [{'name': 'Maple Mornings', 'sauces': ['Maple Glaze', 'Sunrise Sauce'], 'sides': ['Bacon'], 'dips': ['Shirred Egg']}], 'october': [{'name': 'Halloween', 'sauces': ['La Catrina Sauce', 'Ecto Sauce'], 'sides': ['Mummy Dogs'], 'dips': ['Purple Pesto']}], 'november': [{'name': 'Thanksgiving', 'sauces': ['Peppered Pumpkin Sauce', 'Wojapi Sauce'], 'sides': ['Sweet Potato Wedges'], 'dips': ['Gravy']}], 'december': [{'name': 'Christmas', 'sauces': ['Cranberry Chili Sauce', 'Krampus Sauce'], 'sides': ['Roasted Asparagus'], 'dips': ['Risalamande']}]},
+    'donuteria': {'allTime': {'doughs': ['Chocolate Cake', 'Regular', 'Pumpkin Cake', 'Red Velvet Cake', 'Blueberry Cake'], 'shapes': ['Ring', 'Round', 'Long John', 'French Cruller', 'Roll'], 'icings': ['Chocolate Icing', 'Clear Glaze', 'Powdered Sugar', 'Sky Blue Icing', 'Strawberry Icing', 'Vanilla Icing', 'Red Icing', 'Cinnamon Sugar', 'Orange Icing', 'Blue Nimbus Icing', 'Apricot Icing'], 'fillings': ['Bostom Cream', 'Strawberry Jam', 'Chocolate Mousse', 'Cookie Dough Cream', 'Whipped Cream', 'Blueberry Custard', 'Blackberry Jam', 'Lemon Chiffon'], 'sprinkles': ['Chocolate Chips', 'Cosmic Coconut', 'Rainbow Sprinkles', 'Mini-Mallows', 'Creameo Bits', 'Crushed Peanuts', 'Raspberry Bark', 'Rock Candy', 'Pistachios'], 'drizzles': ['Blue Moon', 'Strawerry', 'Vanilla', 'Chocolate', 'Dreamsicle', 'Caramel', 'Sugarplum', 'Banana', 'Neapolitan']}, 'january': [{'name': 'New Year', 'shapes': ['Infinity Loop'], 'icings': ['Midnight Powder'], 'fillings': ['Tutti Frutti Jam'], 'sprinkles': ['Countdown Crunch'], 'drizzles': ['Flavour X', 'Creameo']}], 'february': [{'name': "Valentine's Day", 'shapes': ['Heart'], 'icings': ['Valentine Powder'], 'fillings': ['Bubble Gum Cream'], 'sprinkles': ['Cupidberry Derps'], 'drizzles': ['Red Cinnamon']}, {'name': 'Mardi Gras', 'shapes': ['King Cake'], 'icings': ['Masquerade Powder'], 'fillings': ['Praline Sauce'], 'sprinkles': ['Fleur De Lis Sprinkles'], 'drizzles': ['Purple Burple', 'Doberge']}], 'march': [{'name': "St. Paddy's Day", 'shapes': ['Shamrock'], 'icings': ['Green Icing'], 'fillings': ['Mint Cream'], 'sprinkles': ['Lucky Sevens'], 'drizzles': ['Mint', 'Keylime']}], 'april': [{'name': 'Easter', 'shapes': ['Egg'], 'icings': ['Lavender Icing'], 'fillings': ['Marshmallow Cheeps Cream'], 'sprinkles': ['Jelly Beans'], 'drizzles': ['Wildberry Shake', 'Pink Lemonade']}], 'may': [{'name': 'Big Top Carnival', 'shapes': ['Bearclaw'], 'icings': ['Cotton Candy Icing'], 'fillings': ['Apple Pie Filling'], 'sprinkles': ['Candy Jack'], 'drizzles': ['Choco Banana', 'Caramel Apple']}, {'name': 'SugarPlex FilmFest', 'shapes': ['Letterbox'], 'icings': ['Golden Age Icing'], 'fillings': ['Root Beer Float Filling'], 'sprinkles': ['Baby Blots'], 'drizzles': ['Dual Licorice', 'Butterzinger']}], 'june': [{'name': 'Summer Luau', 'shapes': ['Seashell'], 'icings': ['Yellow Icing', 'Sunshine Icing'], 'fillings': ['Maui Meringue'], 'sprinkles': ['Tropical Charms'], 'drizzles': ['Mango', 'Luau Punch']}], 'july': [{'name': 'Starlight Jubilee', 'shapes': ['Star'], 'icings': ['Starlight Icing'], 'fillings': ['Jubilee Jam'], 'sprinkles': ['Blue Star Sprinkles'], 'drizzles': ['Powsicle', 'Cherrybomb']}], 'august': [{'name': 'Sky Ninja', 'shapes': ['Pon de Ring'], 'icings': ['Azuki Icing'], 'fillings': ['Hakuto Jam'], 'sprinkles': ['Boba Bubbles'], 'drizzles': ['Matcha', 'Cantaloupe']}], 'september': [{'name': 'Maple Mornings', 'shapes': ['Waffle'], 'icings': ['Maple Icing'], 'fillings': ['Mocha Cream'], 'sprinkles': ['Bacobites'], 'drizzles': ['Honey', 'Butterscotch']}], 'october': [{'name': 'Halloween', 'shapes': ['Skull'], 'icings': ['Full Moon Icing'], 'fillings': ['Brownie Batter'], 'sprinkles': ['Spooky Sprinkles'], 'drizzles': ['Peanut Butter', 'Licorice', 'Tiger Tail', "Witch's Brew"]}], 'november': [{'name': 'Thanksgiving', 'shapes': ['Acorn'], 'icings': ['Cocoa Powder'], 'fillings': ['Pumpkin Pie Filling'], 'sprinkles': ['Autumn Leaves Sprinkles'], 'drizzles': ['Candy Corn', 'Fudge Swirl']}], 'december': [{'name': 'Christmas', 'shapes': ['Tree'], 'icings': ['Festive Swirl Icing'], 'fillings': ['Cherry Cordial Cream'], 'sprinkles': ['Snowflake Sprinkles'], 'drizzles': ['Candy Cane', 'Santa Cookie']}]},
+    'paleteria': {'allTime': {'shapes': ['Bar', 'Chuckle', 'Twin', 'Rocket', 'Wedge', 'Paddle'], 'fillings': ['Blueberry', 'Chocolate Chip', 'Kiwi', 'Pineapple', 'Pomegranate', 'Vanilla Wafer', 'Papaya', 'Tapioca Pearl', 'Nougat', 'Sourbatch Bear', 'Dragonfruit', 'Honeyocmb Crunch', 'Birthday Cake', 'Wildberry Derp', 'Banana Custard', 'Blueberry Yogurt', 'Chocolate Pudding', 'Strawberry Puree', 'Vanilla Custard', 'Orange Cream', 'Cajeta', 'Coconut Cream', 'Mamey Sorbet', 'Blackcurrent Puree', 'Taro Tapioca', 'Maple Creemee', 'Honeydew Gelato', 'Moon Mist Cream', 'Mango Puree'], 'dips': ['Chocolate', 'Cloudberry', 'White Chocolate', 'Blue Moon', 'Strawberry', 'Caramel', 'Key Lime'], 'toppings': ['Lemon Mist Drizzle', 'Marshmallow Drizzle', 'Watermelon Drizzle', 'Hazelnut Drizzle', 'Huckleberry Drizzle', 'Chamoy Drizzle', 'Grapefruit Drizzle', 'Peanuts', 'Toasted Coconut', 'Rainbow Sprinkles', 'Shortcake Crunch', 'Crushed Creameo', 'Chocolate Crumb', 'Streusel', 'Pistachios'], 'toppingPlacements': ['on the right Half', 'in the Top Right Corner', 'on the Top Half', 'in the Top Left Corner', 'on the Left Half']}, 'january': [{'name': 'New Year', 'shapes': ['Infinity'], 'fillings': ['Sesame Gelato', "Yum n' Ms"], 'dips': ['Flavour X'], 'toppings': ["Freezin' Flecks", 'Black Licorice Drizzle']}], 'february': [{'name': "Valentine's Day", 'shapes': ['Heart'], 'fillings': ['Red Velvet Custard', 'Candy Heart'], 'dips': ['Cherry Cheesecake'], 'toppings': ['Lollipop Crush', 'Hot Rod Drizzle']}], 'march': [{'name': 'Holi', 'shapes': ['Mandala'], 'fillings': ['Saffron Kulfi', 'Jalebi'], 'dips': ['Gulab Jamun'], 'toppings': ['Holi Sugar', 'Jackfruit Drizzle']}], 'april': [{'name': 'Easter', 'shapes': ['Bunny'], 'fillings': ['Wildberry Shake Cream', 'Jelly Bean'], 'dips': ['Lemon Chiffon'], 'toppings': ['Spring Flowers', 'Gooseberry Drizzle']}], 'may': [{'name': 'Cherry Blossom Festival', 'shapes': ['Blossom'], 'fillings': ['Pineberry Pudding', 'Azuki'], 'dips': ['Matcha'], 'toppings': ['Sugar Petals', 'Hakuto Drizzle']}], 'june': [{'name': 'Summer Luau', 'shapes': ['Pineapple'], 'fillings': ['Passionfruit Puree', 'Tropical Charms'], 'dips': ['Luau Punch'], 'toppings': ['Splashberry Derps', 'Piña Colada Drizzle']}], 'july': [{'name': 'Starlight Jubilee', 'shapes': ['Star'], 'fillings': ['Cherry Bomb Ripple', 'Gummy Star'], 'dips': ['Jubilee Jelly'], 'toppings': ['Crackle Crumbs', 'Powsicle Drizzle']}], 'august': [{'name': 'Big Top Carnival', 'shapes': ['Balloon'], 'fillings': ['Cotton Candy Yogurt', 'Candy Jack'], 'dips': ['Candy Apple'], 'toppings': ['Rock Candy', 'SuperFan Drizzle']}], 'september': [{'name': 'Pirate Bash', 'shapes': ['Anchor'], 'fillings': ['Sunken Treasure Custard', 'Black Pearl Crisp'], 'dips': ['Maelstrom Swirl'], 'toppings': ['Silver Doubloons', 'Scallywag Syrup Drizzle']}], 'october': [{'name': 'Halloween', 'shapes': ['Jack-o-Lantern'], 'fillings': ['Tiger Tail Cream', 'Dr. Bones'], 'dips': ['Ichabod Icing'], 'toppings': ['Spooky Sprinkles', 'Black Mist Drizzle']}], 'november': [{'name': 'Thanksgiving', 'shapes': ['Feather'], 'fillings': ['Buffaloberry Sxusem', 'Candy Corn'], 'dips': ['Pumpkin Spice'], 'toppings': ['Autumn Leaves', 'Nutty Butter Cup Drizzle']}], 'december': [{'name': 'Christmas', 'shapes': ['Tree'], 'fillings': ['Risalamande', 'Peppermint Bark'], 'dips': ['Eggnog Icing'], 'toppings': ['Frostcaps', 'Cherry Cordial Drizzle']}]},
+    'sushiria': {'allTime': {'rices': ['Brown', 'White', 'Shiso', 'Black'], 'wraps': ['Nori', 'Momoiro Soy Paper', 'Ukoniro Soy Paper'], 'vinegars': ['Sushi Vinegar'], 'fillings': ['Avocado', 'Carrot', 'Crab Stick', 'Cream Cheese', 'Cucumber Slices', 'Salmon', 'Snow Peas', 'Tuna', 'Lobster', 'Tofu', 'Unagi', 'Jalapeños', 'Green Onions', 'Wagyu', 'Shiitake Mushrooms', 'Shrimp Tempura', 'Tamago', 'Octopus', 'Yellowtail', 'Radish Sprouts', 'Asparagus', 'Fried Calamari'], 'toppings': ['Avocado', 'Mango Slices', 'Prawn', 'Saba', 'Salmon', 'Tuna', 'Kiwi Slices', 'Wagyu', 'Yellowtail', 'Sayori', 'Tobiko', 'Bonito Flakes', 'Sesame Seeds', 'Tempura Crunch', 'Furikake', 'Duck Sauce', 'General Tso Sauce', 'Ginger Miso Sauce', 'Teriyaki Sauce', 'Wasabi Mayo', 'Yum Yum Sauce', 'Yuzu Kosho', 'Tonkatsu Sauce', 'Hibachi Sauce', 'Sriracha', 'Ponzu'], 'teas': ['Almond', 'Chai', 'Matcha', 'Mocha', 'Strawberry', 'Blueberry', 'Piña Colada', 'Tangerine', 'Taro', 'Honeydew', 'Chocolate'], 'bubbles': ['Butterscotch', 'Cucumber', 'Lychee', 'Mango', 'Tapioca Pearl', 'Watermelon', 'Cherry', 'Pawpaw', 'Sugarplum', 'Cotton Candy', 'Kiwi', 'Huckleberry']}, 'january': [{'name': 'New Year', 'wraps': ['Rainbow Soy Paper'], 'fillings': ['Rainbow Yokan', 'Eggplant'], 'toppings': ['Rainbow Yokan', 'Flavour X Sauce', 'Rainbow Peppercorn'], 'teas': ['Tutti Frutti']}], 'february': [{'name': "Valentine's Day", 'wraps': ['Akai Soy Paper'], 'fillings': ['Strawberry Slices', 'Hokkigai'], 'toppings': ['Strawberry Slices', 'Azuki Sauce', 'Pomegranate'], 'teas': ['Raspberry']}], 'march': [{'name': 'Lucky Lucky Matsuri', 'wraps': ['Lucky Soy Paper'], 'fillings': ['Datemaki', 'Kanpyo'], 'toppings': ['Datemaki', 'Kuri Kinton', 'Lucky Dust'], 'teas': ['Iyokan']}], 'april': [{'name': 'Cherry Blossom Festival', 'wraps': ['Shiroi Soy Paper'], 'fillings': ['Narutomaki', 'Kampachi'], 'toppings': ['Narutomaki', 'Sweet Sakura Sauce', 'Wakame'], 'teas': ['Hakuto']}], 'may': [{'name': 'Cinco de Mayo', 'wraps': ['Tortilla'], 'fillings': ['Chorizo', 'Chipotle Cheddar'], 'toppings': ['Chorizo', 'Nacho Cheese', 'Recado Rojo'], 'teas': ['Horchata']}], 'june': [{'name': 'Summer Luau', 'wraps': ['Mizuiro Soy Paper'], 'fillings': ['Pineapple', 'Canned Ham'], 'toppings': ['Pineapple', 'Calypso Sauce', 'Lemon Herb'], 'teas': ['Luau Punch']}], 'july': [{'name': 'Starlight BBQ', 'wraps': ['Deli Soy Paper'], 'fillings': ['Beef Brisket', 'Fried Onion Strings'], 'toppings': ['Beef Brisket', 'Lone Star Pit Sauce', 'BBQ Rub'], 'teas': ['Powsicle']}], 'august': [{'name': 'Bavariafest', 'wraps': ['Rautenflagge Soy Paper'], 'fillings': ['Brezn', 'Bratwurst'], 'toppings': ['Brezn', 'Marzen Mustard', 'Sauerkraut'], 'teas': ['Black Forest']}, {'name': 'Portallini Feast', 'wraps': ['Manicotti'], 'fillings': ['Capicola', 'Spinach Ricotta'], 'toppings': ['Capicola', 'Marinara Sauce', 'Parmesan Cheese'], 'teas': ['Spumoni']}], 'september': [{'name': 'Maple Mornings', 'wraps': ['Kiiroi Soy Paper'], 'fillings': ['Bacon', 'Hashbrown Patties'], 'toppings': ['Bacon', 'Maple Syrup', 'Cinnamon Sugar'], 'teas': ['English Breakfast']}, {'name': 'Comet Con', 'wraps': ['Meteor Blastor Soy Paper'], 'fillings': ['Starfruit', 'Lunar Jerky'], 'toppings': ['Starfruit', 'Pulsar Pesto Sauce', 'Cosmic Coconut'], 'teas': ['Galaxy Grape']}], 'october': [{'name': 'Halloween', 'wraps': ['Tarantula Soy Paper'], 'fillings': ['Uni', 'Torigai'], 'toppings': ['Uni', 'Squid Sauce', 'Ikrua'], 'teas': ["Witch's Brew"]}], 'november': [{'name': 'Thanksgiving', 'wraps': ['Chairo Soy Paper'], 'fillings': ['Sweet Potatoes', 'Roasted Turkey'], 'toppings': ['Sweet Potatoes', 'Gravy', 'Roasted Pumpkin Seeds'], 'teas': ['Pumpkin Spice']}], 'december': [{'name': 'Christmas', 'wraps': ['Elf Soy Paper'], 'fillings': ['Tai', 'Spruce Tips'], 'toppings': ['Tai', 'Cranberry Sauce', 'Merry Masago'], 'teas': ['Peppermint']}]},
+    'pizzeria': {'allTime': {'crusts': ['Crispy Crust', 'Traditional Crust', 'Thick Crust', 'Garlic Knot Crust'], 'sauces': ['Classic Marinara', 'Rustic Romana', 'Creamy Garlic Sauce', 'Buffalo Sauce', 'BBQ Sauce', 'Olive Oil'], 'cheeses': ["Papa's Cheese Blend", 'Provolone Cheese', 'Smoked Cheddar Cheese', 'Grated Parmesan Cheese'], 'toppings': ['Pepperoni', 'Anchovies', 'Black Olives', 'Onions', 'Mushrooms', 'Green Peppers', 'Sausage', 'Bacon', 'Banana Peppers', 'Chicken', 'Tomatoes', 'Pepperjack Cheese', 'Spinach', 'Ground Beef', 'Ham', 'Red Peppers', 'Pineapple', 'Meatballs', 'Basil Leaves', 'Capicola', 'Jalapeños', 'Philly Steak', 'Asiago Cheese', 'Prosciutto', 'Fresh Garlic', 'Asiago Cheese', 'Pulled Pork', 'Gorgonzola', 'Cajun Shrimp', 'Pimento Olives', 'Salami', 'Artichoke Hearts', 'Smoked Salmon', 'Portobello Mushrooms', 'Broccoli'], 'bakes': ['Lightly-Done', 'Regular-Done', 'Well-Done'], 'cuts': ['4 slices', '6 slices', '8 slices', 'a grid']}, 'january': [{'name': 'New Year', 'crusts': ['Hot Dog Bites Crust'], 'sauces': ["PastariO's Sauce"], 'toppings': ['Cheez Puffs', 'Pizza Poppers']}], 'february': [{'name': "Valentine's Day", 'crusts': ['Tomato Basil Crust'], 'sauces': ['Heartbeet Arrabbiata'], 'toppings': ['Soppressata', 'Ricotta Balls']}], 'march': [{'name': 'Lucky Lucky Matsuri', 'crusts': ['Ramen Crust'], 'sauces': ['General Tso Sauce'], 'toppings': ['Kuri Kinton', 'Lotus Root']}], 'april': [{'name': 'Easter', 'crusts': ['Carrot Crust'], 'sauces': ['Wildflower Carbonara'], 'toppings': ['Carrot Sticks', 'Pickled Eggs']}], 'may': [{'name': 'Cinco de Mayo', 'crusts': ['Tostada'], 'sauces': ['Salda'], 'toppings': ['Chorizo', 'Avocado']}], 'june': [{'name': 'Summer Luau', 'crusts': ['Coconut Crust'], 'sauces': ['Calypso Sauce'], 'toppings': ['Ahi Tuna', 'Papaya']}], 'july': [{'name': 'Starlight BBQ', 'crusts': ['Cornbread Crust'], 'sauces': ['Smoky Bacon Sauce'], 'toppings': ['Onion Rings', 'Burnt Ends']}], 'august': [{'name': 'BavariaFest', 'crusts': ['Pretzel Crust'], 'sauces': ['Bierkäse Sauce'], 'toppings': ['Bratwurst', 'Schnitzel']}], 'september': [{'name': 'Maple Mornings', 'crusts': ['Buttermilk Biscuit'], 'sauces': ['Sausage Gracy'], 'toppings': ['Home Fries', 'Scrambled Eggs']}], 'october': [{'name': 'Halloween', 'crusts': ['Ecto Stuffed Crust'], 'sauces': ['Purple Pesto'], 'toppings': ['Smoked Oysters', 'Gouda Ghosts']}], 'november': [{'name': 'Thanksgiving', 'crusts': ['Pecan Crust'], 'sauces': ['Pumpkin Pomodoro'], 'toppings': ['Roasted Turkey', 'Sweet Potatoes']}], 'december': [{'name': 'Christmas', 'crusts': ['Red Pepper Crust'], 'sauces': ['Eggnog Alfredo'], 'toppings': ['Goose', 'Spruce Tips']}]}
+}
 
 def convertLanguageDirectionsToLetters(directions):
     if 'up' in directions:
@@ -1319,8 +1386,8 @@ def questTextFromDict(quest, progress):
         output = f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.'
     if quest['type'] == 'workout':
         output = f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}.'
-    if quest['type'] == 'eatChicken':
-        output = f'You must willingly eat {QUEST_SPACE}{quest["requirement"]}{CLEAR} {PAPAS_WINGERIA_SPACE}chicken wings{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}.'
+    if quest['type'] == 'visitPapas':
+        output = f'You must visit {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times.'
     if quest['type'] == 'stabPeople':
         output = f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item.'
     if quest['type'] == 'gamble':
@@ -1343,7 +1410,7 @@ def spinTheQuestWheel():
         {"type": 'badSpace', "requirement": (numBadSpaces := random.randint(3, 5)), "reward": numBadSpaces*4, "progress": 0, "timeLeft": numBadSpaces*5},
         {"type": 'shadowRealm', "requirement": (timeInShadowRealm := random.randint(6,10)), "reward": timeInShadowRealm*2, "progress": 0, "timeLeft": timeInShadowRealm*3},
         {"type": 'workout', "requirement": (workoutHours := random.randint(40,70)), "reward": workoutHours//4, "progress": 0, "timeLeft": int(workoutHours//2.5)},
-        {"type": 'eatChicken', "requirement": (chickenToEat := random.randint(40,70)), "reward": int(chickenToEat//3.5), "progress": 0, "timeLeft": int(workoutHours//2.5)},
+        {"type": 'visitPapas', "requirement": (timesToVisit := random.randint(2, 5)), "reward": int(timesToVisit*4), "progress": 0, "timeLeft": int(timesToVisit*4)},
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0, "timeLeft": peopleToStab*6},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0, "timeLeft": gambleWinnings*2},
         {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0, "timeLeft": int((spendMoney*1.5)//1)}
@@ -2043,19 +2110,150 @@ def useItem():
     indent -= 1
     return 'dont continue'
 
-def generateWingPlatter():
-    global indent
-    
-    month = datetime.datetime.today().strftime('%B').lower()
-    holiday = random.choice(WINGERIA_INGREDIENTS[month])
-    meats = WINGERIA_INGREDIENTS['allTime']['meats']
-    sauces = WINGERIA_INGREDIENTS['allTime']['sauces'] + holiday['sauces']
-    sides = WINGERIA_INGREDIENTS['allTime']['sides'] + holiday['sides']
-    dips = WINGERIA_INGREDIENTS['allTime']['dips'] + holiday['dips']
-    
-    output = 'a Wing Platter with\n'
+def newline(multiline, indent):
+    if multiline:
+        return f'\n{" "*indent}'
+    else:
+        return ' '
+
+def generatePizza(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['pizzeria']
     cost = 0
-    totalMeats = 0
+    
+    holiday = random.choice(ingredients[month])
+    crusts = ingredients['allTime']['crusts'] + holiday['crusts']
+    sauces = ingredients['allTime']['sauces'] + holiday['sauces']
+    cheeses = ingredients['allTime']['cheeses']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    bakes = ingredients['allTime']['bakes']
+    cuts = ingredients['allTime']['cuts']
+    
+    output = f'{" "*indent}A {PAPAS_BLUE}{random.choice(bakes)}{PAPAS_CLEAR} {PAPAS_GREEN}Pizza{PAPAS_CLEAR} with{newline(multiline, indent+1)}{PAPAS_BROWN}{random.choice(crusts)}{PAPAS_CLEAR},{newline(multiline, indent+1)}{PAPAS_ORANGE}{random.choice(sauces)}{PAPAS_CLEAR} and{newline(multiline, indent+1)}{PAPAS_YELLOW}{random.choice(cheeses)}{PAPAS_CLEAR}'
+    cost += 0.04
+    numToppings = random.randint(0,4)
+    if numToppings == 0:
+        output = output.replace('Pizza', 'Margarita Pizza')
+    else:
+        output += f',{newline(multiline, indent)}topped with'
+        for i in range(numToppings):
+            topping = random.choice(toppings)
+            toppings.remove(topping)
+            qty = random.choice([4,6,8])
+            cost += 0.0035*qty
+            output += f'{newline(multiline, indent+1)}{PAPAS_TURQUOISE}{qty}{PAPAS_CLEAR} {PAPAS_RED}{topping}{PAPAS_CLEAR} {PAPAS_PURPLE}{random.choice(["on the left half", "on the right half", "on the top half", "on the bottom half", "all around"])}{PAPAS_CLEAR}{" and" if i == numToppings-2 else ","}'
+    output += f'{newline(multiline, indent)}cut into {PAPAS_PINK}{random.choice(cuts)}{PAPAS_CLEAR}'
+
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Pizzeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateBurger(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['burgeria']
+    cost = 0
+    
+    grills = ingredients['allTime']['grills']
+    toppings = ingredients['allTime']['toppings']
+    
+    numToppings = random.randint(0,6)
+    toppingsInBurger = []
+    for _ in range(numToppings):
+        toppingsInBurger.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}')
+        cost += 0.0085
+    pattyPos = random.randint(0,numToppings)
+    toppingsInBurger.insert(pattyPos, f'A {PAPAS_BLUE}{random.choice(grills)}{PAPAS_CLEAR} {PAPAS_BROWN}Hamburger Patty{PAPAS_CLEAR}')
+    cost += 0.045
+    output = f'{" "*indent}A {PAPAS_GREEN}Burger{PAPAS_CLEAR} topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    for n, topping in enumerate(toppingsInBurger):
+        output += f'{newline(multiline, indent+1)}{topping}{" and" if n == numToppings-1 else "," if n != numToppings else ""}'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Burgeria]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateTaco(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['tacoMia']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    meats = ingredients['allTime']['meats'] + holiday['meats']
+    shells = ingredients['allTime']['shells'] + holiday['shells']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    chips = ingredients['allTime']['chips']
+    dips = ingredients['allTime']['dips']
+    
+    shell = random.choice(shells)
+    meat = random.choice(meats)
+    output = f'{" "*indent}A{"n" if meat[0] == "A" else ""} {PAPAS_BROWN}{meat}{PAPAS_CLEAR} {PAPAS_YELLOW}{shell}{PAPAS_GREEN}{"" if shell == "Walking Taco Bag" else " Taco"}{PAPAS_CLEAR} filled with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.04
+    numToppings = random.randint(1,5)
+    for i in range(numToppings):
+        output += f'{newline(multiline, indent+1)}{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}{" and" if i == numToppings-2 else ","}'
+        cost += 0.005
+    output += f'{newline(multiline, indent)}with a side of {PAPAS_ORANGE}{random.choice(chips)}{PAPAS_CLEAR} with {PAPAS_CYAN}{random.choice(dips)}{PAPAS_CLEAR}'
+    cost += 0.015
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Taco Mia, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+    
+def generateSundae(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['freezeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    cups = ingredients['allTime']['cups']
+    mixables = ingredients['allTime']['mixables'] + holiday['mixables']
+    syrups = ingredients['allTime']['syrups'] + holiday['syrups']
+    blends = ingredients['allTime']['blends']
+    whippedCreams = ingredients['allTime']['whippedCreams'] + holiday['whippedCreams']
+    sauceToppings = ingredients['allTime']['sauceToppings'] + holiday['sauceToppings']
+    shakers = ingredients['allTime']['shakers'] + holiday['shakers']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    
+    size = random.choice(cups)
+    output = f'{" "*indent}A {PAPAS_PINK}{size}{PAPAS_CLEAR} {PAPAS_BLUE}{random.choice(blends)}{PAPAS_CLEAR} {PAPAS_YELLOW}{random.choice(mixables)}{PAPAS_CLEAR} {PAPAS_GREEN}Freezer Sundae{PAPAS_CLEAR} mixed with {PAPAS_ORANGE}{random.choice(syrups)}{PAPAS_CLEAR}, topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += {"Small": 0.015, "Medium": 0.03, "Large": 0.045}[size]
+    toppings = [f'{PAPAS_CYAN}{random.choice(whippedCreams)}{PAPAS_CLEAR}']
+    slots = 4
+    numPlaceables = random.randint(0,3)
+    if numPlaceables != 0:
+        slots -= 1
+    if random.choice([True, False]):
+        slots -= 1
+        toppings.append(f'{PAPAS_CYAN}{random.choice(sauceToppings)} Sauce{PAPAS_CLEAR}')
+    numShakers = random.randint(0,slots)
+    for _ in range(numShakers):
+        toppings.append(f'{PAPAS_CYAN}{random.choice(shakers)}{PAPAS_CLEAR}')
+    if numPlaceables != 0:
+        if numPlaceables != 3:
+            oddPlaceable = random.randint(1,3)
+        sides = ['on the left', 'in the middle', 'on the right']
+        for i in range(3):
+            if (numPlaceables == 3) or (numPlaceables == 2 and oddPlaceable != i+1) or (numPlaceables == 1 and oddPlaceable == i+1):
+                placeable = random.choice(placeableToppings)
+                toppings.append(f'a{"n" if placeable[0] == "A" else ""} {PAPAS_RED}{placeable}{PAPAS_CLEAR} {PAPAS_PURPLE}{sides[i]}{PAPAS_CLEAR}')
+            else:
+                toppings.append(f'nothing {PAPAS_PURPLE}{sides[i]}{PAPAS_CLEAR}')
+    for n, topping in enumerate(toppings):
+        output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(toppings)-2 else "," if n != len(toppings)-1 else ""}'
+        cost += 0.0045
+
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Freezeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateWingPlatter(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['wingeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    meats = ingredients['allTime']['meats']
+    sauces = ingredients['allTime']['sauces'] + holiday['sauces']
+    sides = ingredients['allTime']['sides'] + holiday['sides']
+    dips = ingredients['allTime']['dips'] + holiday['dips']
+    
+    output = f'{" "*indent}A {PAPAS_GREEN}Wing Platter{PAPAS_CLEAR} with'
     slots = 7
     numMeats = random.randint(1,3)
     slots -= (2 * numMeats)
@@ -2063,38 +2261,541 @@ def generateWingPlatter():
     for _ in range(numMeats):
         qty = random.randint(1,12)
         meat = random.choice(meats)
-        side = random.choice(['on the left', '', 'on the right'])
+        side = random.choice(['on the left', 'all round', 'on the right'])
         if qty == 1 and meat != 'Shrimp':
             meat = meat[:-1]
-        items.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{random.choice(sauces)}{CLEAR}{" " if side != "" else ""}{side}')
-        cost += qty*0.0035
-        totalMeats += qty
+        items.append(f'{PAPAS_TURQUOISE}{qty}{PAPAS_CLEAR} {PAPAS_BROWN}{meat}{PAPAS_CLEAR} coated in {PAPAS_ORANGE}{random.choice(sauces)}{PAPAS_CLEAR} {PAPAS_PURPLE}{side}{PAPAS_CLEAR}')
+        cost += 0.0035*qty
     numDips = random.randint(0,4)
     if numDips != 0:
         slots -= 1
     for _ in range(slots):
-        side = random.choice(['on the left', '', 'on the right'])
+        side = random.choice(['on the left', 'all round', 'on the right'])
         qty = random.randint(2,12)
-        items.append(f'{GREEN}{qty}{CLEAR} {RED}{random.choice(sides)}{CLEAR}{" " if side != "" else ""}{side}')
-        cost += qty*0.0005
+        items.append(f'{PAPAS_TURQUOISE}{qty}{PAPAS_CLEAR} {PAPAS_RED}{random.choice(sides)}{PAPAS_CLEAR} {PAPAS_PURPLE}{side}{PAPAS_CLEAR}')
+        cost += 0.0005
     for _ in range(numDips):
-        items.append(f'{CYAN}{random.choice(dips)}{CLEAR}')
-        cost += 0.001
-    newline = '\n'
-    indent += 1
+        items.append(f'{PAPAS_CYAN}{random.choice(dips)}{PAPAS_CLEAR}')
+        cost += 0.001*qty
     for n, item in enumerate(items):
-        output += f'{" "*indent}{item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}{newline if n != len(items)-1 else ""}'
-    indent -= 1
-    return output, cost, totalMeats
+        output += f'{newline(multiline, indent+1)}{item}{" and" if n == len(items)-2 else "," if n != len(items)-1 else ""}'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Wingeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateHotDog(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['hotDoggeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    sausages = ingredients['allTime']['sausages']
+    buns = ingredients['allTime']['buns'] + holiday['buns']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    placeableToppings = ingredients['allTime']['placeableToppings']
+    cups = ingredients['allTime']['cups']
+    sodas = ingredients['allTime']['sodas'] + holiday['sodas']
+    popcorn = ingredients['allTime']['popcorn'] + holiday['popcorn']
+    
+    sausage = random.choice(sausages)
+    output = f'{" "*indent}A{"n" if sausage == "Italian Sausage" else ""} {PAPAS_BROWN}{sausage}{PAPAS_CLEAR} {PAPAS_GREEN}Hot Dog{PAPAS_CLEAR} in a {PAPAS_YELLOW}{random.choice(buns)}{PAPAS_CLEAR}, filled with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.04
+    slots = 6
+    placeable = None
+    toppingsToAdd = []
+    if random.choice([True, False]):
+        slots -= 1
+        placeable = random.choice(placeableToppings)
+    numToppings = random.randint(1,slots)
+    for _ in range(numToppings):
+        toppingsToAdd.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}')
+    if placeable != None:
+        toppingsToAdd.append(f'{PAPAS_RED}{placeable}{PAPAS_CLEAR}')
+    for n, topping in enumerate(toppingsToAdd):
+        output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(toppingsToAdd)-2 else ","}'
+        cost += 0.005
+    size = random.choice(cups)
+    output += f'{newline(multiline, indent)}with a side of{newline(multiline, indent+1)}a {PAPAS_PINK}{random.choice(cups)}{PAPAS_CLEAR} {PAPAS_ORANGE}{random.choice(sodas)} Soda{PAPAS_CLEAR} and{newline(multiline, indent+1)}a {PAPAS_PINK}{size}{PAPAS_CLEAR} {PAPAS_CYAN}{random.choice(popcorn)}{PAPAS_CLEAR}'
+    cost += {"Small": 0.01, "Medium": 0.02, "Large": 0.03}[size]
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Hot Doggeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateCupcake(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['cupcakeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    cakes = ingredients['allTime']['cakes'] + holiday['cakes']
+    icings = ingredients['allTime']['icings']
+    drizzles = ingredients['allTime']['drizzles'] + holiday['drizzles']
+    shakers = ingredients['allTime']['shakers'] + holiday['shakers']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    
+    output = f'{" "*indent}{PAPAS_TURQUOISE}2{PAPAS_CLEAR} {PAPAS_BROWN}{random.choice(cakes)}{PAPAS_CLEAR} {PAPAS_GREEN}Cupcakes{PAPAS_CLEAR}'
+    cost += 0.04
+    for i in range(2):
+        if i == 0:
+            output += f', one topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}{newline(multiline, indent+1)}{PAPAS_ORANGE}{random.choice(icings)} Icing{PAPAS_CLEAR}'
+        else:
+            output += f',{newline(multiline, indent)}and the other topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}{newline(multiline, indent+1)}{PAPAS_ORANGE}{random.choice(icings)} Icing{PAPAS_CLEAR}'
+        slots = 4
+        toppings = []
+        if random.choice([True, False]):
+            slots -= 1
+            toppings.append(f'{PAPAS_CYAN}{random.choice(drizzles)} Drizzle{PAPAS_CLEAR}')
+        numPlaceables = random.randint(0,2)
+        if numPlaceables != 0:
+            slots -= 1
+        numShakers = random.randint(0,slots)
+        for _ in range(numShakers):
+            toppings.append(f'{PAPAS_CYAN}{random.choice(shakers)}{PAPAS_CLEAR}')
+        if numPlaceables == 1:
+            toppings.append(f'a {PAPAS_RED}{random.choice(placeableToppings)}{PAPAS_CLEAR}')
+        if numPlaceables == 2:
+            toppings.append(f'a {PAPAS_RED}{random.choice(placeableToppings)}{PAPAS_CLEAR} {PAPAS_PURPLE}on the left and right{PAPAS_CLEAR}')
+            toppings.append(f'a {PAPAS_RED}{random.choice(placeableToppings)}{PAPAS_CLEAR} {PAPAS_PURPLE}in the middle{PAPAS_CLEAR}')
+        if toppings != []:
+            if len(toppings) == 1:
+                output += ' and'
+            else:
+                output += ','
+        for n, topping in enumerate(toppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(toppings)-2 else "," if n != len(toppings)-1 else ""}'
+            cost += 0.0035
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Cupcakeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+    
+def generateDonut(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['donuteria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    doughs = ingredients['allTime']['doughs']
+    shapes = ingredients['allTime']['shapes'] + holiday['shapes']
+    icings = ingredients['allTime']['icings'] + holiday['icings']
+    fillings = ingredients['allTime']['fillings'] + holiday['fillings']
+    sprinkles = ingredients['allTime']['sprinkles'] + holiday['sprinkles']
+    drizzles = ingredients['allTime']['drizzles'] + holiday['drizzles']
+    
+    numDonuts = random.choice([1,3])
+    output = f'{" "*indent}'
+    for donut in range(numDonuts):
+        slots = 3
+        toppings = []
+        if random.choice([True, False]):
+            slots -= 1
+            toppings.append(f'{PAPAS_RED}{random.choice(drizzles)} Drizzle{PAPAS_CLEAR}')
+        numSprinkles = random.randint(0, slots)
+        for _ in range(numSprinkles):
+            slots -= 1
+            toppings.append(f'{PAPAS_RED}{random.choice(sprinkles)}{PAPAS_CLEAR}')
+        output += f'{newline(multiline, indent) if donut != 0 else ""}A {PAPAS_BROWN}{random.choice(doughs)}{PAPAS_CLEAR} {PAPAS_YELLOW}{random.choice(shapes)}-Shaped{PAPAS_CLEAR} {PAPAS_GREEN}Doughnut{PAPAS_CLEAR},{newline(multiline, indent+1)}coated with {PAPAS_ORANGE}{random.choice(icings)}{PAPAS_CLEAR}{" and" if len(toppings) == 0 else ","}{newline(multiline, indent+1)}filled with {PAPAS_CYAN}{random.choice(fillings)}{PAPAS_CLEAR}'
+        cost += 0.04
+        if len(toppings) != 0:
+            output += f' and{newline(multiline, indent+1)}topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+            for n, topping in enumerate(toppings):
+                output += f'{newline(multiline, indent+2)}{topping}{" and" if n == len(toppings)-2 else "," if n != len(toppings)-1 else ""}'
+                cost += 0.0025
+        output += f'{" and " if donut == numDonuts-2 else ", " if donut != numDonuts-1 else ""}'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Donuteria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateGrilledCheese(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['cheeseria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    breads = ingredients['allTime']['breads'] + holiday['breads']
+    cheeses = ingredients['allTime']['cheeses'] + holiday['cheeses']
+    fillings = ingredients['allTime']['fillings'] + holiday['fillings']
+    timings = ingredients['allTime']['timings']
+    fries = ingredients['allTime']['fries']
+    fryToppings = ingredients['allTime']['fryToppings'] + holiday['fryToppings']
+    
+    cheese = random.choice(cheeses)
+    output = f'{" "*indent}A{"n" if cheese[0] == "A" else ""} {PAPAS_YELLOW}{cheese}{PAPAS_CLEAR} {PAPAS_BLUE}{random.choice(timings)}{PAPAS_CLEAR} {PAPAS_BROWN}{random.choice(breads)}{PAPAS_CLEAR} {PAPAS_GREEN}Grilled Cheese Sandwich{PAPAS_CLEAR}'
+    cost += 0.035
+    toppings = []
+    numToppings = random.randint(0,5)
+    for _ in range(numToppings):
+        toppings.append(f'{PAPAS_RED}{random.choice(fillings)}{PAPAS_CLEAR}')
+    if numToppings != 0:
+        output += f', filled with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        for n, topping in enumerate(toppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(toppings)-2 else "," if n != len(toppings)-1 else ""}'
+            cost += 0.0035
+    output += f',{newline(multiline, indent)}with a side of'
+    sides = [f'{PAPAS_CYAN}{random.choice(fries)}{PAPAS_CLEAR}']
+    numFryToppings = random.randint(0,2)
+    for _ in range(numFryToppings):
+        sides.append(f'{PAPAS_ORANGE}{random.choice(fryToppings)}{PAPAS_CLEAR}')
+        cost += 0.0075
+    for n, side in enumerate(sides):
+        output += f'{newline(multiline, indent+1)}{side}{" and" if n == len(sides)-2 else "," if n != len(sides)-1 else ""}'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Cheeseria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generatePie(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['bakeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    crusts = ingredients['allTime']['crusts']
+    fillings = ingredients['allTime']['fillings'] + holiday['fillings']
+    tops = ingredients['allTime']['tops'] + holiday['tops']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    toppingPlacements = ingredients['allTime']['toppingPlacements']
+    
+    output = f'{" "*indent}A {PAPAS_BROWN}{random.choice(crusts)} Crust{PAPAS_CLEAR} {PAPAS_GREEN}Baked Pie{PAPAS_CLEAR} with a {PAPAS_YELLOW}{random.choice(tops)}{PAPAS_CLEAR}, filled with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.02
+    usedFillings = []
+    for _ in range(4):
+        usedFillings.append(f'{PAPAS_ORANGE}{random.choice(fillings)}{PAPAS_CLEAR}')
+    for n, filling in enumerate(usedFillings):
+        output += f'{newline(multiline, indent+1)}{filling}{" and" if n == len(usedFillings)-2 else "," if n != len(usedFillings)-1 else ""}'
+        cost += 0.005
+    output += ' Fillings'
+    numToppings = random.randint(0,3)
+    usedToppings = []
+    for _ in range(numToppings):
+        topping = random.choice(toppings + placeableToppings)
+        if topping in placeableToppings:
+            usedToppings.append(f'{PAPAS_TURQUOISE}{random.randint(6,12)}{PAPAS_CLEAR} {PAPAS_RED}{topping}{PAPAS_CLEAR} on {PAPAS_PURPLE}{random.choice(toppingPlacements)}{PAPAS_CLEAR}')
+        else:
+            usedToppings.append(f'{PAPAS_RED}{topping}{PAPAS_CLEAR} on {PAPAS_PURPLE}{random.choice(toppingPlacements)}{PAPAS_CLEAR}')
+    if numToppings != 0:
+        output += f',{newline(multiline, indent)}and topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        for n, topping in enumerate(usedToppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(usedToppings)-2 else "," if n != len(usedToppings)-1 else ""}'
+            cost += 0.0035
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Bakeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateSushi(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['sushiria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    rices = ingredients['allTime']['rices']
+    wraps = ingredients['allTime']['wraps'] + holiday['wraps']
+    vinegars = ingredients['allTime']['vinegars']
+    fillings = ingredients['allTime']['fillings'] + holiday['fillings']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    teas = ingredients['allTime']['teas'] + holiday['teas']
+    bubbles = ingredients['allTime']['bubbles']
+    
+    output = f'{" "*indent}A{f"n {PAPAS_PINK}Inverted{PAPAS_CLEAR}" if random.choice([True, False]) else ""} {PAPAS_YELLOW}{random.choice(rices)} Rice{PAPAS_CLEAR} and {PAPAS_DARK_GREEN}{random.choice(wraps)}{PAPAS_CLEAR} {PAPAS_GREEN}Sushi Roll{PAPAS_CLEAR}, with {PAPAS_BROWN}{random.choice(vinegars)}{PAPAS_CLEAR}, filled with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.02
+    numFillings = random.randint(1,3)
+    usedFillings = []
+    for _ in range(numFillings):
+        usedFillings.append(f'{PAPAS_ORANGE}{random.choice(fillings)}{PAPAS_CLEAR}')
+    for n, filling in enumerate(usedFillings):
+        output += f'{newline(multiline, indent+1)}{filling}{" and" if n == len(usedFillings)-2 else "," if n != len(usedFillings)-1 else ""}'
+        cost += 0.005
+    numToppings = random.randint(0,3)
+    usedToppings = []
+    for _ in range(numToppings):
+        usedToppings.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}')
+    if numToppings != 0:
+        output += f',{newline(multiline, indent)}and topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        for n, topping in enumerate(usedToppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(usedToppings)-2 else "," if n != len(usedToppings)-1 else ""}'
+            cost += 0.0035
+    output += f',{newline(multiline, indent)}with a side of {PAPAS_ORANGE_YELLOW}{random.choice(teas)} Tea{PAPAS_CLEAR} with {PAPAS_CYAN}{random.choice(bubbles)} Bubbles{PAPAS_CLEAR}'
+    cost += 0.01
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Sushiria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateIceCream(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['scooperia']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    doughs = ingredients['allTime']['doughs']
+    mixables = ingredients['allTime']['mixables'] + holiday['mixables']
+    iceCreams = ingredients['allTime']['iceCreams'] + holiday['iceCreams']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    
+    numCookies = random.randint(1,3)
+    output = f'{" "*indent}'
+    for cookie in range(numCookies):
+        dough = random.choice(doughs)
+        output += f'A{"n" if dough[0] == "O" else ""} {PAPAS_BROWN}{dough}{PAPAS_CLEAR} {PAPAS_GREEN}Cookie{PAPAS_CLEAR}{newline(multiline, indent+1)}mixed with {PAPAS_ORANGE}{random.choice(mixables)}{PAPAS_CLEAR},{newline(multiline, indent+1)}with a scoop of {PAPAS_YELLOW}{random.choice(iceCreams)} Ice Cream{PAPAS_CLEAR} on top'
+        output += f'{f" and{newline(multiline, indent)}" if cookie == numCookies-2 else f",{newline(multiline, indent)}" if cookie != numCookies-1 else ""}'
+        cost += 0.02
+    numToppings = random.randint(0,4)
+    if numToppings != 0:
+        output += f',{newline(multiline, indent)}{"all " if numCookies != 1 else ""}topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        usedToppings = []
+        for _ in range(numToppings):
+            usedToppings.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}')
+        for n, topping in enumerate(usedToppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(usedToppings)-2 else "," if n != len(usedToppings)-1 else ""}'
+            cost += 0.0035
+    hasPlaceables = random.choice([True, False])
+    if hasPlaceables:
+        cost += 0.01*numCookies
+        if numCookies == 1:
+            output += f',{newline(multiline, indent)}and a {PAPAS_CYAN}{random.choice(placeableToppings)}{PAPAS_CLEAR} on top'
+        elif numCookies == 2:
+            output += f',{newline(multiline, indent)}the {PAPAS_PURPLE}left{PAPAS_CLEAR} ice cream with a {PAPAS_CYAN}{random.choice(placeableToppings)}{PAPAS_CLEAR} on top,{newline(multiline, indent)}and the {PAPAS_PURPLE}right{PAPAS_CLEAR} ice cream with a {PAPAS_CYAN}{random.choice(placeableToppings)}{PAPAS_CLEAR} on top'
+        elif numCookies == 3:
+            output += f',{newline(multiline, indent)}the {PAPAS_PURPLE}left and right{PAPAS_CLEAR} ice creams with a {PAPAS_CYAN}{random.choice(placeableToppings)}{PAPAS_CLEAR} on top,{newline(multiline, indent)}and the {PAPAS_PURPLE}middle{PAPAS_CLEAR} ice cream with a {PAPAS_CYAN}{random.choice(placeableToppings)}{PAPAS_CLEAR} on top'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Scooperia, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generatePancakes(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['pancakeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    bases = ingredients['allTime']['bases']
+    mixables = ingredients['allTime']['mixables']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    drinkSizes = ingredients['allTime']['drinkSizes']
+    drinks = ingredients['allTime']['drinks'] + holiday['drinks']
+    drinkExtras = ingredients['allTime']['drinkExtras']
+    
+    output = f'{" "*indent}A {PAPAS_GREEN}stack of pancakes{PAPAS_CLEAR} containing {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.01
+    stack = [f'A {PAPAS_YELLOW}{random.choice(bases)}{PAPAS_CLEAR} with {PAPAS_ORANGE}{random.choice(mixables)}{PAPAS_CLEAR}']
+    additionalItems = random.randint(0,6)
+    for _ in range(additionalItems):
+        if random.choice([True, False]):
+            stack.append(f'A {PAPAS_YELLOW}{random.choice(bases)}{PAPAS_CLEAR} with {PAPAS_ORANGE}{random.choice(mixables)}{PAPAS_CLEAR}')
+            cost += 0.01
+        else:
+            chosenTopping = random.choice(toppings + placeableToppings)
+            if chosenTopping in placeableToppings:
+                qty = random.randint(1,6)
+                stack.append(f'{PAPAS_TURQUOISE}{qty}{PAPAS_CLEAR} piece{"s" if qty != 1 else ""} of {PAPAS_RED}{chosenTopping}{PAPAS_CLEAR}')
+            else:
+                stack.append(f'{PAPAS_RED}{chosenTopping}{PAPAS_CLEAR}')
+            cost += 0.0035
+    for n, item in enumerate(stack):
+        output += f'{newline(multiline, indent+1)}{item}{" and" if n == len(stack)-2 else "," if n != len(stack)-1 else ""}'
+    size = random.choice(drinkSizes)
+    output += f',{newline(multiline, indent)}with a side of a {PAPAS_PINK}{size}{PAPAS_CLEAR} {PAPAS_CYAN}{random.choice(drinks)}{PAPAS_CLEAR} with {PAPAS_BROWN}{random.choice(drinkExtras)}{PAPAS_CLEAR}'
+    cost += {"Small": 0.005, "Medium": 0.01, "Large": 0.015}[size]
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Pancakeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generatePasta(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['pastaria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    pastas = ingredients['allTime']['pastas'] + holiday['pastas']
+    cooks = ingredients['allTime']['cooks']
+    sauces = ingredients['allTime']['sauces'] + holiday['sauces']
+    shakers = ingredients['allTime']['shakers'] + holiday['shakers']
+    placeableToppings = ingredients['allTime']['placeableToppings'] + holiday['placeableToppings']
+    breads = ingredients['allTime']['breads']
+    
+    output = f'{" "*indent}A bowl of {PAPAS_BLUE}{random.choice(cooks)}{PAPAS_CLEAR} {PAPAS_BROWN}{random.choice(pastas)}{PAPAS_CLEAR} {PAPAS_GREEN}Pasta{PAPAS_CLEAR}, topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.025
+    toppings = [f'{PAPAS_ORANGE}{random.choice(sauces)} Sauce{PAPAS_CLEAR}']
+    numToppings = random.randint(0,4)
+    for _ in range(numToppings):
+        chosenTopping = random.choice(shakers + placeableToppings)
+        if chosenTopping in placeableToppings:
+            qty = random.randint(2,8)
+            toppings.append(f'{PAPAS_TURQUOISE}{qty}{PAPAS_CLEAR} {PAPAS_RED}{chosenTopping}{PAPAS_CLEAR}')
+        else:
+            toppings.append(f'{PAPAS_CYAN}{chosenTopping}{PAPAS_CLEAR}')
+    for n, topping in enumerate(toppings):
+        output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(toppings)-2 else "," if n != len(toppings)-1 else ""}'
+        cost += 0.0035
+    output += f',{newline(multiline, indent)}with a side of {PAPAS_YELLOW}{random.choice(breads)}{PAPAS_CLEAR}'
+    cost += 0.01
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Pastaria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateLatte(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['mocharia']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    milks = ingredients['allTime']['milks'] + holiday['milks']
+    temperatures = ingredients['allTime']['temperatures']
+    espressos = ingredients['allTime']['espressos']
+    cups = ingredients['allTime']['cups']
+    syrups = ingredients['allTime']['syrups'] + holiday['syrups']
+    ices = ingredients['allTime']['ices']
+    powders = ingredients['allTime']['powders'] + holiday['powders']
+    creams = ingredients['allTime']['creams'] + holiday['creams']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    canoliShells = ingredients['allTime']['canoliShells'] + holiday['canoliShells']
+    
+    size = random.choice(cups)
+    if size == 'Small':
+        totalVolume = 4
+    elif size == 'Medium':
+        totalVolume = 5
+    elif size == 'Large':
+        totalVolume = 6
+    volumeLeft = totalVolume
+    output = f'{" "*indent}A {PAPAS_PINK}{size}{PAPAS_CLEAR} {PAPAS_GREEN}Latte{PAPAS_CLEAR} containing {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    latte = []
+    somethingExtra = random.choice(['none', 'top', 'bottom'])
+    if somethingExtra == 'none':
+        extraItem = 'none'
+    if somethingExtra == 'bottom':
+        extraItem = f'{PAPAS_RED}{random.choice(syrups)} Syrup{PAPAS_CLEAR}'
+        latte.append(extraItem)
+        cost += 0.0035
+    if somethingExtra == 'top':
+        if random.choice([True, False]):
+            extraItem = f'{PAPAS_CYAN}{random.choice(ices)}{PAPAS_CLEAR}'
+            if extraItem == 'Ice Cubes' or extraItem == f'{PAPAS_CYAN}Ice Cubes{PAPAS_CLEAR}':
+                volumeLeft -= 1
+        else:
+            extraItem = f'{PAPAS_RED}{random.choice(syrups)} Syrup{PAPAS_CLEAR}'
+            cost += 0.0035
+    mainOrder = ['milk', 'espresso']
+    random.shuffle(mainOrder)
+    for n, section in enumerate(mainOrder):
+        if n == 0:
+            volume = random.randint(1,volumeLeft-1)
+        else:
+            volume = volumeLeft
+        volumeLeft -= volume
+        if section == 'milk':
+            latte.append(f'{PAPAS_TURQUOISE}{volume}/{totalVolume}{PAPAS_CLEAR} {PAPAS_ORANGE_YELLOW}{random.choice(temperatures)}{PAPAS_CLEAR} {PAPAS_ORANGE}{random.choice(milks)} Milk{PAPAS_CLEAR}')
+            cost += 0.005*volume
+        if section == 'espresso':
+            latte.append(f'{PAPAS_TURQUOISE}{volume}/{totalVolume}{PAPAS_CLEAR} {PAPAS_BROWN}{random.choice(espressos)} Espresso{PAPAS_CLEAR}')
+            cost += 0.0025*volume
+        additionalItems = random.randint(0,2)
+        for _ in range(additionalItems):
+            item = random.choice(syrups + powders)
+            latte.append(f'{PAPAS_RED}{item} {"Syrup" if item in syrups else "Powder"}{PAPAS_CLEAR}')
+            cost += 0.0035
+    if somethingExtra == 'top':
+        if extraItem == 'Ice Cubes' or extraItem == f'{PAPAS_CYAN}Ice Cubes{PAPAS_CLEAR}':
+            latte.append(f'{PAPAS_TURQUOISE}1/{totalVolume}{PAPAS_CLEAR} {extraItem}')
+        else:
+            latte.append(extraItem)
+    for n, item in enumerate(latte):
+        output += f'{newline(multiline, indent+1)}{item}{" and" if n == len(latte)-2 else "," if n != len(latte)-1 else ""}'
+    usedToppings = []
+    if random.choice([True, False]):
+        usedToppings.append(f'{PAPAS_YELLOW}{random.choice(creams)} Cream{PAPAS_CLEAR}')
+    if random.choice([True, False]):
+        usedToppings.append(f'{PAPAS_RED}{random.choice(syrups)} Syrup{PAPAS_CLEAR}')
+    if random.choice([True, False]):
+        usedToppings.append(f'{PAPAS_DARK_GREEN}{random.choice(toppings)}{PAPAS_CLEAR}')
+    if len(usedToppings) != 0:
+        output += f',{newline(multiline, indent)}topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        for n, topping in enumerate(usedToppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(usedToppings)-2 else "," if n != len(usedToppings)-1 else ""}'
+            cost += 0.0035
+    output += f',{newline(multiline, indent)}with a side of a {PAPAS_MAROON}{random.choice(canoliShells)} Canoli{PAPAS_CLEAR},{newline(multiline, indent+1)}filled with {PAPAS_YELLOW}{random.choice(creams)} Cream{PAPAS_CLEAR} and{newline(multiline, indent+1)}{PAPAS_DARK_GREEN}{random.choice(toppings)}{PAPAS_CLEAR}'
+    cost += 0.01
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Mocharia, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateChickenSandwich(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['cluckeria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    meats = ingredients['allTime']['meats']
+    breadings = ingredients['allTime']['breadings']
+    buns = ingredients['allTime']['buns'] + holiday['buns']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    slushSizes = ingredients['allTime']['slushSizes']
+    slushFlavours = ingredients['allTime']['slushFlavours'] + holiday['slushFlavours']
+    
+    output = f'{" "*indent}A {PAPAS_GREEN}Chicken Sandwich{PAPAS_CLEAR} in a {PAPAS_YELLOW}{random.choice(buns)} Bun{PAPAS_CLEAR}, containing {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+    cost += 0.04
+    numToppings = random.randint(0,5)
+    stack = []
+    for _ in range(numToppings):
+        stack.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR}')
+    pattyPos = random.randint(0,numToppings)
+    stack.insert(pattyPos, f'A {PAPAS_BROWN}{random.choice(meats)} Patty{PAPAS_CLEAR} with {PAPAS_ORANGE}{random.choice(breadings)}{PAPAS_CLEAR}')
+    for n, topping in enumerate(stack):
+        output += f'{newline(multiline, indent+1)}{topping}{" and" if n == numToppings-1 else "," if n != numToppings else ""}'
+        cost += 0.0035
+    slushFlavour1 = random.choice(slushFlavours)
+    slushFlavour2 = random.choice(slushFlavours)
+    size = random.choice(slushSizes)
+    if slushFlavour1 == slushFlavour2:
+        output += f',{newline(multiline, indent)}with a side of a {PAPAS_PINK}{random.choice(slushSizes)}{PAPAS_CLEAR} {PAPAS_CYAN}{slushFlavour1}{PAPAS_CLEAR} Slushie'
+    else:
+        output += f',{newline(multiline, indent)}with a side of a {PAPAS_PINK}{random.choice(slushSizes)}{PAPAS_CLEAR} {PAPAS_CYAN}{slushFlavour1}{PAPAS_CLEAR} and {PAPAS_CYAN}{slushFlavour2}{PAPAS_CLEAR} Slushie'
+    cost += {"Small": 0.005, "Medium": 0.01, "Large": 0.015}[size]
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Cluckeria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
+
+def generateIceLolly(month, colouring, multiline, indent=0):
+    definePapasColours(colouring)
+    ingredients = ALL_PAPAS_INGREDIENTS['paleteria']
+    cost = 0
+    
+    holiday = random.choice(ingredients[month])
+    shapes = ingredients['allTime']['shapes'] + holiday['shapes']
+    fillings = ingredients['allTime']['fillings'] + holiday['fillings']
+    dips = ingredients['allTime']['dips'] + holiday['dips']
+    toppings = ingredients['allTime']['toppings'] + holiday['toppings']
+    toppingPlacements = ingredients['allTime']['toppingPlacements']
+    
+    shape = random.choice(shapes)
+    output = f'{" "*indent}A{"n" if shape[0] in ["A","I"] else ""} {PAPAS_YELLOW}{shape}-Shaped{PAPAS_CLEAR} {PAPAS_GREEN}Ice Lolly{PAPAS_CLEAR}, flavoured with {PAPAS_GRAY}(in 3 horizontal stripes, from bottom to top){PAPAS_CLEAR}'
+    cost += 0.02
+    usedFillings = []
+    for _ in range(3):
+        usedFillings.append(f'{PAPAS_ORANGE}{random.choice(fillings)}{PAPAS_CLEAR}')
+    for n, filling in enumerate(usedFillings):
+        output += f'{newline(multiline, indent+1)}{filling}{" and" if n == len(usedFillings)-2 else "," if n != len(usedFillings)-1 else ""}'
+    output += f',{newline(multiline, indent)}coated in {PAPAS_CYAN}{random.choice(dips)} Dip{PAPAS_CLEAR} {PAPAS_PURPLE}{random.choice(toppingPlacements)}{PAPAS_CLEAR}'
+    numToppings = random.randint(0,3)
+    usedToppings = []
+    for _ in range(numToppings):
+        usedToppings.append(f'{PAPAS_RED}{random.choice(toppings)}{PAPAS_CLEAR} {PAPAS_PURPLE}{random.choice(toppingPlacements)}{PAPAS_CLEAR}')
+        cost += 0.0035
+    if numToppings != 0:
+        output += f',{newline(multiline, indent)}and topped with {PAPAS_GRAY}(from bottom to top){PAPAS_CLEAR}'
+        for n, topping in enumerate(usedToppings):
+            output += f'{newline(multiline, indent+1)}{topping}{" and" if n == len(usedToppings)-2 else "," if n != len(usedToppings)-1 else ""}'
+    
+    output += f'{newline(multiline, indent)}{PAPAS_GRAY}[Paleteria, {holiday["name"]}]{PAPAS_CLEAR}'
+    return output, cost
 
 def addToFoodInventory(numIngredients):
     month = datetime.datetime.today().strftime('%B').lower()
     for _ in range(numIngredients):
         ingredientType = random.choice(['meats', 'meats', 'sauces', 'sides', 'dips'])
         if ingredientType != 'meats':
-            ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType] + random.choice(WINGERIA_INGREDIENTS[month])[ingredientType])
+            ingredient = random.choice(ALL_PAPAS_INGREDIENTS['wingeria']['allTime'][ingredientType] + random.choice(ALL_PAPAS_INGREDIENTS['wingeria'][month])[ingredientType])
         else:
-            ingredient = random.choice(WINGERIA_INGREDIENTS['allTime'][ingredientType])
+            ingredient = random.choice(ALL_PAPAS_INGREDIENTS['wingeria']['allTime'][ingredientType])
         qty = (random.choice([1, 1, 2]) if ingredientType in ['sauces', 'dips'] else random.randint(4,12))
         if ingredient not in playerFoodInventories[currentPlayer][ingredientType].keys():
             playerFoodInventories[currentPlayer][ingredientType][ingredient] = qty
@@ -2194,7 +2895,7 @@ def constructOwnWingPlatter():
     
     meat, qty, sauce = askAboutMeat()
     cost += qty*0.0035
-    currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
+    currentOrder.append(f'{GYM_SPACE}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
     slotsRemaining -= 2
     printCurrentOrder(currentOrder)
     print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slots remaining.')
@@ -2216,7 +2917,7 @@ def constructOwnWingPlatter():
             meat, qty, sauce = askAboutMeat()
             indent -= 1
             cost += qty*0.0035
-            currentOrder.append(f'{GREEN}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
+            currentOrder.append(f'{GYM_SPACE}{qty}{CLEAR} {PAPAS_WINGERIA_SPACE}{meat}{CLEAR} coated in {ORANGE}{sauce}{CLEAR}')
             slotsRemaining -= 2
             printCurrentOrder(currentOrder)
             print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slot{"s" if slotsRemaining > 1 else ""} remaining.')
@@ -2241,7 +2942,7 @@ def constructOwnWingPlatter():
             side, qty = askAboutSides()
             indent -= 1
             cost += qty*0.0005
-            currentOrder.append(f'{GREEN}{qty}{CLEAR} {RED}{side}{CLEAR}')
+            currentOrder.append(f'{GYM_SPACE}{qty}{CLEAR} {RED}{side}{CLEAR}')
             slotsRemaining -= 1
             printCurrentOrder(currentOrder)
             print(f'{" "*indent}You have {GREEN}{slotsRemaining}{CLEAR} slot{"s" if slotsRemaining > 1 else ""} remaining.')
@@ -2278,6 +2979,7 @@ def constructOwnWingPlatter():
 
 def visitWingeria():
     global indent
+    updateQuests('visitPapas', 1)
     indent += 1
     for player, bonus in enumerate(playerInvestmentBonus):
         if player != 0 and player != currentPlayer and bonus != 0 and player not in eliminatedPlayers:
@@ -2288,14 +2990,49 @@ def visitWingeria():
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {player}{CLEAR} now has {YELLOW}{playerGolds[player]} gold{CLEAR}.')
             indent -= 1
             time.sleep(0.5)
-    order, cost, totalMeats = generateWingPlatter()
-    print(f'{" "*indent}You ordered {order}.')
+    games = ['Pizzeria', 'Burgeria', 'Taco Mia', 'Wingeria', 'Hot Doggeria', 'Cheeseria', 'Sushiria', 'Pastaria', 'Cluckeria', 'Freezeria', 'Cupcakeria', 'Donuteria', 'Bakeria', 'Scooperia', 'Pancakeria', 'Mocharia', 'Paleteria']
+    game = random.choice(games)
+    month = datetime.datetime.today().strftime('%B').lower()
+    if game == 'Pizzeria':
+        order, cost = generatePizza(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Burgeria':
+        order, cost = generateBurger(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Taco Mia':
+        order, cost = generateTaco(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Freezeria':
+        order, cost = generateSundae(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Wingeria':
+        order, cost = generateWingPlatter(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Hot Doggeria':
+        order, cost = generateHotDog(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Cupcakeria':
+        order, cost = generateCupcake(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Donuteria':
+        order, cost = generateDonut(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Cheeseria':
+        order, cost = generateGrilledCheese(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Bakeria':
+        order, cost = generatePie(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Sushiria':
+        order, cost = generateSushi(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Scooperia':
+        order, cost = generateIceCream(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Pancakeria':
+        order, cost = generatePancakes(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Pastaria':
+        order, cost = generatePasta(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Mocharia':
+        order, cost = generateLatte(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Cluckeria':
+        order, cost = generateChickenSandwich(month, colouring=True, multiline=True, indent=indent+1)
+    elif game == 'Paleteria':
+        order, cost = generateIceLolly(month, colouring=True, multiline=True, indent=indent+1)
+    print(f'{" "*indent}You ordered\n{order}.')
     playerSpeeds[currentPlayer] -= cost
     playerSpeeds[currentPlayer] = round(playerSpeeds[currentPlayer], 4)
     if playerSpeeds[currentPlayer] < playerMinimumSpeeds[currentPlayer]:
         playerSpeeds[currentPlayer] = playerMinimumSpeeds[currentPlayer]
     print(f'{" "*indent}You {RED}gained some weight{CLEAR}, so your speed is now {GYM_SPACE}{playerSpeeds[currentPlayer]}{CLEAR}.')
-    updateQuests('eatChicken', totalMeats)
     if sum(playerFoodInventories[currentPlayer]['meats'].values()) > 0 and sum(playerFoodInventories[currentPlayer]['sauces'].values()) > 0:
         time.sleep(0.5)
         print(f'{" "*indent}Would you like to build your own {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} to feed to {RED}another player{CLEAR}?')
@@ -2319,9 +3056,9 @@ def visitWingeria():
             indent -= 1
     if playerGolds[currentPlayer] > 0:
         time.sleep(0.5)
-        print(f'{" "*indent}Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+        print(f'{" "*indent}Would you like to {YELLOW}invest{CLEAR} in {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR}? (you have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
         indent += 1
-        print(f'{" "*indent}Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits the {PAPAS_WINGERIA_SPACE}wingeria{CLEAR}!')
+        print(f'{" "*indent}Once you invest {YELLOW}{WINGERIA_PROGRESS_REQUIRED} gold{CLEAR} you will recieve {YELLOW}1 gold{CLEAR} each time someone visits {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR}!')
         print(f'{" "*indent}You will also recieve an {GREEN}additional slot{CLEAR} when building your {PAPAS_WINGERIA_SPACE}own platter{CLEAR} for another player.')
         investment = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your investment (0 for no investment):{CLEAR} ', playerGolds[currentPlayer]))
         playerGolds[currentPlayer] -= investment
@@ -3722,7 +4459,7 @@ def grammatiseSpaceType(spaceType, punctuation=False, title=False, article=True)
         return f'{"a " if article else ""}{TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'papas wingeria':
         apostrophe = '\''
-        return f'{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s Wingeria" if title else f"papa{apostrophe}s wingeria"}{CLEAR}{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s" if title else f"papa{apostrophe}s"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'gym':
         return f'{"a " if article else ""}{GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
     if spaceType == 'quest':
@@ -3879,7 +4616,7 @@ def redefineItemDescriptions():
         "wand": f'Make a player spin the {RED}Bad Wheel{CLEAR} at the start of their next turn.',
         "time machine": f'{TIMEWARP_SPACE}Rewind time{CLEAR} to the start of your {ORANGE}previous turn{CLEAR}.',
         "padlock": f'Place this on an adjacent path. When travelling along this path, you must enter a {RED}4-digit{CLEAR} code.',
-        "ingredient bundle": f'A collection of {ORANGE}{itemPrices["ingredient bundle"]*3} ingredients{CLEAR} to make a {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s wingeria{CLEAR}.',
+        "ingredient bundle": f'A collection of {ORANGE}{itemPrices["ingredient bundle"]*3} ingredients{CLEAR} to make a {PAPAS_WINGERIA_SPACE}wing platter{CLEAR} at {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR}.',
         "portable shop": f'Visit the {SHOP_SPACE}shop{CLEAR} no matter where you are.'
     }
     return itemDescriptions
