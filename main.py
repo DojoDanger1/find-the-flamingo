@@ -1386,7 +1386,7 @@ def questTextFromDict(quest, progress):
         output = f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.'
     if quest['type'] == 'workout':
         output = f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}.'
-    if quest['type'] == 'visitPapas':
+    if quest['type'] == 'eatChickeh':
         output = f'You must visit {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times.'
     if quest['type'] == 'stabPeople':
         output = f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item.'
@@ -1410,7 +1410,7 @@ def spinTheQuestWheel():
         {"type": 'badSpace', "requirement": (numBadSpaces := random.randint(3, 5)), "reward": numBadSpaces*4, "progress": 0, "timeLeft": numBadSpaces*5},
         {"type": 'shadowRealm', "requirement": (timeInShadowRealm := random.randint(6,10)), "reward": timeInShadowRealm*2, "progress": 0, "timeLeft": timeInShadowRealm*3},
         {"type": 'workout', "requirement": (workoutHours := random.randint(40,70)), "reward": workoutHours//4, "progress": 0, "timeLeft": int(workoutHours//2.5)},
-        {"type": 'visitPapas', "requirement": (timesToVisit := random.randint(2, 5)), "reward": int(timesToVisit*4), "progress": 0, "timeLeft": int(timesToVisit*4)},
+        {"type": 'eatChicken', "requirement": (timesToVisit := random.randint(2, 5)), "reward": int(timesToVisit*4), "progress": 0, "timeLeft": int(timesToVisit*4)},
         {"type": 'stabPeople', "requirement": (peopleToStab := random.randint(2, 4)), "reward": peopleToStab*5, "progress": 0, "timeLeft": peopleToStab*6},
         {"type": 'gamble', "requirement": (gambleWinnings := random.randint(8,16)), "reward": gambleWinnings, "progress": 0, "timeLeft": gambleWinnings*2},
         {"type": 'spendMoney', "requirement": (spendMoney := random.randint(7,15)), "reward": int((spendMoney*1.25)//1), "progress": 0, "timeLeft": int((spendMoney*1.5)//1)}
@@ -2979,7 +2979,7 @@ def constructOwnWingPlatter():
 
 def visitWingeria():
     global indent
-    updateQuests('visitPapas', 1)
+    updateQuests('eatChicken', 1)
     indent += 1
     for player, bonus in enumerate(playerInvestmentBonus):
         if player != 0 and player != currentPlayer and bonus != 0 and player not in eliminatedPlayers:
