@@ -1386,7 +1386,7 @@ def questTextFromDict(quest, progress):
         output = f'You must spend {QUEST_SPACE}{quest["requirement"]}{CLEAR} turns in the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.'
     if quest['type'] == 'workout':
         output = f'You must {GYM_SPACE}workout{CLEAR} for {QUEST_SPACE}{quest["requirement"]}{CLEAR} hours at the {GYM_SPACE}gym{CLEAR}.'
-    if quest['type'] == 'eatChickeh':
+    if quest['type'] == 'eatChicken':
         output = f'You must visit {PAPAS_WINGERIA_SPACE}papa\'s{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} times.'
     if quest['type'] == 'stabPeople':
         output = f'You must {RED}stab{CLEAR} {QUEST_SPACE}{quest["requirement"]}{CLEAR} people using the {CYAN}knife{CLEAR} item.'
