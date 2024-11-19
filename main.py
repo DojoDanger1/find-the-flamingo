@@ -22,8 +22,8 @@ NUM_PLAYERS = 5
 ROLES_ENABLED = True
 CHAOS_MODE = True
 STALLER_ABILITIES = ['Murderer', 'Toxicologist']
-JESTER_ABILITIES = ['Seer', 'Guesser']
-FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'None']
+JESTER_ABILITIES = ['Shifter', 'Guesser']
+FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'None']
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
@@ -3280,6 +3280,15 @@ def printRoles(roles, specialAbilities):
                     print(f'{" "*indent}For any {RED}murder{CLEAR}, it will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} that player.')
                     print(f'{" "*indent}They/you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}')
                     indent -= 2
+                if specialAbilities[player] == 'Shifter':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}This {GRAY}swap{CLEAR} will take place {RED}immediately{CLEAR}.')
+                    print(f'{" "*indent}After the vote has {ORANGE}finished{CLEAR}, it will be revealed that the {GRAY}shifter{CLEAR} has used their ability.')
+                    indent -= 1
+                    print(f'{" "*indent}You and the chosen player will swap both your {PINK}role{CLEAR} and your {GRAY}special ability{CLEAR}')
+                    indent -= 1
                 if specialAbilities[player] == 'Medic':
                     indent += 1
                     if 'Murderer' in specialAbilities:
@@ -3317,6 +3326,7 @@ def evaluateVote(final):
     global murderedPlayers
     global shieldedPlayers
     global guesserFailed
+    global shifterShifted
     #voting preamble
     os.system('clear')
     if final:
@@ -3358,6 +3368,7 @@ def evaluateVote(final):
     murderedPlayers = []
     shieldedPlayers = []
     guesserFailed = False
+    shifterShifted = False
     for player in voteOrder:
         if player not in eliminatedPlayers:
             currentPlayer = player
@@ -3409,6 +3420,9 @@ def evaluateVote(final):
     else:
         print(f'{" "*23}{ORANGE}Voting{CLEAR}')
     print('-'*50)
+    if shifterShifted:
+        print(f'{" "*indent}The {GRAY}shifter{CLEAR} has shifted their role!')
+        time.sleep(1)
     tie = False
     voted = votes.index(max([vote for vote in votes if vote != None]))
     if votes.count(max([vote for vote in votes if vote != None])) > 1:
@@ -3502,8 +3516,8 @@ def evaluateVote(final):
     #evaluate murder
     for player in range(1, NUM_PLAYERS+1):
         if player not in eliminatedPlayers:
-            time.sleep(1)
             if player in murderedPlayers and player not in shieldedPlayers:
+                time.sleep(1)
                 print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
                 indent += 1
                 print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
@@ -3511,9 +3525,11 @@ def evaluateVote(final):
                 playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
                 indent -= 1
             elif player in murderedPlayers and player in shieldedPlayers:
+                time.sleep(1)
                 print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
             elif guesserFailed:
                 if player == playerSpecialAbilities.index('Guesser'):
+                    time.sleep(1)
                     print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
                     indent += 1
                     print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
@@ -3523,7 +3539,7 @@ def evaluateVote(final):
     #continue to game
     print('-'*50)
     if not jesterWon:
-        if rearrangeRoles:
+        if rearrangeRoles or shifterShifted:
             input(f'{TURQUOISE}Press Enter when you are ready to reveal the new roles {CLEAR}')
             printRoles(playerRoles, playerSpecialAbilities)
         else:
@@ -3535,6 +3551,7 @@ def evalSpecialAbility(specialAbility):
     global indent
     global mewChance
     global guesserFailed
+    global shifterShifted
     if specialAbility == 'Murderer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {RED}murder{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
         murderedPlayers.append(chosenPlayer)
@@ -3590,6 +3607,15 @@ def evalSpecialAbility(specialAbility):
             print(f'{" "*indent}That is {RED}incorrect{CLEAR}! you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
             guesserFailed = True
         indent -= 2
+    if specialAbility == 'Shifter':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GRAY}swap roles{TURQUOISE} with (1-{NUM_PLAYERS}): {CLEAR}', False))
+        temp = playerRoles[chosenPlayer]
+        playerRoles[chosenPlayer] = playerRoles[currentPlayer]
+        playerRoles[currentPlayer] = temp
+        temp = playerSpecialAbilities[chosenPlayer]
+        playerSpecialAbilities[chosenPlayer] = playerSpecialAbilities[currentPlayer]
+        playerSpecialAbilities[currentPlayer] = temp
+        shifterShifted = True
     if specialAbility == 'Medic':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GREEN}shield{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
         shieldedPlayers.append(chosenPlayer)
@@ -4486,6 +4512,8 @@ def grammatiseRole(role):
         return f'{CYAN}Seer{CLEAR}'
     if role == 'Guesser':
         return f'{YELLOW}Guesser{CLEAR}'
+    if role == 'Shifter':
+        return f'{GRAY}Shifter{CLEAR}'
     if role == 'Medic':
         return f'{GREEN}Medic{CLEAR}'
     if role == 'Cleaner':
@@ -4504,6 +4532,8 @@ def getAbilityDescription(specialAbility):
         return f'choose a player to {CYAN}have their role revealed{CLEAR}'
     if specialAbility == 'Guesser':
         return f'guess a player\'s {YELLOW}special ability{CLEAR}'
+    if specialAbility == 'Shifter':
+        return f'{GRAY}swap roles{CLEAR} with another player'
     if specialAbility == 'Medic':
         return f'choose a player to {GREEN}sheild{CLEAR} from {RED}murder{CLEAR}'
     if specialAbility == 'Cleaner':
