@@ -1739,6 +1739,7 @@ def useItem():
     global blackHolePos
     global blackHoleRadius
     global eliminatedPlayers
+    global loverPlayers
     global mewChance
     done = False
     indent += 1
@@ -2036,6 +2037,7 @@ def useItem():
                                 blackHolePos = prevBlackHolePos[-1-NUM_PLAYERS+numEliminated]
                                 blackHoleRadius = prevBlackHoleRadius[-1-NUM_PLAYERS+numEliminated]
                                 eliminatedPlayers = prevEliminatedPlayers[-1-NUM_PLAYERS+numEliminated]
+                                loverPlayers = prevLoverPlayers[-1-NUM_PLAYERS+numEliminated]
                                 mewChance = prevMewChance[-1-NUM_PLAYERS+numEliminated]
                                 for _ in range(NUM_PLAYERS-numEliminated):
                                     prevPlayerRoles.pop(-1)
@@ -2066,6 +2068,8 @@ def useItem():
                                     prevBlackHolePos.pop(-1)
                                     prevBlackHoleRadius.pop(-1)
                                     prevEliminatedPlayers.pop(-1)
+                                    prevLoverPlayers.pop(-1)
+                                    prevMewChance.pop(-1)
                                 if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
                                     playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 for gameState in prevPlayerInventories:
@@ -4625,6 +4629,7 @@ def saveToFile(filename):
         "blackHolePos": blackHolePos,
         "blackHoleRadius": blackHoleRadius,
         "eliminatedPlayers": eliminatedPlayers,
+        "loverPlayers": loverPlayers,
         "mewChance": mewChance,
         "playerRoles": playerRoles,
         "playerSpecialAbilities": playerSpecialAbilities,
@@ -4654,6 +4659,7 @@ def saveToFile(filename):
         "prevBlackHolePos": prevBlackHolePos,
         "prevBlackHoleRadius": prevBlackHoleRadius,
         "prevEliminatedPlayers": prevEliminatedPlayers,
+        "prevLoverPlayers": prevLoverPlayers,
         "prevMewChance": prevMewChance,
         "prevPlayerRoles": prevPlayerRoles,
         "prevPlayerSpecialAbilities": prevPlayerSpecialAbilities,
@@ -4812,6 +4818,7 @@ blackHolePos = tuple([-1]*NUM_DIMENSIONS)
 blackHoleRadius = -1
 
 eliminatedPlayers = []
+loverPlayers = []
 
 mewChance = 0.01
 
@@ -4843,12 +4850,12 @@ prevQuantumEntanglements = [copy.deepcopy(quantumEntanglements)]
 prevBlackHolePos = [copy.deepcopy(blackHolePos)]
 prevBlackHoleRadius = [copy.deepcopy(blackHoleRadius)]
 prevEliminatedPlayers = [copy.deepcopy(eliminatedPlayers)]
+prevLoverPlayers = [copy.deepcopy(loverPlayers)]
 prevMewChance = [copy.deepcopy(mewChance)]
 
 indent = 0
 
 #give roles out
-loverPlayers = []
 if ROLES_ENABLED:
     playerRoles[random.randint(1,NUM_PLAYERS)] = 'Staller'
     playerRoles[random.choice([x for x in list(range(1,NUM_PLAYERS+1)) if playerRoles[x] == 'Finder'])] = 'Jester'
@@ -5054,6 +5061,7 @@ while running:
                 blackHolePos = data["blackHolePos"]
                 blackHoleRadius = data["blackHoleRadius"]
                 eliminatedPlayers = data["eliminatedPlayers"]
+                loverPlayers = data['loverPlayers']
                 mewChance = data["mewChance"]
                 playerRoles = data["playerRoles"]
                 playerSpecialAbilities = data["playerSpecialAbilities"]
@@ -5083,6 +5091,7 @@ while running:
                 prevBlackHolePos = data["prevBlackHolePos"]
                 prevBlackHoleRadius = data["prevBlackHoleRadius"]
                 prevEliminatedPlayers = data["prevEliminatedPlayers"]
+                prevLoverPlayers = data["prevLoverPlayers"]
                 prevMewChance = data["prevMewChance"]
                 prevPlayerRoles = data["prevPlayerRoles"]
                 prevPlayerSpecialAbilities = data["prevPlayerSpecialAbilities"]
@@ -5138,6 +5147,7 @@ while running:
         prevQuantumEntanglements.append(copy.deepcopy(quantumEntanglements))
         prevBlackHolePos.append(copy.deepcopy(blackHolePos))
         prevBlackHoleRadius.append(copy.deepcopy(blackHoleRadius))
+        prevLoverPlayers.append(copy.deepcopy(loverPlayers))
         prevEliminatedPlayers.append(copy.deepcopy(eliminatedPlayers))
         prevMewChance.append(copy.deepcopy(mewChance))
         #expand black hole
