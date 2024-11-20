@@ -3499,6 +3499,7 @@ def evaluateVote(final):
     #maybe assign lovers
     if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0:
         loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
+        rearrangeRoles = True
         if random.random() <= CHANCE_OF_3_WAY:
             loverPlayers.append(random.sample([player for player in list(range(1,NUM_PLAYERS+1)) if player not in loverPlayers], 1)[0])
     #continue to game
