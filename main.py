@@ -30,8 +30,8 @@ STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
-STALLER_WIN = 20
-VOTING_FREQUENCY = 10
+STALLER_WIN = 150
+VOTING_FREQUENCY = 30
 OTHERS_CANT_SEE_FLAMINGO = True
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -43,7 +43,7 @@ WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
 LYING_GAME_DIFFICULTY = 4
 ACID_PRICE = 5
-CONFIRM_STAY_HERE = False
+CONFIRM_STAY_HERE = True
 
 #assertions
 assert GRID_SIZE >= 3, 'grid size must be greater than or equal to 3!'
@@ -5201,6 +5201,18 @@ while running:
                     if returnRound == roundNum or (returnRound == roundNum+1 and loopedOver):
                         eliminatedPlayers.remove(player)
                         playerEliminationReturns[player] = -1
+                        # half stuff
+                        playerGolds[player] = playerGolds[player]//2
+                        playerSpeeds[player] = ((playerSpeeds[player]-1)//2)+1
+                        playerSpeeds[player] = round(playerSpeeds[player], 4)
+                        if playerSpeeds[player] < playerMinimumSpeeds[player]:
+                            playerSpeeds[player] = playerMinimumSpeeds[player]
+                        playerInvestmentBonus[player] = playerInvestmentBonus[player]//2
+                        playerStealBonus[player] = playerStealBonus[player]//2
+                        if len(playerInventories[player]) > 1:
+                            playerInventories[player] = random.sample(playerInventories[player], len(playerInventories[player])//2)
+                        if len(playerQuests[player]) > 1:
+                            playerQuests[player] = random.sample(playerQuests[player], len(playerQuests[player])//2)
             while currentPlayer in eliminatedPlayers:
                 currentPlayer += 1
                 if currentPlayer > NUM_PLAYERS:
