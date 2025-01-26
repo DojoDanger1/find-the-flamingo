@@ -3636,11 +3636,11 @@ def evalSpecialAbility(specialAbility):
                     murderedPlayers.append(lover)
     if specialAbility == 'Toxicologist':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {DARK_GREEN}poison{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
-        playerPoisoneds[chosenPlayer] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+((5*VOTING_FREQUENCY)//6), "eliminationReturn": roundNum+((6*VOTING_FREQUENCY)//6)}
+        playerPoisoneds[chosenPlayer] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+(5*(VOTING_FREQUENCY//6)), "eliminationReturn": roundNum+VOTING_FREQUENCY}
         if chosenPlayer in loverPlayers:
             chosenPlayerLovers = [p for p in loverPlayers if p != chosenPlayer]
             for lover in chosenPlayerLovers:
-                playerPoisoneds[lover] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+((5*VOTING_FREQUENCY)//6), "eliminationReturn": roundNum+((6*VOTING_FREQUENCY)//6)}
+                playerPoisoneds[lover] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+(5*(VOTING_FREQUENCY//6)), "eliminationReturn": roundNum+VOTING_FREQUENCY}
     if specialAbility == 'Seer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {CYAN}see the role{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
         indent += 1
@@ -3778,7 +3778,7 @@ def evaluatePoison():
         print(f'{" "*indent}You will return right before the vote.')
         indent -= 1
         eliminatedPlayers.append(currentPlayer)
-        playerEliminationReturns[currentPlayer] = roundNum+(VOTING_FREQUENCY//6)
+        playerEliminationReturns[currentPlayer] = playerPoisoneds[currentPlayer]['eliminationReturn']
         playerPoisoneds[currentPlayer] = {"symptomStart": -1, "elimination": -1, "eliminationReturn": -1}
         allowedToMove = False
         indent -= 1
