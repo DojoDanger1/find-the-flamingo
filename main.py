@@ -22,7 +22,7 @@ NUM_PLAYERS = 5
 ROLES_ENABLED = True
 CHAOS_MODE = True
 STALLER_ABILITIES = ['Murderer', 'Toxicologist']
-JESTER_ABILITIES = ['Shifter', 'Guesser']
+JESTER_ABILITIES = ['Shifter', 'Guesser', 'Hypnotist']
 FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'None']
 CHANCE_OF_LOVERS = 0.3
 CHANCE_OF_3_WAY = 0.1
@@ -43,7 +43,7 @@ WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
 LYING_GAME_DIFFICULTY = 4
 ACID_PRICE = 5
-CONFIRM_STAY_HERE = False
+CONFIRM_STAY_HERE = True
 
 #assertions
 assert GRID_SIZE >= 3, 'grid size must be greater than or equal to 3!'
@@ -806,6 +806,30 @@ def areThereAnyPurgatories(board, paths, includeHighways,  highwayInformation):
                 return True
     return False
 
+def askRange(prompt, lowerBound, upperBound):
+    global indent
+    option = input(prompt)
+    if option == '':
+        option = '0'
+    try:
+        option = int(option)
+        if option < lowerBound:
+            indent += 1
+            print(f'{" "*indent}{ERROR}Invalid Answer! Must be a number from {lowerBound} to {upperBound}{CLEAR}')
+            indent -= 1
+            option = askRange(prompt, lowerBound, upperBound)
+        elif option > upperBound:
+            indent += 1
+            print(f'{" "*indent}{ERROR}Invalid Answer! Must be a number from {lowerBound} to {upperBound}{CLEAR}')
+            indent -= 1
+            option = askRange(prompt, lowerBound, upperBound)
+    except ValueError:
+        indent += 1
+        print(f'{" "*indent}{ERROR}Invalid Answer! Must be a number from {lowerBound} to {upperBound}{CLEAR}')
+        indent -= 1
+        option = askRange(prompt, lowerBound, upperBound)
+    return str(option)
+
 def askOptions(prompt, numOptions):
     global indent
     option = input(prompt)
@@ -898,6 +922,18 @@ def evaluateSpaceType(spaceType):
     global winner
     hasBeenEliminated = False
     indent += 1
+    if playerHypnosisRounds[currentPlayer] <= roundNum and playerHypnosisRounds[currentPlayer] != -1:
+        playerHypnosisRounds[currentPlayer] = -1
+        print(f'{" "*indent}You landed on {grammatiseSpaceType('flamingo', punctuation=True)}')
+        indent += 1
+        print(f'{" "*indent}You must play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
+        print(f'{" "*indent}{RED}If you lose{CLEAR}, you must return to the {HOME_SPACE}home{CLEAR} space.')
+        time.sleep(1)
+        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo game{CLEAR} you will play is:')
+        spinTheFlamingoWheel()
+        indent -= 1
+        print(f'{" "*indent}{RED}Unfortunately{CLEAR}, you have been {FLAMINGO_SPACE}hypnotised{CLEAR}, and this {FLAMINGO_SPACE}flamingo space{CLEAR} was not real.')
+        time.sleep(2)
     print(f'{" "*indent}You landed on {grammatiseSpaceType(spaceType, punctuation=True)}')
     if spaceType == 'empty':
         indent += 1
@@ -3305,7 +3341,19 @@ def printRoles(roles, specialAbilities, loverPlayers):
                     print(f'{" "*indent}This {GRAY}swap{CLEAR} will take place {RED}immediately{CLEAR}.')
                     print(f'{" "*indent}After the vote has {ORANGE}finished{CLEAR}, it will be revealed that the {GRAY}shifter{CLEAR} has used their ability.')
                     indent -= 1
-                    print(f'{" "*indent}You and the chosen player will swap both your {PINK if playerRoles[player] == "Jester" else PAPAS_WINGERIA_SPACE}role{CLEAR} and your {GRAY}special ability{CLEAR}')
+                    print(f'{" "*indent}You and the chosen player will swap both your {PINK if playerRoles[player] == "Jester" else PAPAS_WINGERIA_SPACE}role{CLEAR} and your {GRAY}special ability{CLEAR}.')
+                    indent -= 1
+                if specialAbilities[player] == 'Hypnotist':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}On a {ORANGE}chosen round{CLEAR}, the {YELLOW}chosen player{CLEAR} will appear to land on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                    print(f'{" "*indent}They will play a few rounds, before realising they are in fact {RED}not{CLEAR} on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                    indent += 1
+                    print(f'{" "*indent}If the {YELLOW}chosen player{CLEAR} does not move or is eliminated on the {ORANGE}chosen round{CLEAR}, the {FLAMINGO_SPACE}hypnosis{CLEAR} will occur at the next possible opportunity.')
+                    print(f'{" "*indent}If you {FLAMINGO_SPACE}hypnotise{CLEAR} a player that is already {FLAMINGO_SPACE}hypnotised{CLEAR}, the previous {FLAMINGO_SPACE}hypnosis{CLEAR} will be {RED}overriden{CLEAR}.')
+                    indent -= 2
+                    print(f'{" "*indent}{GRAY}This does not benefit you or them in any way, but is quite funny.{CLEAR}')
                     indent -= 1
                 if specialAbilities[player] == 'Medic':
                     indent += 1
@@ -3441,7 +3489,7 @@ def evaluateVote(final):
                 votes[0] += 1
                 individualVotes[player] = 0
             if CHAOS_MODE:
-                if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic'):
+                if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic') and not (playerSpecialAbilities[player] == 'Hypnotist' and final):
                     print('-'*50)
                     print(f'{" "*indent}Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player])}')
                     indent += 1
@@ -3742,7 +3790,7 @@ def evalSpecialAbility(specialAbility):
         indent -= 1
     if specialAbility == 'Guesser':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {YELLOW}guess the special ability{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
-        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Shifter', 'Guesser', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer']
+        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Shifter', 'Guesser', 'Hypnotist', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer']
         indent += 1
         print(f'{" "*indent}What special ability do you think {YELLOW}Player {chosenPlayer}{CLEAR} has?')
         indent += 1
@@ -3789,6 +3837,10 @@ def evalSpecialAbility(specialAbility):
         playerSpecialAbilities[chosenPlayer] = playerSpecialAbilities[currentPlayer]
         playerSpecialAbilities[currentPlayer] = temp
         shifterShifted = True
+    if specialAbility == 'Hypnotist':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {FLAMINGO_SPACE}hypnotise{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
+        hypnosisRound = int(askRange(f'{" "*indent}{TURQUOISE}Enter the round you would like {YELLOW}Player {chosenPlayer}{TURQUOISE} to be {FLAMINGO_SPACE}hypnotised{TURQUOISE} ({roundNum}-{STALLER_WIN}): {CLEAR}', roundNum, STALLER_WIN))
+        playerHypnosisRounds[chosenPlayer] = hypnosisRound
     if specialAbility == 'Medic':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GREEN}shield{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
         shieldedPlayers.append(chosenPlayer)
@@ -4689,6 +4741,8 @@ def grammatiseRole(role):
         return f'{YELLOW}Guesser{CLEAR}'
     if role == 'Shifter':
         return f'{GRAY}Shifter{CLEAR}'
+    if role == 'Hypnotist':
+        return f'{FLAMINGO_SPACE}Hypnotist{CLEAR}'
     if role == 'Medic':
         return f'{GREEN}Medic{CLEAR}'
     if role == 'Cleaner':
@@ -4709,6 +4763,8 @@ def getAbilityDescription(specialAbility):
         return f'guess a player\'s {YELLOW}special ability{CLEAR}'
     if specialAbility == 'Shifter':
         return f'{GRAY}swap roles{CLEAR} with another player'
+    if specialAbility == 'Hypnotist':
+        return f'{FLAMINGO_SPACE}hypnotise{CLEAR} another player'
     if specialAbility == 'Medic':
         return f'choose a player to {GREEN}sheild{CLEAR} from {RED}murder{CLEAR}'
     if specialAbility == 'Cleaner':
@@ -4903,6 +4959,7 @@ playerEliminationReturns = [None]
 playerPoisoneds = [None]
 playerHealedPoisons = [None]
 playerGreenPotionTurns = [None]
+playerHypnosisRounds = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
     playerSpecialAbilities.append('None')
@@ -4923,6 +4980,7 @@ for _ in range(NUM_PLAYERS):
     playerPoisoneds.append({"symptomStart": -1, "elimination": -1, "eliminationReturn": -1})
     playerHealedPoisons.append(-1)
     playerGreenPotionTurns.append(0)
+    playerHypnosisRounds.append(-1)
 
 numTimeMachines = 0
 
