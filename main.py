@@ -21,7 +21,7 @@ BIAS = 0.05
 NUM_PLAYERS = 5
 ROLES_ENABLED = True
 CHAOS_MODE = True
-STALLER_ABILITIES = ['Murderer', 'Toxicologist']
+STALLER_ABILITIES = ['Murderer', 'Toxicologist', 'Smasher']
 JESTER_ABILITIES = ['Shifter', 'Guesser', 'Hypnotist']
 FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'None']
 CHANCE_OF_LOVERS = 0.3
@@ -1024,6 +1024,7 @@ def evaluateSpaceType(spaceType):
             playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
             playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
             playerGreenPotionTurns[player] = prevPlayerGreenPotionTurns[-targetTime][player]
+            playerSmasheds[player] = prevPlayerSmasheds[-targetTime][player]
             for _ in range(targetTime-1):
                 for i in range(1, len(prevPlayerPositions)):
                     prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
@@ -1040,6 +1041,7 @@ def evaluateSpaceType(spaceType):
                     prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
                     prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
                     prevPlayerGreenPotionTurns[(-1)*i][player] = copy.deepcopy(prevPlayerGreenPotionTurns[(-1)*(i+1)][player])
+                    prevPlayerSmasheds[(-1)*i][player] = copy.deepcopy(prevPlayerSmasheds[(-1)*(i+1)][player])
             indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
@@ -1765,6 +1767,8 @@ def useItem():
     global playerPoisoneds
     global playerHealedPoisons
     global playerGreenPotionTurns
+    global playerHypnosisRounds
+    global playerSmasheds
     global itemPrices
     global itemRewards
     global itemDescriptions
@@ -2064,6 +2068,8 @@ def useItem():
                                 playerPoisoneds = prevPlayerPoisoneds[-1-NUM_PLAYERS+numEliminated]
                                 playerHealedPoisons = prevPlayerHealedPoisons[-1-NUM_PLAYERS+numEliminated]
                                 playerGreenPotionTurns = prevPlayerGreenPotionTurns[-1-NUM_PLAYERS+numEliminated]
+                                playerHypnosisRounds = prevPlayerHypnosisRounds[-1-NUM_PLAYERS+numEliminated]
+                                playerSmasheds = prevPlayerSmasheds[-1-NUM_PLAYERS+numEliminated]
                                 itemPrices = prevItemPrices[-1-NUM_PLAYERS+numEliminated]
                                 itemRewards = prevItemRewards[-1-NUM_PLAYERS+numEliminated]
                                 decorators = prevDecorators[-1-NUM_PLAYERS+numEliminated]
@@ -2095,6 +2101,8 @@ def useItem():
                                     prevPlayerPoisoneds.pop(-1)
                                     prevPlayerHealedPoisons.pop(-1)
                                     prevPlayerGreenPotionTurns.pop(-1)
+                                    prevPlayerHypnosisRounds.pop(-1)
+                                    prevPlayerSmasheds.pop(-1)
                                     prevItemPrices.pop(-1)
                                     prevItemRewards.pop(-1)
                                     prevDecorators.pop(-1)
@@ -3294,7 +3302,7 @@ def printRoles(roles, specialAbilities, loverPlayers):
                     print(f'{" "*indent}They will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
                     indent += 1
                     if 'Medic' in specialAbilities:
-                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from {RED}murder{CLEAR}')
+                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from {RED}murder{CLEAR}.')
                     indent -= 1
                     print(f'{" "*indent}The {YELLOW}remaining players{CLEAR} will be alerted during the {ORANGE}voting results{CLEAR}.')
                     indent -= 1
@@ -3314,6 +3322,17 @@ def printRoles(roles, specialAbilities, loverPlayers):
                     print(f'{" "*indent}And will end with them being {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} before the next vote.')
                     if 'Medic' in specialAbilities:
                         print(f'{" "*indent}A {GREEN}Medic{CLEAR} will be able to heal a {DARK_GREEN}poisoned{CLEAR} player by occupying the {ORANGE}same space{CLEAR} as them.')
+                    indent -= 1
+                if specialAbilities[player] == 'Smasher':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}By {PAPAS_WINGERIA_SPACE}smashing{CLEAR} a player, you will break their legs, because you {PAPAS_WINGERIA_SPACE}smashed{CLEAR} them so {RED}violently{CLEAR}.')
+                    print(f'{" "*indent}{PAPAS_WINGERIA_SPACE}Smashed{CLEAR} players will have a {ORANGE}50%{CLEAR} chance to be able to move, after their {GYM_SPACE}speed{CLEAR} check.')
+                    print(f'{" "*indent}Broken legs will {GREEN}heal{CLEAR} at the following vote.')
+                    indent -= 1
+                    if 'Medic' in specialAbilities:
+                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from being {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
                     indent -= 1
                 if specialAbilities[player] == 'Seer':
                     indent += 1
@@ -3365,6 +3384,11 @@ def printRoles(roles, specialAbilities, loverPlayers):
                     if 'Toxicologist' in specialAbilities:
                         print(f'{" "*indent}If you land on the {ORANGE}same space{CLEAR} as a player who has been {DARK_GREEN}poisoned{CLEAR} by the {DARK_GREEN}Toxicologist{CLEAR},')
                         print(f'{" "*indent}They will be {GREEN}healed{CLEAR} {ORANGE}{VOTING_FREQUENCY//10} to {VOTING_FREQUENCY//3} rounds{CLEAR} later.')
+                    if 'Smasher' in specialAbilities:
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                        indent -= 1
                     indent -= 1
                 if specialAbilities[player] == 'Cleaner':
                     indent += 1
@@ -3393,6 +3417,7 @@ def printRoles(roles, specialAbilities, loverPlayers):
             print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will also be {RED}voted out{CLEAR}.')
             print(f'{" "*indent}If they are {RED}murdered{CLEAR}, you will also be {RED}murdered{CLEAR}.')
             print(f'{" "*indent}If they are {DARK_GREEN}poisoned{CLEAR}, you will also be {DARK_GREEN}poisoned{CLEAR}.')
+            print(f'{" "*indent}If they are {PAPAS_WINGERIA_SPACE}smashed{CLEAR}, you will also be {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
             indent -= 1
             if roles[player] == 'Finder':
                 print(f'{" "*indent}Just because you are a {CYAN}Finder{CLEAR}, it does not mean that you are in {PINK}love{CLEAR} with a {CYAN}Finder{CLEAR}.')
@@ -3410,11 +3435,17 @@ def evaluateVote(final):
     global currentPlayer
     global voteSwaps
     global murderedPlayers
+    global smashedPlayers
     global shieldedPlayers
     global guesserFailed
     global shifterShifted
     global rearrangeRoles
     global loverPlayers
+    global playerSmasheds
+    #unsmash players
+    playerSmasheds = [None]
+    for _ in range(NUM_PLAYERS):
+        playerSmasheds.append(False)
     #voting preamble
     os.system('clear')
     if final:
@@ -3454,6 +3485,7 @@ def evaluateVote(final):
         individualVotes.append(0)
     voteSwaps = []
     murderedPlayers = []
+    smashedPlayers = []
     shieldedPlayers = []
     guesserFailed = False
     shifterShifted = False
@@ -3557,7 +3589,7 @@ def evaluateVote(final):
     else:
         print(f'That means {YELLOW}Player {voted}{CLEAR} was voted out.')
         jesterWon = evalVoteOut(voted, final, jesterWon)
-    #evaluate murder
+    #evaluate murder and smashing
     for player in range(1, NUM_PLAYERS+1):
         if player not in eliminatedPlayers:
             if player in murderedPlayers and player not in shieldedPlayers:
@@ -3571,6 +3603,19 @@ def evaluateVote(final):
             elif player in murderedPlayers and player in shieldedPlayers:
                 time.sleep(1)
                 print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+            if player in smashedPlayers and player not in shieldedPlayers:
+                time.sleep(1)
+                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {PAPAS_WINGERIA_SPACE}smashed{CLEAR}!')
+                indent += 1
+                if not final:
+                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} until the next vote.')
+                else:
+                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} forever.')
+                playerSmasheds[player] = True
+                indent -= 1
+            elif player in smashedPlayers and player in shieldedPlayers:
+                time.sleep(1)
+                print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Smasher{CLEAR} tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
             elif guesserFailed:
                 if player == playerSpecialAbilities.index('Guesser'):
                     time.sleep(1)
@@ -3773,6 +3818,13 @@ def evalSpecialAbility(specialAbility):
             chosenPlayerLovers = [p for p in loverPlayers if p != chosenPlayer]
             for lover in chosenPlayerLovers:
                 playerPoisoneds[lover] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+(5*(VOTING_FREQUENCY//6)), "eliminationReturn": roundNum+VOTING_FREQUENCY}
+    if specialAbility == 'Smasher':
+        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {PAPAS_WINGERIA_SPACE}smash{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
+        smashedPlayers.append(chosenPlayer)
+        if chosenPlayer in loverPlayers:
+            for lover in loverPlayers:
+                if lover not in smashedPlayers:
+                    smashedPlayers.append(lover)
     if specialAbility == 'Seer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {CYAN}see the role{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
         indent += 1
@@ -3790,7 +3842,7 @@ def evalSpecialAbility(specialAbility):
         indent -= 1
     if specialAbility == 'Guesser':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {YELLOW}guess the special ability{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
-        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Shifter', 'Guesser', 'Hypnotist', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer']
+        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Smasher', 'Shifter', 'Guesser', 'Hypnotist', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer']
         indent += 1
         print(f'{" "*indent}What special ability do you think {YELLOW}Player {chosenPlayer}{CLEAR} has?')
         indent += 1
@@ -4350,7 +4402,7 @@ def playNumberGame(gameUnit, gameStop):
                 elif numWordSyllables == gameUnit:
                     failReason = f'{humanAnswer} has {gameUnit} Syllables'
                 else:
-                    failReason = f'That was so stupid i\'m not even going to say what was wrong'
+                    failReason = f'That was so stupid I\'m not even going to say what was wrong'
                 print(f'{" "*indent}{RED}Incorrect! {failReason}.{CLEAR}')
                 correct = False
             indent -= 1
@@ -4735,6 +4787,8 @@ def grammatiseRole(role):
         return f'{RED}Murderer{CLEAR}'
     if role == 'Toxicologist':
         return f'{DARK_GREEN}Toxicologist{CLEAR}'
+    if role == 'Smasher':
+        return f'{PAPAS_WINGERIA_SPACE}Smasher{CLEAR}'
     if role == 'Seer':
         return f'{CYAN}Seer{CLEAR}'
     if role == 'Guesser':
@@ -4757,6 +4811,8 @@ def getAbilityDescription(specialAbility):
         return f'choose a player to {RED}murder{CLEAR}'
     if specialAbility == 'Toxicologist':
         return f'choose a player to {DARK_GREEN}poison{CLEAR}'
+    if specialAbility == 'Smasher':
+        return f'choose a player to {PAPAS_WINGERIA_SPACE}smash{CLEAR}'
     if specialAbility == 'Seer':
         return f'choose a player to {CYAN}have their role revealed{CLEAR}'
     if specialAbility == 'Guesser':
@@ -4766,7 +4822,7 @@ def getAbilityDescription(specialAbility):
     if specialAbility == 'Hypnotist':
         return f'{FLAMINGO_SPACE}hypnotise{CLEAR} another player'
     if specialAbility == 'Medic':
-        return f'choose a player to {GREEN}sheild{CLEAR} from {RED}murder{CLEAR}'
+        return f'choose a player to {GREEN}sheild{CLEAR}'
     if specialAbility == 'Cleaner':
         return f'{SHOP_SPACE}remove half{CLEAR} of the {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}'
     if specialAbility == 'Mewer':
@@ -4818,6 +4874,8 @@ def saveToFile(filename):
         "playerPoisoneds": playerPoisoneds,
         "playerHealedPoisons": playerHealedPoisons,
         "playerGreenPotionTurns": playerGreenPotionTurns,
+        "playerHypnosisRounds": playerHypnosisRounds,
+        "playerSmasheds": playerSmasheds,
         "itemPrices": itemPrices,
         "itemRewards": itemRewards,
         "prevBoards": prevBoards,
@@ -4848,6 +4906,8 @@ def saveToFile(filename):
         "prevPlayerPoisoneds": prevPlayerPoisoneds,
         "prevPlayerHealedPoisons": prevPlayerHealedPoisons,
         "prevPlayerGreenPotionTurns": prevPlayerGreenPotionTurns,
+        "prevPlayerHypnosisRounds": playerHypnosisRounds,
+        "prevPlayerSmasheds": playerSmasheds,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
@@ -4960,6 +5020,7 @@ playerPoisoneds = [None]
 playerHealedPoisons = [None]
 playerGreenPotionTurns = [None]
 playerHypnosisRounds = [None]
+playerSmasheds = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
     playerSpecialAbilities.append('None')
@@ -4981,6 +5042,7 @@ for _ in range(NUM_PLAYERS):
     playerHealedPoisons.append(-1)
     playerGreenPotionTurns.append(0)
     playerHypnosisRounds.append(-1)
+    playerSmasheds.append(False)
 
 numTimeMachines = 0
 
@@ -5011,6 +5073,8 @@ prevPlayerEliminationReturns = [copy.deepcopy(playerEliminationReturns)]
 prevPlayerPoisoneds = [copy.deepcopy(playerPoisoneds)]
 prevPlayerHealedPoisons = [copy.deepcopy(playerHealedPoisons)]
 prevPlayerGreenPotionTurns = [copy.deepcopy(playerGreenPotionTurns)]
+prevPlayerHypnosisRounds = [copy.deepcopy(playerHypnosisRounds)]
+prevPlayerSmasheds = [copy.deepcopy(playerSmasheds)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
@@ -5138,7 +5202,12 @@ while running:
             print(f'{" "*indent}Due to your {GYM_SPACE}speed ({playerSpeeds[currentPlayer]}){CLEAR}, you get {GREEN}{moves}{CLEAR} moves this turn!')
             indent -= 1
         for _ in range(moves):
-            if board[playerPositions[currentPlayer]] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers:
+            if playerSmasheds[currentPlayer] and random.choice([True,False]):
+                allowedToMove = False
+                indent += 1
+                print(f'{" "*indent}Due to your {RED}broken legs{CLEAR}, you unfortunately cannot take your move.')
+                indent -= 1
+            if board[playerPositions[currentPlayer]] != 'shadow realm' and winner == None and currentPlayer not in eliminatedPlayers and allowedToMove:
                 indent += 1
                 #display move options
                 sure = False
@@ -5258,6 +5327,8 @@ while running:
                 playerPoisoneds = data["playerPoisoneds"]
                 playerHealedPoisons = data["playerHealedPoisons"]
                 playerGreenPotionTurns = data["playerGreenPotionTurns"]
+                playerHypnosisRounds = data["playerHypnosisRounds"]
+                playerSmasheds = data["playerSmasheds"]
                 itemPrices = data["itemPrices"]
                 itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
@@ -5288,6 +5359,8 @@ while running:
                 prevPlayerPoisoneds = data["prevPlayerPoisoneds"]
                 prevPlayerHealedPoisons = data["prevPlayerHealedPoisons"]
                 prevPlayerGreenPotionTurns = data["prevPlayerGreenPotionTurns"]
+                prevPlayerHypnosisRounds = data["prevPlayerHypnosisRounds"]
+                prevPlayerSmasheds = data["prevPlayerSmasheds"]
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
@@ -5315,6 +5388,8 @@ while running:
         prevPlayerPoisoneds.append(copy.deepcopy(playerPoisoneds))
         prevPlayerHealedPoisons.append(copy.deepcopy(playerHealedPoisons))
         prevPlayerGreenPotionTurns.append(copy.deepcopy(playerGreenPotionTurns))
+        prevPlayerHypnosisRounds.append(copy.deepcopy(playerHypnosisRounds))
+        prevPlayerSmasheds.append(copy.deepcopy(playerSmasheds))
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
