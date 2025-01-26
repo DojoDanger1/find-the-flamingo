@@ -24,14 +24,14 @@ CHAOS_MODE = True
 STALLER_ABILITIES = ['Murderer', 'Toxicologist']
 JESTER_ABILITIES = ['Shifter', 'Guesser']
 FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'None']
-CHANCE_OF_LOVERS = 0.35
-CHANCE_OF_3_WAY = 0.15
+CHANCE_OF_LOVERS = 0.3
+CHANCE_OF_3_WAY = 0.1
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
-STALLER_WIN = 150
-VOTING_FREQUENCY = 30
+STALLER_WIN = 20
+VOTING_FREQUENCY = 10
 OTHERS_CANT_SEE_FLAMINGO = True
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
@@ -43,7 +43,7 @@ WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
 LYING_GAME_DIFFICULTY = 4
 ACID_PRICE = 5
-CONFIRM_STAY_HERE = True
+CONFIRM_STAY_HERE = False
 
 #assertions
 assert GRID_SIZE >= 3, 'grid size must be greater than or equal to 3!'
@@ -3388,7 +3388,7 @@ def evaluateVote(final):
     #actual voting
     voteOrder = list(range(1, NUM_PLAYERS+1))
     random.shuffle(voteOrder)
-    votes = [None]
+    votes = [0]
     individualVotes = [None]
     for _ in range(NUM_PLAYERS):
         votes.append(0)
@@ -3409,14 +3409,30 @@ def evaluateVote(final):
             print('-'*50)
             print(f'{YELLOW}Player {player}{CLEAR}, ensure that {RED}no other player{CLEAR} can see the screen.')
             indent += 1
-            vote = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you think is the {RED}Staller{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
-            votes[vote] += 1
-            individualVotes[player] = vote
-            indent -= 1
+            if not final:
+                print(f'{" "*indent}Would you like to vote? If more people {ORANGE}skip{CLEAR} the vote, than for a {YELLOW}particular player{CLEAR}, then no one will be eliminated.')
+                indent += 1
+                print(f'{" "*indent}0: {ORANGE}Skip{CLEAR} Vote')
+                print(f'{" "*indent}1: Vote for the {RED}Staller{CLEAR}')
+                indent -= 1
+                notSkipVote = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            else:
+                notSkipVote = 1
+            if notSkipVote == 1:
+                if not final:
+                    indent += 1
+                vote = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you think is the {RED}Staller{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
+                votes[vote] += 1
+                individualVotes[player] = vote
+                if not final:
+                    indent -= 1
+            else:
+                votes[0] += 1
+                individualVotes[player] = 0
             if CHAOS_MODE:
                 if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic'):
                     print('-'*50)
-                    print(f'Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player])}')
+                    print(f'{" "*indent}Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player])}')
                     indent += 1
                     print(f'{" "*indent}Would you like to use your special ability?')
                     indent += 1
@@ -3429,6 +3445,7 @@ def evaluateVote(final):
                         evalSpecialAbility(playerSpecialAbilities[player])
                         indent -= 1
                     indent -= 1
+            indent -= 1
             print('-'*50)
             input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
     currentPlayer = 1
@@ -3453,7 +3470,10 @@ def evaluateVote(final):
         print(f'{" "*indent}The {GRAY}shifter{CLEAR} has shifted their role!')
         time.sleep(1)
     tie = False
+    skipped = False
     voted = votes.index(max([vote for vote in votes if vote != None]))
+    if voted == 0:
+        skipped = True
     if votes.count(max([vote for vote in votes if vote != None])) > 1:
         tie = True
     input(f'{TURQUOISE}Press Enter to see the results {CLEAR}')
@@ -3462,7 +3482,10 @@ def evaluateVote(final):
         if player not in eliminatedPlayers:
             print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} voted for...')
             time.sleep(1.5)
-            print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted for {YELLOW}Player {individualVotes[player]}{CLEAR}')
+            if individualVotes[player] == 0:
+                print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted to {ORANGE}skip{CLEAR}!')
+            else:
+                print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted for {YELLOW}Player {individualVotes[player]}{CLEAR}!')
             time.sleep(0.75)
     indent -= 1
     #evaluation
@@ -3470,6 +3493,8 @@ def evaluateVote(final):
     jesterWon = False
     if tie:
         print(f'That means there was a {ORANGE}tie{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
+    elif skipped:
+        print(f'That means the vote was {ORANGE}skipped{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
     else:
         print(f'That means {YELLOW}Player {voted}{CLEAR} was voted out.')
         jesterWon = evalVoteOut(voted, final, jesterWon)
