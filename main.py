@@ -23,7 +23,7 @@ ROLES_ENABLED = True
 CHAOS_MODE = True
 STALLER_ABILITIES = ['Murderer', 'Toxicologist', 'Smasher']
 JESTER_ABILITIES = ['Shifter', 'Guesser', 'Hypnotist']
-FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'None']
+FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'Cartographer','None']
 CHANCE_OF_LOVERS = 0.3
 CHANCE_OF_3_WAY = 0.1
 STARTING_INVENTORY = []
@@ -85,6 +85,7 @@ TURQUOISE = getColour(0, 255, 183)
 GRAY = getColour(69, 69, 69)
 PINK = getColour(227, 61, 208)
 DARK_GREEN = getColour(0, 153, 36)
+BEIGE = getColour(168, 159, 140)
 
 EMPTY_SPACE = getColour(138, 138, 138)
 FLAMINGO_SPACE = getColour(255, 0, 234)
@@ -806,6 +807,13 @@ def areThereAnyPurgatories(board, paths, includeHighways,  highwayInformation):
                 return True
     return False
 
+def addNewInformationToMap(currentMapLength):
+    newInformation = SHORTEST_PATH_TO_FLAMINGO[currentMapLength]
+    movesFromStart = findPossibleMoves(paths, newInformation['start'], True, highwayInformation)
+    correctMove = [move for move in movesFromStart if move['destination'] == newInformation['end']][0]
+    mapInformation = {'start': board[newInformation['start']], 'direction': correctMove['direction'], 'end': board[newInformation['end']]}
+    playerMaps[currentPlayer].append(mapInformation)
+
 def askRange(prompt, lowerBound, upperBound):
     global indent
     option = input(prompt)
@@ -1522,7 +1530,8 @@ def spinTheInformationWheel():
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR}.',
         f'{" "*indent}The number of {SHOP_SPACE}highways{CLEAR} into the {SHADOW_REALM_SPACE}shadow realm{CLEAR}.',
         f'{" "*indent}The number of {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.',
-        f'{" "*indent}The position of a {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR} space.'
+        f'{" "*indent}The position of a {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR} space.',
+        f'{" "*indent}The route to the {FLAMINGO_SPACE}flamingo space{CLEAR}!'
     ]
     result = spinWheelVisually(options)
     print(f'\x1B[A\x1B[2K{result}')
@@ -1579,6 +1588,29 @@ def spinTheInformationWheel():
             space = random.choice(random.choice(quantumEntanglements))
             coordinates = ", ".join([f"{ORANGE}{axis}{CLEAR}: {GREEN}{space[n]+1}{CLEAR}" for (n, axis) in enumerate(AXIS_ORDER)])
             print(f'{" "*indent}The space at ({coordinates}) has been {ENTANGLEMENT_SPACE}quantum-entangled{CLEAR}.')
+    if result == f'{" "*(indent-1)}The route to the {FLAMINGO_SPACE}flamingo space{CLEAR}!':
+        print(f'{" "*indent}This {INFORMATION_SPACE}information{CLEAR} is {RED}private{CLEAR}! Please ensure {YELLOW}Player {currentPlayer}{CLEAR} is the only player who can see the screen.')
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are ready to reveal your {BEIGE}map{TURQUOISE} {CLEAR}')
+        indent += 1
+        currentMapLength = len(playerMaps[currentPlayer])
+        addNewLine = False
+        if currentMapLength < len(SHORTEST_PATH_TO_FLAMINGO):
+            addNewInformationToMap(currentMapLength)
+        else:
+            print(f'{" "*indent}Your {BEIGE}map{CLEAR} is already {GREEN}complete{CLEAR}!')
+            addNewLine = True
+        print(f'{" "*indent}Your {BEIGE}map{CLEAR} so far:')
+        indent += 1
+        for information in playerMaps[currentPlayer]:
+            print(f'{" "*indent}{grammatiseSpaceType(information["start"], punctuation=False, title=True, article=False, space=False)} {BEIGE}--- {information["direction"]} -->{CLEAR} {grammatiseSpaceType(information["end"], punctuation=False, title=True, article=False, space=False)}')
+        indent -= 2
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are ready to hide your {BEIGE}map{TURQUOISE} {CLEAR}')
+        indent += 1
+        linesToRemove = len(playerMaps[currentPlayer])+2
+        if addNewLine:
+            linesToRemove += 1
+        print(f'{"\x1B[A\x1B[2K"*linesToRemove}{" "*indent}{BEIGE}????{CLEAR}')
+        indent -= 1
     indent -= 3
 
 def spinTheFlamingoWheel():
@@ -1769,6 +1801,7 @@ def useItem():
     global playerGreenPotionTurns
     global playerHypnosisRounds
     global playerSmasheds
+    global playerMaps
     global itemPrices
     global itemRewards
     global itemDescriptions
@@ -2070,6 +2103,7 @@ def useItem():
                                 playerGreenPotionTurns = prevPlayerGreenPotionTurns[-1-NUM_PLAYERS+numEliminated]
                                 playerHypnosisRounds = prevPlayerHypnosisRounds[-1-NUM_PLAYERS+numEliminated]
                                 playerSmasheds = prevPlayerSmasheds[-1-NUM_PLAYERS+numEliminated]
+                                playerMaps = prevPlayerMaps[-1-NUM_PLAYERS+numEliminated]
                                 itemPrices = prevItemPrices[-1-NUM_PLAYERS+numEliminated]
                                 itemRewards = prevItemRewards[-1-NUM_PLAYERS+numEliminated]
                                 decorators = prevDecorators[-1-NUM_PLAYERS+numEliminated]
@@ -2103,6 +2137,7 @@ def useItem():
                                     prevPlayerGreenPotionTurns.pop(-1)
                                     prevPlayerHypnosisRounds.pop(-1)
                                     prevPlayerSmasheds.pop(-1)
+                                    prevPlayerMaps.pop(-1)
                                     prevItemPrices.pop(-1)
                                     prevItemRewards.pop(-1)
                                     prevDecorators.pop(-1)
@@ -3404,6 +3439,16 @@ def printRoles(roles, specialAbilities, loverPlayers):
                     indent += 1
                     print(f'{" "*indent}You may choose yourself.')
                     indent -= 2
+                if specialAbilities[player] == 'Cartographer':
+                    indent += 1
+                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                    indent += 1
+                    print(f'{" "*indent}Your {BEIGE}map{CLEAR} consists of {GREEN}moves{CLEAR}, which contain the starting space, direction, and ending space.')
+                    print(f'{" "*indent}At each vote, you can learn 1 {GREEN}move{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
+                    print(f'{" "*indent}At the final vote, you can learn the {ORANGE}full route{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
+                    indent -= 1
+                    print(f'{" "*indent}{GRAY}You can chose whether or not to share this information or keep it secret{CLEAR}')
+                    indent -= 1
         indent -= 1
         print('-'*50)
         if player in loverPlayers:
@@ -3533,7 +3578,7 @@ def evaluateVote(final):
                     useAbility = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
                     if useAbility == 1:
                         indent += 1
-                        evalSpecialAbility(playerSpecialAbilities[player])
+                        evalSpecialAbility(playerSpecialAbilities[player], final)
                         indent -= 1
                     indent -= 1
             indent -= 1
@@ -3799,7 +3844,7 @@ def evalVoteOut(voted, final, jesterWon):
                 print(f'{" "*indent}These players are no longer {PINK}lovers{CLEAR}.')
     return jesterWon
 
-def evalSpecialAbility(specialAbility):
+def evalSpecialAbility(specialAbility, final):
     global indent
     global mewChance
     global guesserFailed
@@ -3842,7 +3887,7 @@ def evalSpecialAbility(specialAbility):
         indent -= 1
     if specialAbility == 'Guesser':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {YELLOW}guess the special ability{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
-        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Smasher', 'Shifter', 'Guesser', 'Hypnotist', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer']
+        allAbilities = ['None', 'Murderer', 'Toxicologist', 'Smasher', 'Shifter', 'Guesser', 'Hypnotist', 'Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'Cartographer']
         indent += 1
         print(f'{" "*indent}What special ability do you think {YELLOW}Player {chosenPlayer}{CLEAR} has?')
         indent += 1
@@ -3872,7 +3917,7 @@ def evalSpecialAbility(specialAbility):
                 indent -= 1
                 choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
                 if choice == 0:
-                    evalSpecialAbility(playerSpecialAbilities[chosenPlayer])
+                    evalSpecialAbility(playerSpecialAbilities[chosenPlayer], final)
                 if choice == 1:
                     murderedPlayers.append(chosenPlayer)
             indent -= 1
@@ -3924,6 +3969,22 @@ def evalSpecialAbility(specialAbility):
                 else:
                     valid = True
             voteSwaps.append([player1, player2])
+    if specialAbility == 'Cartographer':
+        currentMapLength = len(playerMaps[currentPlayer])
+        if currentMapLength < len(SHORTEST_PATH_TO_FLAMINGO):
+            if not final:
+                addNewInformationToMap(currentMapLength)
+            else:
+                while currentMapLength < len(SHORTEST_PATH_TO_FLAMINGO):
+                    addNewInformationToMap(currentMapLength)
+                    currentMapLength = len(playerMaps[currentPlayer])
+        else:
+            print(f'{" "*indent}Your {BEIGE}map{CLEAR} is already {GREEN}complete{CLEAR}!')
+        print(f'{" "*indent}Your {BEIGE}map{CLEAR} so far:')
+        indent += 1
+        for information in playerMaps[currentPlayer]:
+            print(f'{" "*indent}{grammatiseSpaceType(information["start"], punctuation=False, title=True, article=False, space=False)} {BEIGE}--- {information["direction"]} -->{CLEAR} {grammatiseSpaceType(information["end"], punctuation=False, title=True, article=False, space=False)}')
+        indent -= 1
 
 def evaluatePoison():
     global indent
@@ -4739,38 +4800,38 @@ def playLyingGame(numQuestions, only=False):
     indent -= 1
     return result
 
-def grammatiseSpaceType(spaceType, punctuation=False, title=False, article=True):
+def grammatiseSpaceType(spaceType, punctuation=False, title=False, article=True, space=True):
     if spaceType == 'empty':
-        return f'{"an " if article else ""}{EMPTY_SPACE}{"Empty" if title else "empty"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"an " if article else ""}{EMPTY_SPACE}{"Empty" if title else "empty"}{CLEAR}{" space" if space else ""}{"." if punctuation else ""}'
     if spaceType == 'flamingo':
-        return f'{"the " if article else ""}{FLAMINGO_SPACE}{"Flamingo" if title else "flamingo"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"the " if article else ""}{FLAMINGO_SPACE}{"Flamingo" if title else "flamingo"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'home':
-        return f'{"the " if article else ""}{HOME_SPACE}{"Home" if title else "home"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"the " if article else ""}{HOME_SPACE}{"Home" if title else "home"}{CLEAR}{" space" if space else ""}{"." if punctuation else ""}'
     if spaceType == 'shadow realm':
-        return f'{"the " if article else ""}{SHADOW_REALM_SPACE}{"Shadow Realm" if title else "shadow realm"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"the " if article else ""}{SHADOW_REALM_SPACE}{"Shadow Realm" if title else "shadow realm"}{CLEAR}{" space" if space else ""}{"." if punctuation else ""}'
     if spaceType == 'good':
-        return f'{"a " if article else ""}{GOOD_SPACE}{"Good" if title else "good"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GOOD_SPACE}{"Good" if title else "good"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'bad':
-        return f'{"a " if article else ""}{BAD_SPACE}{"Bad" if title else "bad"}{CLEAR} space{"." if punctuation else ""}'
+        return f'{"a " if article else ""}{BAD_SPACE}{"Bad" if title else "bad"}{CLEAR}{" space" if space else ""}{"." if punctuation else ""}'
     if spaceType == 'shop':
-        return f'{"a " if article else ""}{SHOP_SPACE}{"Shop" if title else "shop"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{SHOP_SPACE}{"Shop" if title else "shop"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'teleport':
-        return f'{"a " if article else ""}{TELEPORT_SPACE}{"Teleport" if title else "teleport"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{TELEPORT_SPACE}{"Teleport" if title else "teleport"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'gambling':
-        return f'{"a " if article else ""}{GAMBLING_SPACE}{"Gambling" if title else "gambling"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GAMBLING_SPACE}{"Gambling" if title else "gambling"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'timewarp':
-        return f'{"a " if article else ""}{TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{TIMEWARP_SPACE}{"Time Warp" if title else "time warp"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'papas wingeria':
         apostrophe = '\''
-        return f'{"a " if article else ""}{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s" if title else f"papa{apostrophe}s"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{PAPAS_WINGERIA_SPACE}{f"Papa{apostrophe}s" if title else f"papa{apostrophe}s"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'gym':
-        return f'{"a " if article else ""}{GYM_SPACE}{"Gym" if title else "gym"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{GYM_SPACE}{"Gym" if title else "gym"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'quest':
-        return f'{"a " if article else ""}{QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"a " if article else ""}{QUEST_SPACE}{"Quest" if title else "quest"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'entanglement':
-        return f'{"an " if article else ""}{ENTANGLEMENT_SPACE}{"Entanglement" if title else "entanglement"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"an " if article else ""}{ENTANGLEMENT_SPACE}{"Entanglement" if title else "entanglement"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
     if spaceType == 'information':
-        return f'{"an " if article else ""}{INFORMATION_SPACE}{"Information" if title else "information"}{CLEAR} space{"!" if punctuation else ""}'
+        return f'{"an " if article else ""}{INFORMATION_SPACE}{"Information" if title else "information"}{CLEAR}{" space" if space else ""}{"!" if punctuation else ""}'
 
 def grammatiseRole(role):
     if role == 'Finder':
@@ -4805,6 +4866,8 @@ def grammatiseRole(role):
         return f'{GYM_SPACE}Mewer{CLEAR}'
     if role == 'Swapper':
         return f'{ORANGE}Swapper{CLEAR}'
+    if role == 'Cartographer':
+        return f'{BEIGE}Cartographer{CLEAR}'
 
 def getAbilityDescription(specialAbility):
     if specialAbility == 'Murderer':
@@ -4829,6 +4892,8 @@ def getAbilityDescription(specialAbility):
         return f'{GREEN}increase the chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} by {RED}1%{CLEAR}'
     if specialAbility == 'Swapper':
         return f'{ORANGE}swap{CLEAR} the votes that any {YELLOW}2 players{CLEAR} recieve'
+    if specialAbility == 'Cartographer':
+        return f'add to your {BEIGE}map{CLEAR}'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
@@ -4876,6 +4941,7 @@ def saveToFile(filename):
         "playerGreenPotionTurns": playerGreenPotionTurns,
         "playerHypnosisRounds": playerHypnosisRounds,
         "playerSmasheds": playerSmasheds,
+        "playerMaps": playerMaps,
         "itemPrices": itemPrices,
         "itemRewards": itemRewards,
         "prevBoards": prevBoards,
@@ -4908,6 +4974,7 @@ def saveToFile(filename):
         "prevPlayerGreenPotionTurns": prevPlayerGreenPotionTurns,
         "prevPlayerHypnosisRounds": playerHypnosisRounds,
         "prevPlayerSmasheds": playerSmasheds,
+        "prevPlayerMaps": prevPlayerMaps,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
     }
@@ -4949,6 +5016,8 @@ quantumEntanglements = []
 
 generateImage(board, paths, quantumEntanglements, debug=True)
 highwayInformation = decideHighwayInformation(board, paths)
+
+SHORTEST_PATH_TO_FLAMINGO = findShortestPathToFlamingo(board, paths, tuple(np.argwhere(board == "home")[0]), highwayInformation)
 
 itemPrices = {
     #help i'm lost
@@ -5021,6 +5090,7 @@ playerHealedPoisons = [None]
 playerGreenPotionTurns = [None]
 playerHypnosisRounds = [None]
 playerSmasheds = [None]
+playerMaps = [None]
 for _ in range(NUM_PLAYERS):
     playerRoles.append('Finder')
     playerSpecialAbilities.append('None')
@@ -5043,6 +5113,7 @@ for _ in range(NUM_PLAYERS):
     playerGreenPotionTurns.append(0)
     playerHypnosisRounds.append(-1)
     playerSmasheds.append(False)
+    playerMaps.append(copy.deepcopy([]))
 
 numTimeMachines = 0
 
@@ -5075,6 +5146,7 @@ prevPlayerHealedPoisons = [copy.deepcopy(playerHealedPoisons)]
 prevPlayerGreenPotionTurns = [copy.deepcopy(playerGreenPotionTurns)]
 prevPlayerHypnosisRounds = [copy.deepcopy(playerHypnosisRounds)]
 prevPlayerSmasheds = [copy.deepcopy(playerSmasheds)]
+prevPlayerMaps = [copy.deepcopy(playerMaps)]
 prevItemPrices = [copy.deepcopy(itemPrices)]
 prevItemRewards = [copy.deepcopy(itemRewards)]
 prevDecorators = [copy.deepcopy(decorators)]
@@ -5329,6 +5401,7 @@ while running:
                 playerGreenPotionTurns = data["playerGreenPotionTurns"]
                 playerHypnosisRounds = data["playerHypnosisRounds"]
                 playerSmasheds = data["playerSmasheds"]
+                playerMaps = data["playerMaps"]
                 itemPrices = data["itemPrices"]
                 itemRewards = data["itemRewards"]
                 prevBoards = data["prevBoards"]
@@ -5361,6 +5434,7 @@ while running:
                 prevPlayerGreenPotionTurns = data["prevPlayerGreenPotionTurns"]
                 prevPlayerHypnosisRounds = data["prevPlayerHypnosisRounds"]
                 prevPlayerSmasheds = data["prevPlayerSmasheds"]
+                prevPlayerMaps = data["prevPlayerMaps"]
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
@@ -5390,6 +5464,7 @@ while running:
         prevPlayerGreenPotionTurns.append(copy.deepcopy(playerGreenPotionTurns))
         prevPlayerHypnosisRounds.append(copy.deepcopy(playerHypnosisRounds))
         prevPlayerSmasheds.append(copy.deepcopy(playerSmasheds))
+        prevPlayerMaps.append(copy.deepcopy(playerMaps))
         prevItemPrices.append(copy.deepcopy(itemPrices))
         prevItemRewards.append(copy.deepcopy(itemPrices))
         prevDecorators.append(copy.deepcopy(decorators))
