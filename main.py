@@ -1814,6 +1814,7 @@ def useItem():
     global eliminatedPlayers
     global loverPlayers
     global mewChance
+    global roundNum
     done = False
     indent += 1
     itemsUsed = []
@@ -2154,6 +2155,7 @@ def useItem():
                                 for gameState in prevPlayerInventories:
                                     if f'time machine;{timeMachineIndex}' in gameState[currentPlayer]:
                                         gameState[currentPlayer].remove(f'time machine;{timeMachineIndex}')
+                                roundNum -= 1
                                 itemDescriptions = redefineItemDescriptions()
                                 indent += 1
                                 print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
