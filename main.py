@@ -932,7 +932,7 @@ def evaluateSpaceType(spaceType):
     indent += 1
     if playerHypnosisRounds[currentPlayer] <= roundNum and playerHypnosisRounds[currentPlayer] != -1:
         playerHypnosisRounds[currentPlayer] = -1
-        print(f'{" "*indent}You landed on {grammatiseSpaceType('flamingo', punctuation=True)}')
+        print(f'{" "*indent}You landed on {grammatiseSpaceType("flamingo", punctuation=True)}')
         indent += 1
         print(f'{" "*indent}You must play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
         print(f'{" "*indent}{RED}If you lose{CLEAR}, you must return to the {HOME_SPACE}home{CLEAR} space.')
@@ -1609,7 +1609,8 @@ def spinTheInformationWheel():
         linesToRemove = len(playerMaps[currentPlayer])+2
         if addNewLine:
             linesToRemove += 1
-        print(f'{"\x1B[A\x1B[2K"*linesToRemove}{" "*indent}{BEIGE}????{CLEAR}')
+        doubleback = '\x1B[A\x1B[2K'
+        print(f'{doubleback*linesToRemove}{" "*indent}{BEIGE}????{CLEAR}')
         indent -= 1
     indent -= 3
 

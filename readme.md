@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.5.2 - 04/01/2025
+### Bug Fixes
+- Fixed Crashes on Python 3.11.0
+
 ## v2.5.1 - 29/01/2025
 ### Bug Fixes
 - Fix time machine not decreasing the round number
