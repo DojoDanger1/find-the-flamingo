@@ -3288,170 +3288,186 @@ def printRoles(roles, specialAbilities, loverPlayers):
         print(f'{"-"*50}')
         indent += 1
         print(f'{" "*indent}Your role is the {grammatiseRole(roles[player])}.')
-        if roles[player] == 'Finder':
-            indent += 1
-            print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR} and play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-            print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-            indent += 1
-            print(f'{" "*indent}{GRAY}The purpose of this sentence is to make the length of each description roughly the same.')
-            print(f'{" "*indent}This is so that you can\'t determine anything based on the length of time reading the rules.{CLEAR}')
-            indent -= 2
-        if roles[player] == 'Staller':
-            indent += 1
-            print(f'{" "*indent}To {GREEN}win the game{CLEAR}, the game must last for {ORANGE}{STALLER_WIN} rounds{CLEAR}.')
-            print(f'{" "*indent}After your {ORANGE}{STALLER_WIN}th round{CLEAR}, and every subsequent {ORANGE}5 rounds{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-            print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-            indent += 1
-            print(f'{" "*indent}The {RED}Staller{CLEAR} role will also be passed onto one of the {CYAN}Finders{CLEAR}.')
-            indent -= 1
-            if OTHERS_CANT_SEE_FLAMINGO:
-                print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
-            indent -= 1
-        if roles[player] == 'Jester':
-            indent += 1
-            print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must get {RED}voted out{CLEAR}.')
-            print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-            indent += 1
-            print(f'{" "*indent}If you fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become a either {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
-            indent -= 1
-            if OTHERS_CANT_SEE_FLAMINGO:
-                print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
-            indent -= 1
         if roles[player] == 'Executioner':
-            indent += 1
-            print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must {RED}vote out{CLEAR} {YELLOW}Player {jesterTarget}{CLEAR}.')
-            indent += 1
-            print(f'{" "*indent}This player may either be a {CYAN}Finder{CLEAR} or a {RED}Staller{CLEAR}.')
-            indent -= 1
-            print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-            print(f'{" "*indent}If you are {RED}voted out{CLEAR}, or fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become either a {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
-            if OTHERS_CANT_SEE_FLAMINGO:
-                print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
-            indent -= 1
+            print(f'{" "*indent}Your target is {YELLOW}Player {jesterTarget}{CLEAR}')
+        print(f'{" "*indent}Would you like an explanation of the {grammatiseRole(roles[player])}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        explainRole = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+        if explainRole == 1:
+            if roles[player] == 'Finder':
+                indent += 1
+                print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR} and play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}{GRAY}The purpose of this sentence is to make the length of each description roughly the same.')
+                print(f'{" "*indent}This is so that you can\'t determine anything based on the length of time reading the rules.{CLEAR}')
+                indent -= 2
+            if roles[player] == 'Staller':
+                indent += 1
+                print(f'{" "*indent}To {GREEN}win the game{CLEAR}, the game must last for {ORANGE}{STALLER_WIN} rounds{CLEAR}.')
+                print(f'{" "*indent}After your {ORANGE}{STALLER_WIN}th round{CLEAR}, and every subsequent {ORANGE}5 rounds{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}The {RED}Staller{CLEAR} role will also be passed onto one of the {CYAN}Finders{CLEAR}.')
+                indent -= 1
+                if OTHERS_CANT_SEE_FLAMINGO:
+                    print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
+                indent -= 1
+            if roles[player] == 'Jester':
+                indent += 1
+                print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must get {RED}voted out{CLEAR}.')
+                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}If you fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become a either {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                indent -= 1
+                if OTHERS_CANT_SEE_FLAMINGO:
+                    print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
+                indent -= 1
+            if roles[player] == 'Executioner':
+                indent += 1
+                print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must {RED}vote out{CLEAR} {YELLOW}Player {jesterTarget}{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}This player may either be a {CYAN}Finder{CLEAR} or a {RED}Staller{CLEAR}.')
+                indent -= 1
+                print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, or fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become either a {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                if OTHERS_CANT_SEE_FLAMINGO:
+                    print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
+                indent -= 1
         if CHAOS_MODE:
             print(f'{"-"*50}')
             if specialAbilities[player] == 'None':
                 print(f'{" "*indent}You {RED}do not{CLEAR} have a special ability.')
             else:
                 print(f'{" "*indent}Your special ability is the {grammatiseRole(specialAbilities[player])}.')
-                if specialAbilities[player] == 'Murderer':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    print(f'{" "*indent}They will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-                    indent += 1
-                    if 'Medic' in specialAbilities:
-                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from {RED}murder{CLEAR}.')
-                    indent -= 1
-                    print(f'{" "*indent}The {YELLOW}remaining players{CLEAR} will be alerted during the {ORANGE}voting results{CLEAR}.')
-                    indent -= 1
-                if specialAbilities[player] == 'Toxicologist':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will not be notified.')
-                    indent -= 1
-                    print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will begin to feel various {DARK_GREEN}symptoms{CLEAR} over the next {ORANGE}{VOTING_FREQUENCY} rounds{CLEAR}.')
-                    print(f'{" "*indent}{DARK_GREEN}Symptoms{CLEAR} will be given at random, including:')
-                    indent += 1
-                    print(f'{" "*indent}Not being able to move,')
-                    print(f'{" "*indent}Loosing {GYM_SPACE}speed{CLEAR},')
-                    print(f'{" "*indent}Throwing up {GREEN}acid{CLEAR}, which will act the same as a {CYAN}trap{CLEAR} but in reverse,',)
-                    indent -= 1
-                    print(f'{" "*indent}And will end with them being {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} before the next vote.')
-                    if 'Medic' in specialAbilities:
-                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} will be able to heal a {DARK_GREEN}poisoned{CLEAR} player by occupying the {ORANGE}same space{CLEAR} as them.')
-                    indent -= 1
-                if specialAbilities[player] == 'Smasher':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}By {PAPAS_WINGERIA_SPACE}smashing{CLEAR} a player, you will break their legs, because you {PAPAS_WINGERIA_SPACE}smashed{CLEAR} them so {RED}violently{CLEAR}.')
-                    print(f'{" "*indent}{PAPAS_WINGERIA_SPACE}Smashed{CLEAR} players will have a {ORANGE}50%{CLEAR} chance to be able to move, after their {GYM_SPACE}speed{CLEAR} check.')
-                    print(f'{" "*indent}Broken legs will {GREEN}heal{CLEAR} at the following vote.')
-                    indent -= 1
-                    if 'Medic' in specialAbilities:
-                        print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from being {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
-                    indent -= 1
-                if specialAbilities[player] == 'Seer':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    print(f'{" "*indent}You will find out the {YELLOW}chosen player\'s{CLEAR} role {GREEN}and{CLEAR} special ability.')
-                    indent += 1
-                    print(f'{" "*indent}Only you will see this {INFORMATION_SPACE}information{CLEAR}.')
-                    indent -= 2
-                if specialAbilities[player] == 'Guesser':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}You {RED}cannot{CLEAR} choose yourself.')
-                    indent -= 1
-                    print(f'{" "*indent}If you guess {GREEN}correctly{CLEAR}, you will be able to either {RED}murder{CLEAR} {YELLOW}that player{CLEAR}, or use {YELLOW}that player\'s{CLEAR} special ability.')
-                    print(f'{" "*indent}If you guess {RED}incorrectly{CLEAR}, you will be {RED}murdered{CLEAR}.')
-                    indent += 1
-                    print(f'{" "*indent}For any {RED}murder{CLEAR}, it will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} that player.')
-                    print(f'{" "*indent}They/you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}')
-                    indent -= 2
-                if specialAbilities[player] == 'Shifter':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}This {GRAY}swap{CLEAR} will take place {RED}immediately{CLEAR}.')
-                    print(f'{" "*indent}After the vote has {ORANGE}finished{CLEAR}, it will be revealed that the {GRAY}shifter{CLEAR} has used their ability.')
-                    indent -= 1
-                    print(f'{" "*indent}You and the chosen player will swap both your {PINK if playerRoles[player] == "Jester" else PAPAS_WINGERIA_SPACE}role{CLEAR} and your {GRAY}special ability{CLEAR}.')
-                    indent -= 1
-                if specialAbilities[player] == 'Hypnotist':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}On a {ORANGE}chosen round{CLEAR}, the {YELLOW}chosen player{CLEAR} will appear to land on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
-                    print(f'{" "*indent}They will play a few rounds, before realising they are in fact {RED}not{CLEAR} on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
-                    indent += 1
-                    print(f'{" "*indent}If the {YELLOW}chosen player{CLEAR} does not move or is eliminated on the {ORANGE}chosen round{CLEAR}, the {FLAMINGO_SPACE}hypnosis{CLEAR} will occur at the next possible opportunity.')
-                    print(f'{" "*indent}If you {FLAMINGO_SPACE}hypnotise{CLEAR} a player that is already {FLAMINGO_SPACE}hypnotised{CLEAR}, the previous {FLAMINGO_SPACE}hypnosis{CLEAR} will be {RED}overriden{CLEAR}.')
-                    indent -= 2
-                    print(f'{" "*indent}{GRAY}This does not benefit you or them in any way, but is quite funny.{CLEAR}')
-                    indent -= 1
-                if specialAbilities[player] == 'Medic':
-                    indent += 1
-                    if 'Murderer' in specialAbilities:
+                print(f'{" "*indent}Would you like an explanation of the {grammatiseRole(specialAbilities[player])}?')
+                indent += 1
+                print(f'{" "*indent}0: No')
+                print(f'{" "*indent}1: Yes')
+                indent -= 1
+                explainSpecialAbility = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                if explainSpecialAbility == 1:
+                    if specialAbilities[player] == 'Murderer':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        print(f'{" "*indent}They will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+                        indent += 1
+                        if 'Medic' in specialAbilities:
+                            print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from {RED}murder{CLEAR}.')
+                        indent -= 1
+                        print(f'{" "*indent}The {YELLOW}remaining players{CLEAR} will be alerted during the {ORANGE}voting results{CLEAR}.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Toxicologist':
+                        indent += 1
                         print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
                         indent += 1
-                        print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {RED}murder{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                        print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will not be notified.')
                         indent -= 1
-                    if 'Toxicologist' in specialAbilities:
-                        print(f'{" "*indent}If you land on the {ORANGE}same space{CLEAR} as a player who has been {DARK_GREEN}poisoned{CLEAR} by the {DARK_GREEN}Toxicologist{CLEAR},')
-                        print(f'{" "*indent}They will be {GREEN}healed{CLEAR} {ORANGE}{VOTING_FREQUENCY//10} to {VOTING_FREQUENCY//3} rounds{CLEAR} later.')
-                    if 'Smasher' in specialAbilities:
+                        print(f'{" "*indent}The {YELLOW}chosen player{CLEAR} will begin to feel various {DARK_GREEN}symptoms{CLEAR} over the next {ORANGE}{VOTING_FREQUENCY} rounds{CLEAR}.')
+                        print(f'{" "*indent}{DARK_GREEN}Symptoms{CLEAR} will be given at random, including:')
+                        indent += 1
+                        print(f'{" "*indent}Not being able to move,')
+                        print(f'{" "*indent}Loosing {GYM_SPACE}speed{CLEAR},')
+                        print(f'{" "*indent}Throwing up {GREEN}acid{CLEAR}, which will act the same as a {CYAN}trap{CLEAR} but in reverse,',)
+                        indent -= 1
+                        print(f'{" "*indent}And will end with them being {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} before the next vote.')
+                        if 'Medic' in specialAbilities:
+                            print(f'{" "*indent}A {GREEN}Medic{CLEAR} will be able to heal a {DARK_GREEN}poisoned{CLEAR} player by occupying the {ORANGE}same space{CLEAR} as them.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Smasher':
+                        indent += 1
                         print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
                         indent += 1
-                        print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                        print(f'{" "*indent}By {PAPAS_WINGERIA_SPACE}smashing{CLEAR} a player, you will break their legs, because you {PAPAS_WINGERIA_SPACE}smashed{CLEAR} them so {RED}violently{CLEAR}.')
+                        print(f'{" "*indent}{PAPAS_WINGERIA_SPACE}Smashed{CLEAR} players will have a {ORANGE}50%{CLEAR} chance to be able to move, after their {GYM_SPACE}speed{CLEAR} check.')
+                        print(f'{" "*indent}Broken legs will {GREEN}heal{CLEAR} at the following vote.')
                         indent -= 1
-                    indent -= 1
-                if specialAbilities[player] == 'Cleaner':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent -= 1
-                if specialAbilities[player] == 'Mewer':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent -= 1
-                if specialAbilities[player] == 'Swapper':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}You may choose yourself.')
-                    indent -= 2
-                if specialAbilities[player] == 'Cartographer':
-                    indent += 1
-                    print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
-                    indent += 1
-                    print(f'{" "*indent}Your {BEIGE}map{CLEAR} consists of {GREEN}moves{CLEAR}, which contain the starting space, direction, and ending space.')
-                    print(f'{" "*indent}At each vote, you can learn 1 {GREEN}move{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
-                    print(f'{" "*indent}At the final vote, you can learn the {ORANGE}full route{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
-                    indent -= 1
-                    print(f'{" "*indent}{GRAY}You can chose whether or not to share this information or keep it secret{CLEAR}')
-                    indent -= 1
+                        if 'Medic' in specialAbilities:
+                            print(f'{" "*indent}A {GREEN}Medic{CLEAR} may shield the {YELLOW}chosen player{CLEAR} from being {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Seer':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        print(f'{" "*indent}You will find out the {YELLOW}chosen player\'s{CLEAR} role {GREEN}and{CLEAR} special ability.')
+                        indent += 1
+                        print(f'{" "*indent}Only you will see this {INFORMATION_SPACE}information{CLEAR}.')
+                        indent -= 2
+                    if specialAbilities[player] == 'Guesser':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}You {RED}cannot{CLEAR} choose yourself.')
+                        indent -= 1
+                        print(f'{" "*indent}If you guess {GREEN}correctly{CLEAR}, you will be able to either {RED}murder{CLEAR} {YELLOW}that player{CLEAR}, or use {YELLOW}that player\'s{CLEAR} special ability.')
+                        print(f'{" "*indent}If you guess {RED}incorrectly{CLEAR}, you will be {RED}murdered{CLEAR}.')
+                        indent += 1
+                        print(f'{" "*indent}For any {RED}murder{CLEAR}, it will look the same as if the {RED}Murderer{CLEAR} had {RED}murdered{CLEAR} that player.')
+                        print(f'{" "*indent}They/you will be {RED}eliminated from the game{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}')
+                        indent -= 2
+                    if specialAbilities[player] == 'Shifter':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}This {GRAY}swap{CLEAR} will take place {RED}immediately{CLEAR}.')
+                        print(f'{" "*indent}After the vote has {ORANGE}finished{CLEAR}, it will be revealed that the {GRAY}shifter{CLEAR} has used their ability.')
+                        indent -= 1
+                        print(f'{" "*indent}You and the chosen player will swap both your {PINK if playerRoles[player] == "Jester" else PAPAS_WINGERIA_SPACE}role{CLEAR} and your {GRAY}special ability{CLEAR}.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Hypnotist':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}On a {ORANGE}chosen round{CLEAR}, the {YELLOW}chosen player{CLEAR} will appear to land on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                        print(f'{" "*indent}They will play a few rounds, before realising they are in fact {RED}not{CLEAR} on the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                        indent += 1
+                        print(f'{" "*indent}If the {YELLOW}chosen player{CLEAR} does not move or is eliminated on the {ORANGE}chosen round{CLEAR}, the {FLAMINGO_SPACE}hypnosis{CLEAR} will occur at the next possible opportunity.')
+                        print(f'{" "*indent}If you {FLAMINGO_SPACE}hypnotise{CLEAR} a player that is already {FLAMINGO_SPACE}hypnotised{CLEAR}, the previous {FLAMINGO_SPACE}hypnosis{CLEAR} will be {RED}overriden{CLEAR}.')
+                        indent -= 2
+                        print(f'{" "*indent}{GRAY}This does not benefit you or them in any way, but is quite funny.{CLEAR}')
+                        indent -= 1
+                    if specialAbilities[player] == 'Medic':
+                        indent += 1
+                        if 'Murderer' in specialAbilities:
+                            print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                            indent += 1
+                            print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {RED}murder{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                            indent -= 1
+                        if 'Toxicologist' in specialAbilities:
+                            print(f'{" "*indent}If you land on the {ORANGE}same space{CLEAR} as a player who has been {DARK_GREEN}poisoned{CLEAR} by the {DARK_GREEN}Toxicologist{CLEAR},')
+                            print(f'{" "*indent}They will be {GREEN}healed{CLEAR} {ORANGE}{VOTING_FREQUENCY//10} to {VOTING_FREQUENCY//3} rounds{CLEAR} later.')
+                        if 'Smasher' in specialAbilities:
+                            print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                            indent += 1
+                            print(f'{" "*indent}The {YELLOW}other players{CLEAR} will see that someone tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} the {YELLOW}chosen player{CLEAR}, and that it was {GREEN}shielded{CLEAR}')
+                            indent -= 1
+                        indent -= 1
+                    if specialAbilities[player] == 'Cleaner':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Mewer':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent -= 1
+                    if specialAbilities[player] == 'Swapper':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}You may choose yourself.')
+                        indent -= 2
+                    if specialAbilities[player] == 'Cartographer':
+                        indent += 1
+                        print(f'{" "*indent}During the vote, you will have the option to {getAbilityDescription(specialAbilities[player])}.')
+                        indent += 1
+                        print(f'{" "*indent}Your {BEIGE}map{CLEAR} consists of {GREEN}moves{CLEAR}, which contain the starting space, direction, and ending space.')
+                        print(f'{" "*indent}At each vote, you can learn 1 {GREEN}move{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
+                        print(f'{" "*indent}At the final vote, you can learn the {ORANGE}full route{CLEAR} from the {HOME_SPACE}home{CLEAR} space to the {FLAMINGO_SPACE}flamingo{CLEAR} space.')
+                        indent -= 1
+                        print(f'{" "*indent}{GRAY}You can chose whether or not to share this information or keep it secret{CLEAR}')
+                        indent -= 1
         indent -= 1
         print('-'*50)
         if player in loverPlayers:
@@ -3461,18 +3477,25 @@ def printRoles(roles, specialAbilities, loverPlayers):
                 print(f'{" "*indent}You are also in {PINK}love{CLEAR} with {YELLOW}Player {otherPlayers[0]}{CLEAR}.')
             else:
                 print(f'{" "*indent}You are also in {PINK}love{CLEAR} with {YELLOW}Player {otherPlayers[0]}{CLEAR} and {YELLOW}Player {otherPlayers[1]}{CLEAR}.')
+            print(f'{" "*indent}Would you like an explanation of {PINK}lovers{CLEAR}?')
             indent += 1
-            print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will also be {RED}voted out{CLEAR}.')
-            print(f'{" "*indent}If they are {RED}murdered{CLEAR}, you will also be {RED}murdered{CLEAR}.')
-            print(f'{" "*indent}If they are {DARK_GREEN}poisoned{CLEAR}, you will also be {DARK_GREEN}poisoned{CLEAR}.')
-            print(f'{" "*indent}If they are {PAPAS_WINGERIA_SPACE}smashed{CLEAR}, you will also be {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
             indent -= 1
-            if roles[player] == 'Finder':
-                print(f'{" "*indent}Just because you are a {CYAN}Finder{CLEAR}, it does not mean that you are in {PINK}love{CLEAR} with a {CYAN}Finder{CLEAR}.')
-            if roles[player] == 'Jester':
-                print(f'{" "*indent}If your {PINK}lover{CLEAR} is voted out, you will still play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-            print(f'{" "*indent}Your {PINK}love{CLEAR} will only be {CYAN}revealed{CLEAR} when you are {GRAY}(collectively){CLEAR} {RED}voted out{CLEAR}.')
-            print(f'{" "*indent}You will {RED}stop being lovers{CLEAR} when you are {GRAY}(collectively){CLEAR} {RED}voted out{CLEAR}.')
+            explainLovers = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            if explainLovers == 1:
+                indent += 1
+                print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will also be {RED}voted out{CLEAR}.')
+                print(f'{" "*indent}If they are {RED}murdered{CLEAR}, you will also be {RED}murdered{CLEAR}.')
+                print(f'{" "*indent}If they are {DARK_GREEN}poisoned{CLEAR}, you will also be {DARK_GREEN}poisoned{CLEAR}.')
+                print(f'{" "*indent}If they are {PAPAS_WINGERIA_SPACE}smashed{CLEAR}, you will also be {PAPAS_WINGERIA_SPACE}smashed{CLEAR}.')
+                indent -= 1
+                if roles[player] == 'Finder':
+                    print(f'{" "*indent}Just because you are a {CYAN}Finder{CLEAR}, it does not mean that you are in {PINK}love{CLEAR} with a {CYAN}Finder{CLEAR}.')
+                if roles[player] == 'Jester':
+                    print(f'{" "*indent}If your {PINK}lover{CLEAR} is voted out, you will still play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                print(f'{" "*indent}Your {PINK}love{CLEAR} will only be {CYAN}revealed{CLEAR} when you are {GRAY}(collectively){CLEAR} {RED}voted out{CLEAR}.')
+                print(f'{" "*indent}You will {RED}stop being lovers{CLEAR} when you are {GRAY}(collectively){CLEAR} {RED}voted out{CLEAR}.')
             indent -= 1
             print('-'*50)
         input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')

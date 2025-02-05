@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.5.3 - 05/02/2025
+### Features
+- Now giving the option to explain roles and special abilities or not
+
 ## v2.5.2 - 04/02/2025
 ### Bug Fixes
 - Fixed Crashes on Python 3.11.0
