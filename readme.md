@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.5.2 - 04/01/2025
+## v2.5.2 - 04/02/2025
 ### Bug Fixes
 - Fixed Crashes on Python 3.11.0
 
