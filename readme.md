@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.5.4 - 05/02/2025
+### Adjustments
+- Changed number of questions on board quiz from between 5 and 10 to between 3 and 5
+- Changed number of questions on lying game from between 4 and 9 to between 4 and 7
+- Changed `LYING_GAME_DIFFICULTY` from 4 to 5
+- In the logic game, the colour of `True`s and `False`s is now random
+- Added implies and nimplies gates to logic game
+- Answers may be swapped in logic game
+
 ## v2.5.3 - 05/02/2025
 ### Features
 - Now giving the option to explain roles and special abilities or not

@@ -41,7 +41,8 @@ BLACKJACK_DEALER_CAUTION = 5
 GYM_PROGRESS_REQUIRED = 3
 WINGERIA_PROGRESS_REQUIRED = 4
 MINIMUM_SPEED = 0.25
-LYING_GAME_DIFFICULTY = 4
+LYING_GAME_DIFFICULTY = 5
+RANDOM_COLOURS_IN_LOGIC_GAME = True
 ACID_PRICE = 5
 CONFIRM_STAY_HERE = True
 
@@ -1634,7 +1635,7 @@ def spinTheFlamingoWheel():
         print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}Digits {RED}cannot{CLEAR} sum to {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
         result = playNumberGame(unit, limit)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}':
-        questions = random.randint(5,10)
+        questions = random.randint(3,5)
         print(f'{" "*indent}You must answer {GREEN}{questions}{CLEAR} questions about the board in {RED}increasing difficulty{CLEAR}.')
         result = playBoardQuiz(questions, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}':
@@ -1644,7 +1645,7 @@ def spinTheFlamingoWheel():
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
         result = playDateQuiz(questions='all')
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}':
-        questions = random.randint(4, 9)
+        questions = random.randint(4, 7)
         print(f'{" "*indent}You must identify the {RED}number of liars{CLEAR} in {GREEN}{questions}{CLEAR} sets of {CYAN}people{CLEAR} making statements about each other.')
         result = playLyingGame(questions, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Mixed Game{CLEAR}':
@@ -4579,8 +4580,31 @@ def playLogicGame(numQuestions, only=False):
     indent += 1
     result = True
     def convertToHumanReadable(expression):
-        expression = expression.replace('0', f'{RED}False{CLEAR}')
-        expression = expression.replace('1', f'{GREEN}True{CLEAR}')
+        def allIndexes(char, string):
+            return [i for i, ltr in enumerate(string) if ltr == char]
+        # replace falses
+        numFalses = expression.count('0')
+        falses = []
+        for _ in range(numFalses):
+            falses.append(f'{GREEN if random.random() < 0.5 and RANDOM_COLOURS_IN_LOGIC_GAME else RED}False{CLEAR}')
+        indexesOf0 = allIndexes('0', expression)
+        expression = list(expression)
+        for n, index in enumerate(indexesOf0[::-1]):
+            expression.pop(index)
+            expression.insert(index, falses[n])
+        expression = ''.join(expression)
+        # replace trues
+        numTrues = expression.count('1')
+        trues = []
+        for _ in range(numTrues):
+            trues.append(f'{RED if random.random() < 0.5 and RANDOM_COLOURS_IN_LOGIC_GAME else GREEN}True{CLEAR}')
+        indexesOf1 = allIndexes('1', expression)
+        expression = list(expression)
+        for n, index in enumerate(indexesOf1[::-1]):
+            expression.pop(index)
+            expression.insert(index, trues[n])
+        expression = ''.join(expression)
+        # replace other symbols
         expression = expression.replace('!', f'{CYAN}not{CLEAR} ')
         expression = expression.replace('&', f' {CYAN}and{CLEAR} ')
         expression = expression.replace('|', f' {CYAN}or{CLEAR} ')
@@ -4588,6 +4612,8 @@ def playLogicGame(numQuestions, only=False):
         expression = expression.replace('<', f' {CYAN}nand{CLEAR} ')
         expression = expression.replace('>', f' {CYAN}nor{CLEAR} ')
         expression = expression.replace('v', f' {CYAN}xnor{CLEAR} ')
+        expression = expression.replace('?', f' {CYAN}implies{CLEAR} ')
+        expression = expression.replace(':', f' {CYAN}nimplies{CLEAR} ')
         return expression
     
     for roundNum in range(1,numQuestions+1):
@@ -4600,17 +4626,17 @@ def playLogicGame(numQuestions, only=False):
         for _ in range(roundNum):
             newExpression = ''
             for n, char in enumerate(expression):
-                if char in ['(', ')', '!', '&', '|', '^', '<', '>', 'v']:
+                if char in ['(', ')', '!', '&', '|', '^', '<', '>', 'v', '?', ':']:
                     newExpression += char
                 else: 
                     if char == '0':
-                        newBit = random.choice(['!1', '!1', '!1', '0&0', '0&1', '1&0', '0|0', '0^0', '1^1', '1<1', '1>0', '0>1', '1>1', '0v1', '1v0'])
+                        newBit = random.choice(['!1', '!1', '!1', '!1', '!1', '0&0', '0&1', '1&0', '0|0', '0^0', '1^1', '1<1', '1>0', '0>1', '1>1', '0v1', '1v0', '1?0', '0:0', '0:1', '1:1'])
                     else:
-                        newBit = random.choice(['!0', '!0', '!0', '1&1', '1|0', '0|1', '1|1', '0^1', '1^0', '0<0', '0<1', '1<0', '0>0', '0v0', '1v1'])
+                        newBit = random.choice(['!0', '!0', '!0', '!0', '!0', '1&1', '1|0', '0|1', '1|1', '0^1', '1^0', '0<0', '0<1', '1<0', '0>0', '0v0', '1v1', '0?0', '0?1', '1?1', '1:0'])
                     if newBit[0] == '!':
                         newExpression += newBit
                     elif n != 0:
-                        if expression[n-1] in ['!', '&', '|', '^', '<', '>', 'v']:
+                        if expression[n-1] in ['!', '&', '|', '^', '<', '>', 'v', '?', ':']:
                             newExpression += f'({newBit})'
                         else:
                             newExpression += newBit
@@ -4618,12 +4644,22 @@ def playLogicGame(numQuestions, only=False):
                         newExpression += newBit
             expression = newExpression
         print(f'{" "*indent}Simplify {convertToHumanReadable(expression)}')
+        if RANDOM_COLOURS_IN_LOGIC_GAME:
+            swapAnwers = random.choice([True,False])
+            keepColours = random.choice([True,False])
+        else:
+            swapAnwers = False
+            keepColours = True
         indent += 1
-        print(f'{" "*indent}0: {RED}False{CLEAR}')
-        print(f'{" "*indent}1: {GREEN}True{CLEAR}')
+        if not swapAnwers:
+            print(f'{" "*indent}0: {RED if keepColours else GREEN}False{CLEAR}')
+            print(f'{" "*indent}1: {GREEN if keepColours else RED}True{CLEAR}')
+        else:
+            print(f'{" "*indent}0: {GREEN if keepColours else RED}True{CLEAR}')
+            print(f'{" "*indent}1: {RED if keepColours else GREEN}False{CLEAR}')
         indent -= 1
         choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
-        if choice == int(correctAnswer):
+        if (choice == int(correctAnswer) and not swapAnwers) or (choice != int(correctAnswer) and swapAnwers):
             indent += 1
             print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
             indent -= 1
