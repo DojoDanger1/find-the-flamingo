@@ -11,21 +11,21 @@ from PIL import Image, ImageDraw, ImageColor, ImageFont
 
 #bord paramaters
 GRID_SIZE = 4
-NUM_DIMENSIONS = 2
+NUM_DIMENSIONS = 3
 PERCENTAGE_SQUARES = 0.7
 PERCENTAGE_PATHS = 0.5
 PROBABILITY_ONE_WAY = 0.1
 BIAS = 0.05
 
 #game settings
-NUM_PLAYERS = 4
-ROLES_ENABLED = False
-CHAOS_MODE = False
+NUM_PLAYERS = 5
+ROLES_ENABLED = True
+CHAOS_MODE = True
 STALLER_ABILITIES = ['Murderer', 'Toxicologist', 'Smasher']
 JESTER_ABILITIES = ['Shifter', 'Guesser', 'Hypnotist']
 FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'Cartographer', 'None']
-CHANCE_OF_LOVERS = 0
-CHANCE_OF_3_WAY = 0
+CHANCE_OF_LOVERS = 0.3
+CHANCE_OF_3_WAY = 0.1
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
