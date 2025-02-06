@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.5.5 - 06/02/2025
+### Adjustments
+- Added coimplies and conimplies gates to logic game
+
 ## v2.5.4 - 05/02/2025
 ### Adjustments
 - Changed number of questions on board quiz from between 5 and 10 to between 3 and 5

@@ -1640,6 +1640,11 @@ def spinTheFlamingoWheel():
         result = playBoardQuiz(questions, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}':
         print(f'{" "*indent}You must simplify {GREEN}5{CLEAR} logic expressions in {RED}increasing difficulty{CLEAR}.')
+        indent += 2
+        print(f'{" "*indent}{GRAY}(nimplies refers to nonimplication){CLEAR}')
+        print(f'{" "*indent}{GRAY}(coimplies refers to converse implication){CLEAR}')
+        print(f'{" "*indent}{GRAY}(conimplies refers to converse nonimplication){CLEAR}')
+        indent -= 2
         result = playLogicGame(5, only=False)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}':
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
@@ -4614,6 +4619,8 @@ def playLogicGame(numQuestions, only=False):
         expression = expression.replace('v', f' {CYAN}xnor{CLEAR} ')
         expression = expression.replace('?', f' {CYAN}implies{CLEAR} ')
         expression = expression.replace(':', f' {CYAN}nimplies{CLEAR} ')
+        expression = expression.replace(',', f' {CYAN}coimplies{CLEAR} ')
+        expression = expression.replace('.', f' {CYAN}conimplies{CLEAR} ')
         return expression
     
     for roundNum in range(1,numQuestions+1):
@@ -4626,17 +4633,17 @@ def playLogicGame(numQuestions, only=False):
         for _ in range(roundNum):
             newExpression = ''
             for n, char in enumerate(expression):
-                if char in ['(', ')', '!', '&', '|', '^', '<', '>', 'v', '?', ':']:
+                if char in ['(', ')', '!', '&', '|', '^', '<', '>', 'v', '?', ':', ',', '.']:
                     newExpression += char
                 else: 
                     if char == '0':
-                        newBit = random.choice(['!1', '!1', '!1', '!1', '!1', '0&0', '0&1', '1&0', '0|0', '0^0', '1^1', '1<1', '1>0', '0>1', '1>1', '0v1', '1v0', '1?0', '0:0', '0:1', '1:1'])
+                        newBit = random.choice(['!1', '!1', '!1', '!1', '!1', '!1', '0&0', '0&1', '1&0', '0|0', '0^0', '1^1', '1<1', '1>0', '0>1', '1>1', '0v1', '1v0', '1?0', '0:0', '0:1', '1:1', '0,1', '0.0', '1.0', '1.1'])
                     else:
-                        newBit = random.choice(['!0', '!0', '!0', '!0', '!0', '1&1', '1|0', '0|1', '1|1', '0^1', '1^0', '0<0', '0<1', '1<0', '0>0', '0v0', '1v1', '0?0', '0?1', '1?1', '1:0'])
+                        newBit = random.choice(['!0', '!0', '!0', '!0', '!0', '!0', '1&1', '1|0', '0|1', '1|1', '0^1', '1^0', '0<0', '0<1', '1<0', '0>0', '0v0', '1v1', '0?0', '0?1', '1?1', '1:0', '0,0', '1,0', '1,1', '0.1'])
                     if newBit[0] == '!':
                         newExpression += newBit
                     elif n != 0:
-                        if expression[n-1] in ['!', '&', '|', '^', '<', '>', 'v', '?', ':']:
+                        if expression[n-1] in ['!', '&', '|', '^', '<', '>', 'v', '?', ':', ',', '.']:
                             newExpression += f'({newBit})'
                         else:
                             newExpression += newBit
