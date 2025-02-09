@@ -47,8 +47,9 @@ ACID_PRICE = 5
 CONFIRM_STAY_HERE = True
 
 #assertions
-assert GRID_SIZE >= 3, 'grid size must be greater than or equal to 3!'
+assert GRID_SIZE >= 2, 'grid size must be greater than or equal to 2!'
 assert 2 <= NUM_DIMENSIONS and NUM_DIMENSIONS <= 26, 'number of dimensions must be in between 2 and 26!'
+assert (GRID_SIZE)**(NUM_DIMENSIONS) > 10, '(grid size)^(number of dimensions) must be greater than 10!'
 assert 0 < PERCENTAGE_SQUARES and PERCENTAGE_SQUARES <= 1, 'percentage squares must be between 0 and 1!'
 assert 0 < PERCENTAGE_PATHS and PERCENTAGE_PATHS <= 1, 'percentage paths must be between 0 and 1!'
 assert 0 < PROBABILITY_ONE_WAY and PROBABILITY_ONE_WAY <= 1, 'probability one way must be between 0 and 1!'
@@ -3421,6 +3422,11 @@ def printRoles(roles, specialAbilities, loverPlayers):
                         print(f'{" "*indent}After the vote has {ORANGE}finished{CLEAR}, it will be revealed that the {GRAY}shifter{CLEAR} has used their ability.')
                         indent -= 1
                         print(f'{" "*indent}You and the chosen player will swap both your {PINK if playerRoles[player] == "Jester" else PAPAS_WINGERIA_SPACE}role{CLEAR} and your {GRAY}special ability{CLEAR}.')
+                        if roles[player] == 'Executioner':
+                            indent += 1
+                            print(f'{" "*indent}If you {GRAY}swap{CLEAR} with your {YELLOW}target{CLEAR}, you will become their target.')
+                            print(f'{" "*indent}Otherwise, the {YELLOW}target{CLEAR} will remain the same.')
+                            indent -= 1
                         indent -= 1
                     if specialAbilities[player] == 'Hypnotist':
                         indent += 1
@@ -3881,6 +3887,7 @@ def evalSpecialAbility(specialAbility, final):
     global mewChance
     global guesserFailed
     global shifterShifted
+    global jesterTarget
     if specialAbility == 'Murderer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {RED}murder{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
         murderedPlayers.append(chosenPlayer)
@@ -3965,6 +3972,8 @@ def evalSpecialAbility(specialAbility, final):
         temp = playerSpecialAbilities[chosenPlayer]
         playerSpecialAbilities[chosenPlayer] = playerSpecialAbilities[currentPlayer]
         playerSpecialAbilities[currentPlayer] = temp
+        if playerRoles[chosenPlayer] == 'Executioner' and jesterTarget == chosenPlayer:
+            jesterTarget = currentPlayer
         shifterShifted = True
     if specialAbility == 'Hypnotist':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {FLAMINGO_SPACE}hypnotise{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
