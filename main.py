@@ -4,11 +4,13 @@ import math
 import time
 import pickle
 import random
+import argparse
 import datetime
 import numpy as np
 from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor, ImageFont
 
+#define default settings
 #bord paramaters
 GRID_SIZE = 4
 NUM_DIMENSIONS = 3
@@ -17,34 +19,167 @@ PERCENTAGE_PATHS = 0.5
 PROBABILITY_ONE_WAY = 0.1
 BIAS = 0.05
 
-#game settings
+#player/role settings
 NUM_PLAYERS = 5
 ROLES_ENABLED = True
 CHAOS_MODE = True
+STALLER_WIN = 150
+VOTING_FREQUENCY = 30
 STALLER_ABILITIES = ['Murderer', 'Toxicologist', 'Smasher']
 JESTER_ABILITIES = ['Shifter', 'Guesser', 'Hypnotist']
 FINDER_ABILITIES = ['Medic', 'Cleaner', 'Mewer', 'Swapper', 'Seer', 'Cartographer', 'None']
 CHANCE_OF_LOVERS = 0.3
 CHANCE_OF_3_WAY = 0.1
+OTHERS_CANT_SEE_FLAMINGO = True
+TOXICOLOGIST_ACID_REWARD = 5
+
+#starting state
 STARTING_INVENTORY = []
 STARTING_GOLD = 3
 STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
-STALLER_WIN = 150
-VOTING_FREQUENCY = 30
-OTHERS_CANT_SEE_FLAMINGO = True
+
+#minigame options
+BLACKJACK_TARGET = 31
+BLACKJACK_DEALER_CAUTION = 5
+LYING_GAME_DIFFICULTY = 5
+RANDOM_COLOURS_IN_LOGIC_GAME = True
+
+#shop settings
 SHOP_PURCHACE_LIMIT = 3
 CHANCE_OF_INFLATION = 0.5
 CHANCE_OF_SUPER_INFLATION = 0.05
-BLACKJACK_TARGET = 31
-BLACKJACK_DEALER_CAUTION = 5
+
+#other options
 GYM_PROGRESS_REQUIRED = 3
 WINGERIA_PROGRESS_REQUIRED = 4
-MINIMUM_SPEED = 0.25
-LYING_GAME_DIFFICULTY = 5
-RANDOM_COLOURS_IN_LOGIC_GAME = True
-ACID_PRICE = 5
+INITIAL_MINIMUM_SPEED = 0.25
 CONFIRM_STAY_HERE = True
+
+#take in basic settings as arguments
+parser = argparse.ArgumentParser()
+
+board_parser = parser.add_argument_group('Board Parameters')
+board_parser.add_argument('--size', help='grid size (in spaces)', type=int)
+board_parser.add_argument('--dimensions', help='number of dimensions in the game', type=int)
+board_parser.add_argument('--space-probability', help='probability that there will be a space in a given location', type=float)
+board_parser.add_argument('--path-probability', help='probability that there will be a path in a given location', type=float)
+board_parser.add_argument('--one-way-probability', help='probability that a given path will be one-way', type=float)
+board_parser.add_argument('--bias', help='constant by which we increase space probability if the game is impossible', type=float)
+
+player_parser = parser.add_argument_group('Player & Role Settings')
+player_parser.add_argument('--players', help='number of players in the game', type=int)
+player_parser.add_argument('--roles', help='enable/disable roles & special abilities', action=argparse.BooleanOptionalAction)
+player_parser.add_argument('--special-abilities', help='enable/disable special abilities', action=argparse.BooleanOptionalAction)
+player_parser.add_argument('--staller-win', help='round on which the staller wins', type=int)
+player_parser.add_argument('--voting-frequency', help='number of rounds between each vote', type=int)
+player_parser.add_argument('--staller-roles', help='possible special abilities that the staller can take', nargs='+', type=str)
+player_parser.add_argument('--jester-roles', help='possible special abilities that the jester can take', nargs='+', type=str)
+player_parser.add_argument('--finder-roles', help='possible special abilities that the finder can take', nargs='+', type=str)
+player_parser.add_argument('--lover-probability', help='probability that there exists lovers at any given time', type=float)
+player_parser.add_argument('--thrupple-probability', help='probability that the lovers are a thrupple', type=int)
+player_parser.add_argument('--others-can-see-flamingo', help='enable/disable jester/staller landing on the flamingo space', action=argparse.BooleanOptionalAction)
+player_parser.add_argument('--acid-reward', help='gold the poisoned player has to pay if someone lands in acid', type=int)
+
+starting_parser = parser.add_argument_group('Starting State Settings')
+starting_parser.add_argument('--starting-inventory', help='items that players start with', nargs='*', type=str)
+starting_parser.add_argument('--starting-gold', help='amount of gold the players start with', type=int)
+starting_parser.add_argument('--starting-speed', help='speed the players start with', type=float)
+
+minigame_parser = parser.add_argument_group('Minigame Options')
+minigame_parser.add_argument('--blackjack-target', help='target value in blackjack', type=int)
+minigame_parser.add_argument('--blackjack-dealer-caution', help='how cautious the dealer is in blackjack', type=int)
+minigame_parser.add_argument('--lying-game-difficulty', help='number of extra people in each round of the lying game', type=int)
+minigame_parser.add_argument('--random-logic-game-colours', help='trues and falses will be randomly coloured', action=argparse.BooleanOptionalAction)
+
+shop_parser = parser.add_argument_group('Shop Settings')
+shop_parser.add_argument('--shop-purchase-limit', help='maximum number of items players can buy at the shop', type=int)
+shop_parser.add_argument('--inflation-probability', help='probability that an item will increase its price by 1 after purchasing', type=float)
+shop_parser.add_argument('--super-inflation-probability', help='probability that an item will double its price after purchasing', type=float)
+
+other_parser = parser.add_argument_group('Other Options')
+other_parser.add_argument('--gym-progress-required', help='number of times needed to do bicep curls to get benefits', type=int)
+other_parser.add_argument('--papas-investment-required', help='amount of gold needed to invest to get benefits', type=int)
+other_parser.add_argument('--minimum-speed', help='minimum speed that players cannot go below', type=float)
+other_parser.add_argument('--confirm-stay-here', help='choosing to stay here will prompt the player to confirm', action=argparse.BooleanOptionalAction)
+
+args = parser.parse_args()
+
+if args.size != None:
+    GRID_SIZE = args.size
+if args.dimensions != None:
+    NUM_DIMENSIONS = args.dimensions
+if args.space_probability != None:
+    PERCENTAGE_SQUARES = args.space_probability
+if args.path_probability != None:
+    PERCENTAGE_PATHS = args.path_probability
+if args.one_way_probability != None:
+    PROBABILITY_ONE_WAY = args.one_way_probability
+if args.bias != None:
+    BIAS = args.bias
+
+if args.players != None:
+    NUM_PLAYERS = args.players
+if args.roles != None:
+    if args.roles == False:
+        ROLES_ENABLED = False
+        CHAOS_MODE = False
+if args.special_abilities != None:
+    if args.special_abilities == False:
+        CHAOS_MODE = False
+if args.staller_win != None:
+    STALLER_WIN = args.staller_win
+if args.voting_frequency != None:
+    VOTING_FREQUENCY = args.voting_frequency
+if args.staller_roles != None:
+    STALLER_ABILITIES = args.staller_roles
+if args.jester_roles != None:
+    JESTER_ABILITIES = args.jester_roles
+if args.finder_roles != None:
+    FINDER_ABILITIES = args.finder_roles
+if args.lover_probability != None:
+    CHANCE_OF_LOVERS = args.lover_probability
+if args.thrupple_probability != None:
+    CHANCE_OF_3_WAY = args.thrupple_probability
+if args.others_can_see_flamingo != None:
+    if args.others_can_see_flamingo == True:
+        OTHERS_CANT_SEE_FLAMINGO = False
+if args.acid_reward != None:
+    TOXICOLOGIST_ACID_REWARD = args.acid_reward
+
+if args.starting_inventory != None:
+    STARTING_INVENTORY = args.starting_inventory
+if args.starting_gold != None:
+    STARTING_GOLD = args.starting_gold
+if args.starting_speed != None:
+    STARTING_SPEED = args.starting_speed
+    
+if args.blackjack_target != None:
+    BLACKJACK_TARGET = args.blackjack_target
+if args.blackjack_dealer_caution != None:
+    BLACKJACK_DEALER_CAUTION = args.blackjack_dealer_caution
+if args.lying_game_difficulty != None:
+    LYING_GAME_DIFFICULTY = args.lying_game_difficulty
+if args.random_logic_game_colours != None:
+    if args.random_logic_game_colours == False:
+        OTHERS_CANT_SEE_FLAMINGO = False
+
+if args.shop_purchase_limit != None:
+    SHOP_PURCHACE_LIMIT = args.shop_purchase_limit
+if args.inflation_probability != None:
+    CHANCE_OF_INFLATION = args.inflation_probability
+if args.super_inflation_probability != None:
+    CHANCE_OF_SUPER_INFLATION = args.super_inflation_probability
+
+if args.gym_progress_required != None:
+    GYM_PROGRESS_REQUIRED = args.gym_progress_required
+if args.papas_investment_required != None:
+    WINGERIA_PROGRESS_REQUIRED = args.papas_investment_required
+if args.minimum_speed != None:
+    INITIAL_MINIMUM_SPEED = args.minimum_speed
+if args.confirm_stay_here != None:
+    if args.confirm_stay_here == False:
+        CONFIRM_STAY_HERE = False
 
 #assertions
 assert GRID_SIZE >= 2, 'grid size must be greater than or equal to 2!'
@@ -67,8 +202,8 @@ assert BLACKJACK_TARGET >= 21, 'blackjack target must be greater than or equal t
 assert 0 <= BLACKJACK_DEALER_CAUTION and BLACKJACK_DEALER_CAUTION <= BLACKJACK_TARGET, f'blackjack dealer caution must be in between 0 and {BLACKJACK_TARGET}!'
 assert GYM_PROGRESS_REQUIRED > 0, 'gym progress required must be positive!'
 assert WINGERIA_PROGRESS_REQUIRED > 0, 'wingeria progress required must be positive!'
-assert MINIMUM_SPEED >= 0, 'minimum speed must be non negative!'
-assert LYING_GAME_DIFFICULTY >= 0, 'lying game difficulty must be non negative!'
+assert INITIAL_MINIMUM_SPEED >= 0, 'minimum speed must be non negative!'
+assert LYING_GAME_DIFFICULTY > 0, 'lying game difficulty must be positive!'
 
 #colourings
 def getColour(r, g, b, background=False):
@@ -4056,9 +4191,9 @@ def evaluatePoison():
         if poisonEffect == 'acid':
             indent += 1
             print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have thrown up {GREEN}acid{CLEAR} on this space!')
-            decorators[playerPositions[currentPlayer]].append({"type": 'acid', "placedBy": currentPlayer, "reward": ACID_PRICE})
+            decorators[playerPositions[currentPlayer]].append({"type": 'acid', "placedBy": currentPlayer, "reward": TOXICOLOGIST_ACID_REWARD})
             indent += 1
-            print(f'{" "*indent}The next time {ORANGE}someone{CLEAR} lands on this space, you must pay them {YELLOW}{ACID_PRICE} gold{CLEAR}. (as an apology)')
+            print(f'{" "*indent}The next time {ORANGE}someone{CLEAR} lands on this space, you must pay them {YELLOW}{TOXICOLOGIST_ACID_REWARD} gold{CLEAR}. (as an apology)')
             print(f'{" "*indent}The {GREEN}acid{CLEAR} will be removed afer.')
             indent -= 2
     elif roundNum == playerPoisoneds[currentPlayer]['elimination']:
@@ -5176,7 +5311,7 @@ for _ in range(NUM_PLAYERS):
     playerInventories.append(copy.deepcopy(STARTING_INVENTORY))
     playerGolds.append(STARTING_GOLD)
     playerSpeeds.append(STARTING_SPEED)
-    playerMinimumSpeeds.append(MINIMUM_SPEED)
+    playerMinimumSpeeds.append(INITIAL_MINIMUM_SPEED)
     playerFoodInventories.append(copy.deepcopy(STARTING_FOOD_INVENTORY))
     playerProgress.append(copy.deepcopy({"gym": 0, "wingeria": 0}))
     playerStealBonus.append(0)

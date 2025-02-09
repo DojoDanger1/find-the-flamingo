@@ -4,10 +4,13 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 # Changelog
 
 ## v2.5.6 - 09/02/2025
+### Features
+- Now allowing for settings to be altered from the command line
 ### Adjustments
 - Adjusted assertions to allow for games of size 2 for high dimensions
 ### Bug Fixes
 - Ensured that when executioner/shifter shifts, executioner isn't targeting themselves
+- Ensured that `LYING_GAME_DIFFICULTY` is at least 1
 
 ## v2.5.5 - 06/02/2025
 ### Adjustments
