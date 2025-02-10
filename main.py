@@ -40,6 +40,7 @@ STARTING_SPEED = 1
 STARTING_FOOD_INVENTORY = {"meats": {}, "sauces": {}, "sides": {}, "dips": {}}
 
 #minigame options
+FLAMINGO_GAME = True
 BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
 LYING_GAME_DIFFICULTY = 5
@@ -87,6 +88,7 @@ starting_parser.add_argument('--starting-gold', help='amount of gold the players
 starting_parser.add_argument('--starting-speed', help='speed the players start with', type=float)
 
 minigame_parser = parser.add_argument_group('Minigame Options')
+minigame_parser.add_argument('--flamingo-game', help='enable/disable playing a minigame to win', action=argparse.BooleanOptionalAction)
 minigame_parser.add_argument('--blackjack-target', help='target value in blackjack', type=int)
 minigame_parser.add_argument('--blackjack-dealer-caution', help='how cautious the dealer is in blackjack', type=int)
 minigame_parser.add_argument('--lying-game-difficulty', help='number of extra people in each round of the lying game', type=int)
@@ -153,7 +155,14 @@ if args.starting_gold != None:
     STARTING_GOLD = args.starting_gold
 if args.starting_speed != None:
     STARTING_SPEED = args.starting_speed
-    
+
+if args.flamingo_game != None:
+    if args.flamingo_game == False:
+        FLAMINGO_GAME = False
+        if 'Hypnotist' in JESTER_ABILITIES:
+            JESTER_ABILITIES.remove('Hypnotist')
+        if JESTER_ABILITIES == []:
+            raise Exception('Hypnotist cannot be the only jester role if flamingo game is turned off! (when selecting this option, hypnotist is removed from the role pool)')
 if args.blackjack_target != None:
     BLACKJACK_TARGET = args.blackjack_target
 if args.blackjack_dealer_caution != None:
@@ -1086,17 +1095,22 @@ def evaluateSpaceType(spaceType):
         indent -= 1
     if spaceType == 'flamingo':
         indent += 1
-        print(f'{" "*indent}You must play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
-        print(f'{" "*indent}{RED}If you lose{CLEAR}, you must return to the {HOME_SPACE}home{CLEAR} space.')
-        time.sleep(1)
-        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo game{CLEAR} you will play is:')
-        if spinTheFlamingoWheel():
-            print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
+        if FLAMINGO_GAME:
+            print(f'{" "*indent}You must play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
+            print(f'{" "*indent}{RED}If you lose{CLEAR}, you must return to the {HOME_SPACE}home{CLEAR} space.')
+            time.sleep(1)
+            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo game{CLEAR} you will play is:')
+            if spinTheFlamingoWheel():
+                print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
+                running = False
+                winner = currentPlayer
+            else:
+                print(f'{" "*indent}{RED}You lost!{CLEAR} You must return to the {HOME_SPACE}home{CLEAR} space!')
+                playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
+        else:
+            print(f'{" "*indent}{GREEN}Congratulations! You win!{CLEAR}')
             running = False
             winner = currentPlayer
-        else:
-            print(f'{" "*indent}{RED}You lost!{CLEAR} You must return to the {HOME_SPACE}home{CLEAR} space!')
-            playerPositions[currentPlayer] = tuple(np.argwhere(board == "home")[0])
         indent -= 1
     if spaceType == 'home':
         indent += 1
@@ -3441,7 +3455,10 @@ def printRoles(roles, specialAbilities, loverPlayers):
         if explainRole == 1:
             if roles[player] == 'Finder':
                 indent += 1
-                print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR} and play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                if FLAMINGO_GAME:
+                    print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR} and play a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                else:
+                    print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
                 print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
                 indent += 1
                 print(f'{" "*indent}{GRAY}The purpose of this sentence is to make the length of each description roughly the same.')
@@ -3450,7 +3467,10 @@ def printRoles(roles, specialAbilities, loverPlayers):
             if roles[player] == 'Staller':
                 indent += 1
                 print(f'{" "*indent}To {GREEN}win the game{CLEAR}, the game must last for {ORANGE}{STALLER_WIN} rounds{CLEAR}.')
-                print(f'{" "*indent}After your {ORANGE}{STALLER_WIN}th round{CLEAR}, and every subsequent {ORANGE}5 rounds{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                if FLAMINGO_GAME:
+                    print(f'{" "*indent}After your {ORANGE}{STALLER_WIN}th round{CLEAR}, and every subsequent {ORANGE}5 rounds{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                else:
+                    print(f'{" "*indent}After your {ORANGE}{STALLER_WIN}th round{CLEAR}, you will {GREEN}win the game{CLEAR}.')
                 print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will be {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
                 indent += 1
                 print(f'{" "*indent}The {RED}Staller{CLEAR} role will also be passed onto one of the {CYAN}Finders{CLEAR}.')
@@ -3461,10 +3481,11 @@ def printRoles(roles, specialAbilities, loverPlayers):
             if roles[player] == 'Jester':
                 indent += 1
                 print(f'{" "*indent}To {GREEN}win the game{CLEAR}, you must get {RED}voted out{CLEAR}.')
-                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-                indent += 1
-                print(f'{" "*indent}If you fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become a either {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
-                indent -= 1
+                if FLAMINGO_GAME:
+                    print(f'{" "*indent}If you are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                    indent += 1
+                    print(f'{" "*indent}If you fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become a either {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                    indent -= 1
                 if OTHERS_CANT_SEE_FLAMINGO:
                     print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
                 indent -= 1
@@ -3474,8 +3495,11 @@ def printRoles(roles, specialAbilities, loverPlayers):
                 indent += 1
                 print(f'{" "*indent}This player may either be a {CYAN}Finder{CLEAR} or a {RED}Staller{CLEAR}.')
                 indent -= 1
-                print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-                print(f'{" "*indent}If you are {RED}voted out{CLEAR}, or fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become either a {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                if FLAMINGO_GAME:
+                    print(f'{" "*indent}If they are {RED}voted out{CLEAR}, you will play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                    print(f'{" "*indent}If you are {RED}voted out{CLEAR}, or fail the {FLAMINGO_SPACE}flamingo game{CLEAR}, one of the {CYAN}Finders{CLEAR} will become either a {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                else:
+                    print(f'{" "*indent}If you are {RED}voted out{CLEAR}, one of the {CYAN}Finders{CLEAR} will become either a {PINK}Jester{CLEAR} or an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
                 if OTHERS_CANT_SEE_FLAMINGO:
                     print(f'{" "*indent}For you, the {FLAMINGO_SPACE}flamingo space{CLEAR} will act as an {EMPTY_SPACE}empty space{CLEAR}.')
                 indent -= 1
@@ -3676,17 +3700,28 @@ def evaluateVote(final):
     if final:
         print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, they will be {RED}permanently eliminated{CLEAR} from the game.')
         indent += 1
-        print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-        print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
-        print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        if FLAMINGO_GAME:
+            print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+            print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
+            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        else:
+            print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to have a {RED}50%{CLEAR} chance to {GREEN}win the game{CLEAR}.')
+            print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
+            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last.')
         indent -= 1
-        print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will have a chance every {ORANGE}5 rounds{CLEAR} to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        if FLAMINGO_GAME:
+            print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will have a chance every {ORANGE}5 rounds{CLEAR} to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        else:
+            print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will instantly {GREEN}win the game{CLEAR} after this vote.')
         print(f'{" "*indent}If you instead vote out a {CYAN}Finder{CLEAR}, they will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
         print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR} after this vote.')
     else:
         print(f'{" "*indent}The player you vote out will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
         print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, the {RED}Staller{CLEAR} role will be passed onto one of the {CYAN}Finders{CLEAR}.')
-    print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+    if FLAMINGO_GAME:
+        print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+    else:
+        print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will {GREEN}win the game{CLEAR}.')
     print(f'{" "*indent}If there is a {ORANGE}tie{CLEAR}, no one will be {RED}eliminated{CLEAR}.')
     indent += 1
     print(f'{" "*indent}You will vote in {RED}private{CLEAR}, in a {ORANGE}random order{CLEAR} and then all votes will be {RED}revealed{CLEAR}.')
@@ -3844,7 +3879,7 @@ def evaluateVote(final):
                     playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
                     indent -= 1
     #maybe assign lovers
-    if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0:
+    if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0 and not final:
         loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
         rearrangeRoles = True
         if random.random() <= CHANCE_OF_3_WAY:
@@ -3908,39 +3943,52 @@ def evalVoteOut(voted, final, jesterWon):
         else:
             print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you have been {RED}permanently eliminated{CLEAR} from the game.')
             eliminatedPlayers.append(voted)
-            print(f'{" "*indent}{CYAN}Finders{CLEAR}, every {ORANGE}5 rounds{CLEAR} one of you will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
-            print(f'{" "*indent}If you fail, you will be {RED}permanently eliminated{CLEAR}.')
+            if FLAMINGO_GAME:
+                print(f'{" "*indent}{CYAN}Finders{CLEAR}, every {ORANGE}5 rounds{CLEAR} one of you will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}!')
+                print(f'{" "*indent}If you fail, you will be {RED}permanently eliminated{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+                indent -= 1
+            else:
+                print(f'{" "*indent}{CYAN}Finders{CLEAR}, every {ORANGE}5 rounds{CLEAR}, one of you will be picked to have a {RED}50%{CLEAR} chance to {GREEN}win the game{CLEAR}.')
+                print(f'{" "*indent}If you fail, they will be {RED}permanently eliminated{CLEAR}.')
+                indent += 1
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last.')
+                indent -= 1
             indent += 1
-            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
             print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
             indent -= 1
         indent -= 1
     if playerRoles[voted] == 'Jester':
         indent += 1
         print(f'{" "*indent}{RED}Unfortunately{CLEAR}, you have voted out the {PINK}Jester{CLEAR}!')
-        print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you now have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-        time.sleep(1)
-        won = spinTheFlamingoWheel()
-        if not won:
-            print(f'{" "*indent}{RED}You lost!{CLEAR}')
-            if not final:
-                print(f'{" "*indent}The role of {PINK}Jester{CLEAR} must now be reassinged. They may alternatively be an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
-                oldJester = playerRoles.index('Jester')
-                finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-                newJester = random.choice(finders)
-                jesterType = random.choice(['Jester', 'Executioner'])
-                playerRoles[newJester] = jesterType
-                if jesterType == 'Jester':
-                    jesterTarget = playerRoles.index('Jester')
+        if FLAMINGO_GAME:
+            print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you now have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+            time.sleep(1)
+            won = spinTheFlamingoWheel()
+            if not won:
+                print(f'{" "*indent}{RED}You lost!{CLEAR}')
+                if not final:
+                    print(f'{" "*indent}The role of {PINK}Jester{CLEAR} must now be reassinged. They may alternatively be an {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}.')
+                    oldJester = playerRoles.index('Jester')
+                    finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
+                    newJester = random.choice(finders)
+                    jesterType = random.choice(['Jester', 'Executioner'])
+                    playerRoles[newJester] = jesterType
+                    if jesterType == 'Jester':
+                        jesterTarget = playerRoles.index('Jester')
+                    else:
+                        jesterTarget = random.choice([player for player in list(range(1,NUM_PLAYERS+1)) if playerRoles[player] != 'Executioner'])
+                    playerRoles[oldJester] = 'Finder'
+                    if CHAOS_MODE:
+                        playerSpecialAbilities[newJester] = random.choice(JESTER_ABILITIES)
+                        playerSpecialAbilities[oldJester] = random.choice(FINDER_ABILITIES)
+                    rearrangeRoles = True
                 else:
-                    jesterTarget = random.choice([player for player in list(range(1,NUM_PLAYERS+1)) if playerRoles[player] != 'Executioner'])
-                playerRoles[oldJester] = 'Finder'
-                if CHAOS_MODE:
-                    playerSpecialAbilities[newJester] = random.choice(JESTER_ABILITIES)
-                    playerSpecialAbilities[oldJester] = random.choice(FINDER_ABILITIES)
-                rearrangeRoles = True
+                    print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
             else:
-                print(f'{" "*indent}The {PINK}Jester{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
+                jesterWon = True
         else:
             print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
             jesterWon = True
@@ -3978,29 +4026,33 @@ def evalVoteOut(voted, final, jesterWon):
         print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} is...')
         time.sleep(1.5)
         print(f'\x1B[A\x1B[2K{" "*indent}The {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} is {YELLOW}Player {jesterPlayer}{CLEAR}!')
-        time.sleep(0.5)
-        print(f'{" "*indent}{YELLOW}Player {jesterPlayer}{CLEAR}, as you are the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}, you now have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-        won = spinTheFlamingoWheel()
-        if not won:
-            print(f'{" "*indent}{RED}You lost!{CLEAR}')
-            if not final:
-                print(f'{" "*indent}The role of {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} must now be reassinged. They may alternatively be a {PINK}Jester{CLEAR}.')
-                oldJester = playerRoles.index('Executioner')
-                finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-                newJester = random.choice(finders)
-                jesterType = random.choice(['Jester', 'Executioner'])
-                playerRoles[newJester] = jesterType
-                if jesterType == 'Jester':
-                    jesterTarget = playerRoles.index('Jester')
+        if FLAMINGO_GAME:
+            time.sleep(0.5)
+            print(f'{" "*indent}{YELLOW}Player {jesterPlayer}{CLEAR}, as you are the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}, you now have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+            won = spinTheFlamingoWheel()
+            if not won:
+                print(f'{" "*indent}{RED}You lost!{CLEAR}')
+                if not final:
+                    print(f'{" "*indent}The role of {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} must now be reassinged. They may alternatively be a {PINK}Jester{CLEAR}.')
+                    oldJester = playerRoles.index('Executioner')
+                    finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
+                    newJester = random.choice(finders)
+                    jesterType = random.choice(['Jester', 'Executioner'])
+                    playerRoles[newJester] = jesterType
+                    if jesterType == 'Jester':
+                        jesterTarget = playerRoles.index('Jester')
+                    else:
+                        jesterTarget = random.choice([player for player in list(range(1,NUM_PLAYERS+1)) if playerRoles[player] != 'Executioner'])
+                    playerRoles[oldJester] = 'Finder'
+                    if CHAOS_MODE:
+                        playerSpecialAbilities[newJester] = random.choice(JESTER_ABILITIES)
+                        playerSpecialAbilities[oldJester] = random.choice(FINDER_ABILITIES)
+                    rearrangeRoles = True
                 else:
-                    jesterTarget = random.choice([player for player in list(range(1,NUM_PLAYERS+1)) if playerRoles[player] != 'Executioner'])
-                playerRoles[oldJester] = 'Finder'
-                if CHAOS_MODE:
-                    playerSpecialAbilities[newJester] = random.choice(JESTER_ABILITIES)
-                    playerSpecialAbilities[oldJester] = random.choice(FINDER_ABILITIES)
-                rearrangeRoles = True
+                    print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
             else:
-                print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} is now also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR}.')
+                print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
+                jesterWon = True
         else:
             print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
             jesterWon = True
@@ -5755,14 +5807,21 @@ while running:
                     print('-'*50)
                     if 'Staller' in [role for player, role in enumerate(playerRoles) if player not in eliminatedPlayers]:
                         staller = playerRoles.index('Staller')
-                        print(f'{" "*indent}{YELLOW}Player {staller}{CLEAR}, as you are the {RED}Staller{CLEAR}, you have a chance to {GREEN}win the game{CLEAR}.')
-                        won = spinTheFlamingoWheel()
-                        if not won:
-                            print(f'{" "*indent}{RED}You lost!{CLEAR}')
-                            print('-'*50)
-                            input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
-                            os.system('clear')
+                        if FLAMINGO_GAME:
+                            print(f'{" "*indent}{YELLOW}Player {staller}{CLEAR}, as you are the {RED}Staller{CLEAR}, you have a chance to {GREEN}win the game{CLEAR}.')
+                            won = spinTheFlamingoWheel()
+                            if not won:
+                                print(f'{" "*indent}{RED}You lost!{CLEAR}')
+                                print('-'*50)
+                                input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
+                                os.system('clear')
+                            else:
+                                print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
+                                winner = staller
+                                running = False
                         else:
+                            print(f'{" "*indent}{YELLOW}Player {staller}{CLEAR}, as you are the {RED}Staller{CLEAR}, you {GREEN}win the game{CLEAR}.')
+                            print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
                             winner = staller
                             running = False
                     else:
@@ -5774,7 +5833,10 @@ while running:
                         else:
                             chosen = random.choice(finders)
                         print(f'{" "*indent}{YELLOW}Player {chosen}{CLEAR}, you have been picked to have a chance to {GREEN}win the game{CLEAR}.')
-                        won = spinTheFlamingoWheel()
+                        if FLAMINGO_GAME:
+                            won = spinTheFlamingoWheel()
+                        else:
+                            won = random.choice([True,False])
                         if not won:
                             print(f'{" "*indent}{RED}You lost!{CLEAR}')
                             print(f'{" "*indent}{YELLOW}Player {chosen}{CLEAR}, you have been {RED}permanently eliminated{CLEAR}.')
@@ -5789,6 +5851,7 @@ while running:
                                 input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
                                 os.system('clear')
                         else:
+                            print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
                             winner = chosen
                             running = False
                 if running == True:

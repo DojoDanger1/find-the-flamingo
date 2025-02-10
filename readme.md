@@ -3,6 +3,12 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.5.7 - 10/02/2025
+### Features
+- Added option `FLAMINGO-GAME` to enable/disable playing the flamingo game to win
+### Bug Fixes
+- Ensured lovers can't generate after the final vote
+
 ## v2.5.6 - 09/02/2025
 ### Features
 - Now allowing for settings to be altered from the command line
