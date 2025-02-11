@@ -3,10 +3,13 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.5.9
+### Bug Fixes
+- Ensured that finders play flamingo games at `STALLER_WIN` only if `ROLES_ENABLED`
+
 ## v2.5.8 - 11/02/2025
 ### Bug Fixes
 - Save file no longer becomes hundreds of megabytes due to `prevPlayerSmasheds` and `prevPlayerHipnosisRounds`
-- Ensured that finders play flamingo games at `STALLER_WIN` only if `ROLES_ENABLED`
 
 ## v2.5.7 - 10/02/2025
 ### Features
