@@ -5801,7 +5801,7 @@ while running:
                 if running == True:
                     while currentPlayer in eliminatedPlayers:
                         currentPlayer += 1
-                if roundNum > STALLER_WIN and roundNum % 5 == 1 and running == True:
+                if roundNum > STALLER_WIN and roundNum % 5 == 1 and running == True and ROLES_ENABLED:
                     padding = math.floor((50-6-len(str(roundNum)))/2)
                     print(f'{" "*padding}{ORANGE}Round {roundNum}{CLEAR}')
                     print('-'*50)
