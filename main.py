@@ -5237,8 +5237,8 @@ def saveToFile(filename):
         "prevPlayerPoisoneds": prevPlayerPoisoneds,
         "prevPlayerHealedPoisons": prevPlayerHealedPoisons,
         "prevPlayerGreenPotionTurns": prevPlayerGreenPotionTurns,
-        "prevPlayerHypnosisRounds": playerHypnosisRounds,
-        "prevPlayerSmasheds": playerSmasheds,
+        "prevPlayerHypnosisRounds": prevPlayerHypnosisRounds,
+        "prevPlayerSmasheds": prevPlayerSmasheds,
         "prevPlayerMaps": prevPlayerMaps,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards
