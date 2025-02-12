@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.5.10
+### Bug Fixes
+- Added `SHORTEST_PATH_TO_FLAMINGO` to save file to ensure it remains constant between games
+
 ## v2.5.9
 ### Bug Fixes
 - Ensured that finders play flamingo games at `STALLER_WIN` only if `ROLES_ENABLED`

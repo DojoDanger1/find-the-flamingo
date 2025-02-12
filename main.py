@@ -5241,7 +5241,8 @@ def saveToFile(filename):
         "prevPlayerSmasheds": prevPlayerSmasheds,
         "prevPlayerMaps": prevPlayerMaps,
         "prevItemPrices": prevItemPrices,
-        "prevItemRewards": prevItemRewards
+        "prevItemRewards": prevItemRewards,
+        "SHORTEST_PATH_TO_FLAMINGO": SHORTEST_PATH_TO_FLAMINGO
     }
     with open(f'saves/{filename}.pkl', 'wb') as f:
         pickle.dump(data,f)
@@ -5702,6 +5703,7 @@ while running:
                 prevPlayerMaps = data["prevPlayerMaps"]
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
+                SHORTEST_PATH_TO_FLAMINGO = data["SHORTEST_PATH_TO_FLAMINGO"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
                 generateImage(board, paths, quantumEntanglements)
             indent -= 1
