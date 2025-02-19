@@ -3,17 +3,17 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
-## v2.5.11
+## v2.5.11 - 19/02/2025
 ### Adjustments
 - Player is no longer forced to be teleported/timewarped in 1-player scenarios
 ### Bug Fixes
 - Grammatical Errors
 
-## v2.5.10
+## v2.5.10 - 12/02/2025
 ### Bug Fixes
 - Added `SHORTEST_PATH_TO_FLAMINGO` to save file to ensure it remains constant between games
 
-## v2.5.9
+## v2.5.9 - 11/02/2025
 ### Bug Fixes
 - Ensured that finders play flamingo games at `STALLER_WIN` only if `ROLES_ENABLED`
 
