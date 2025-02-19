@@ -3,6 +3,12 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.5.11
+### Adjustments
+- Player is no longer forced to be teleported/timewarped in 1-player scenarios
+### Bug Fixes
+- Grammatical Errors
+
 ## v2.5.10
 ### Bug Fixes
 - Added `SHORTEST_PATH_TO_FLAMINGO` to save file to ensure it remains constant between games

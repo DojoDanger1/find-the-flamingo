@@ -1146,12 +1146,15 @@ def evaluateSpaceType(spaceType):
         indent -= 1
     if spaceType == 'teleport':
         indent += 1
-        print(f'{" "*indent}You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be randomly teleported (1-{NUM_PLAYERS}):{CLEAR} ', True))
-        if player == -1:
-            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        if NUM_PLAYERS - len(eliminatedPlayers) > 1:
+            print(f'{" "*indent}You get to choose a player to randomly {TELEPORT_SPACE}teleport{CLEAR}!')
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be randomly teleported (1-{NUM_PLAYERS}):{CLEAR} ', True))
+            if player == -1:
+                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+            else:
+                playerPositions[player] = selectRandomSpace(board)
         else:
-            playerPositions[player] = selectRandomSpace(board)
+            print(f'{" "*indent}{RED}Unfortunately{CLEAR}, there is no one to {TELEPORT_SPACE}teleport{CLEAR}.')
         indent -= 1
     if spaceType == 'gambling':
         indent += 1
@@ -1163,45 +1166,48 @@ def evaluateSpaceType(spaceType):
         indent -= 1
     if spaceType == 'timewarp':
         indent += 1
-        print(f'{" "*indent}You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
-        player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent back (1-{NUM_PLAYERS}):{CLEAR} ', True))
-        if player == -1:
-            print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+        if NUM_PLAYERS - len(eliminatedPlayers) > 1:
+            print(f'{" "*indent}You get to choose a player to be {TIMEWARP_SPACE}sent back in time{CLEAR} up to {GREEN}3 rounds{CLEAR}!')
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who will be sent back (1-{NUM_PLAYERS}):{CLEAR} ', True))
+            if player == -1:
+                print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
+            else:
+                targetTime = min(1+3*(NUM_PLAYERS-len(eliminatedPlayers)),len(prevPlayerPositions))
+                playerPositions[player] = prevPlayerPositions[-targetTime][player]
+                playerInventories[player] = prevPlayerInventories[-targetTime][player]
+                playerGolds[player] = prevPlayerGolds[-targetTime][player]
+                playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
+                playerMinimumSpeeds[player] = prevPlayerMinimumSpeeds[-targetTime][player]
+                playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
+                playerProgress[player] = prevPlayerProgress[-targetTime][player]
+                playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
+                playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
+                playerQuests[player] = prevPlayerQuests[-targetTime][player]
+                playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
+                playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
+                playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
+                playerGreenPotionTurns[player] = prevPlayerGreenPotionTurns[-targetTime][player]
+                playerSmasheds[player] = prevPlayerSmasheds[-targetTime][player]
+                for _ in range(targetTime-1):
+                    for i in range(1, len(prevPlayerPositions)):
+                        prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
+                        prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
+                        prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
+                        prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
+                        prevPlayerMinimumSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerMinimumSpeeds[(-1)*(i+1)][player])
+                        prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
+                        prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
+                        prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
+                        prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
+                        prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
+                        prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
+                        prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
+                        prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
+                        prevPlayerGreenPotionTurns[(-1)*i][player] = copy.deepcopy(prevPlayerGreenPotionTurns[(-1)*(i+1)][player])
+                        prevPlayerSmasheds[(-1)*i][player] = copy.deepcopy(prevPlayerSmasheds[(-1)*(i+1)][player])
         else:
-            targetTime = min(1+3*(NUM_PLAYERS-len(eliminatedPlayers)),len(prevPlayerPositions))
-            playerPositions[player] = prevPlayerPositions[-targetTime][player]
-            playerInventories[player] = prevPlayerInventories[-targetTime][player]
-            playerGolds[player] = prevPlayerGolds[-targetTime][player]
-            playerSpeeds[player] = prevPlayerSpeeds[-targetTime][player]
-            playerMinimumSpeeds[player] = prevPlayerMinimumSpeeds[-targetTime][player]
-            playerFoodInventories[player] = prevPlayerFoodInventories[-targetTime][player]
-            playerProgress[player] = prevPlayerProgress[-targetTime][player]
-            playerStealBonus[player] = prevPlayerStealBonus[-targetTime][player]
-            playerInvestmentBonus[player] = prevPlayerInvestmentBonus[-targetTime][player]
-            playerQuests[player] = prevPlayerQuests[-targetTime][player]
-            playerWaitingForEvents[player] = prevPlayerWaitingForEvents[-targetTime][player]
-            playerFrozens[player] = prevPlayerFrozens[-targetTime][player]
-            playerQuantumNotifications[player] = prevPlayerQuantumNotifications[-targetTime][player]
-            playerGreenPotionTurns[player] = prevPlayerGreenPotionTurns[-targetTime][player]
-            playerSmasheds[player] = prevPlayerSmasheds[-targetTime][player]
-            for _ in range(targetTime-1):
-                for i in range(1, len(prevPlayerPositions)):
-                    prevPlayerPositions[(-1)*i][player] = copy.deepcopy(prevPlayerPositions[(-1)*(i+1)][player])
-                    prevPlayerInventories[(-1)*i][player] = copy.deepcopy(prevPlayerInventories[(-1)*(i+1)][player])
-                    prevPlayerGolds[(-1)*i][player] = copy.deepcopy(prevPlayerGolds[(-1)*(i+1)][player])
-                    prevPlayerSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerSpeeds[(-1)*(i+1)][player])
-                    prevPlayerMinimumSpeeds[(-1)*i][player] = copy.deepcopy(prevPlayerMinimumSpeeds[(-1)*(i+1)][player])
-                    prevPlayerFoodInventories[(-1)*i][player] = copy.deepcopy(prevPlayerFoodInventories[(-1)*(i+1)][player])
-                    prevPlayerProgress[(-1)*i][player] = copy.deepcopy(prevPlayerProgress[(-1)*(i+1)][player])
-                    prevPlayerStealBonus[(-1)*i][player] = copy.deepcopy(prevPlayerStealBonus[(-1)*(i+1)][player])
-                    prevPlayerInvestmentBonus[(-1)*i][player] = copy.deepcopy(prevPlayerInvestmentBonus[(-1)*(i+1)][player])
-                    prevPlayerQuests[(-1)*i][player] = copy.deepcopy(prevPlayerQuests[(-1)*(i+1)][player])
-                    prevPlayerWaitingForEvents[(-1)*i][player] = copy.deepcopy(prevPlayerWaitingForEvents[(-1)*(i+1)][player])
-                    prevPlayerFrozens[(-1)*i][player] = copy.deepcopy(prevPlayerFrozens[(-1)*(i+1)][player])
-                    prevPlayerQuantumNotifications[(-1)*i][player] = copy.deepcopy(prevPlayerQuantumNotifications[(-1)*(i+1)][player])
-                    prevPlayerGreenPotionTurns[(-1)*i][player] = copy.deepcopy(prevPlayerGreenPotionTurns[(-1)*(i+1)][player])
-                    prevPlayerSmasheds[(-1)*i][player] = copy.deepcopy(prevPlayerSmasheds[(-1)*(i+1)][player])
-            indent -= 1
+            print(f'{" "*indent}{RED}Unfortunately{CLEAR}, there is no one to {TIMEWARP_SPACE}timewarp{CLEAR}.')
+        indent -= 1
     if spaceType == 'papas wingeria':
         visitWingeria()
     if spaceType == 'gym':
@@ -2064,7 +2070,7 @@ def useItem():
                                         {"start": move['path']['end'], "end": move['path']['start'], "oneWay": True},
                                     ]
                                     if firstPath in possiblePaths:
-                                        print(f'{" "*indent}To get closer to the {FLAMINGO_SPACE}flamigo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
+                                        print(f'{" "*indent}To get closer to the {FLAMINGO_SPACE}flamingo{CLEAR}, you should go {GREEN}{move["direction"]}{CLEAR}.')
                             indent -= 1
                         if item == 'green potion':
                             indent += 1
@@ -5474,7 +5480,7 @@ while running:
     if playerGreenPotionTurns[currentPlayer] > 0 and board[playerPositions[currentPlayer]] != 'shadow realm':
         indent += 1
         shortestPathToFlamingo = findShortestPathToFlamingo(board, paths, playerPositions[currentPlayer], highwayInformation)
-        print(f'{" "*indent}The {FLAMINGO_SPACE}flamigo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
+        print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo space{CLEAR} is {GREEN}{len(shortestPathToFlamingo)}{CLEAR} moves away.')
         playerGreenPotionTurns[currentPlayer] -= 1
         indent -= 1
     evaluateEntanglement()
