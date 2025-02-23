@@ -3,6 +3,30 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.6.0 - 23/02/2025
+### Features
+- Team Game
+  - Before the vote, if it is not final, there is a 1 in 3 chance for the players to be offered to play a team game.
+  - The team game is a random flamingo game, with a time limit of 8 minutes (adjustable with `TEAM_GAME_TIME`)
+  - If the players choose to play and succeed, their special will be buffed
+  - If the players choose to play and loose or run out of time, there will be no vote
+  - If the players do not choose to play, the vote will continue as normal
+- Buffed Special Abilities if the Team Game is Won
+  - Murderer can murder a second player
+  - Toxicologist can poison a second player
+  - Smasher can smash a second player
+  - Guesser is buffed implicitly by everyone else's role being buffed
+  - Shifter can shift everyones role and special ability by a certain number of players (like a ceaser cipher)
+  - Hypnotist can hypnotise a second player
+  - Medic can shield a second player
+  - Cleaner can remove all quantum entanglements
+  - Mewer can increase the chance of a successful mew by 5%
+  - Swapper can make a second swap
+  - Cartographer can make a second addition to their map
+### Bug Fixes
+- Ensured that guesser isn't murdered twice if they are murdered and guessed wrong
+- Grammatical Errors
+
 ## v2.5.11 - 19/02/2025
 ### Adjustments
 - Player is no longer forced to be teleported/timewarped in 1-player scenarios

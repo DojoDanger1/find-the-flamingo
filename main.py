@@ -6,6 +6,7 @@ import pickle
 import random
 import argparse
 import datetime
+import humanize
 import numpy as np
 from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor, ImageFont
@@ -45,6 +46,7 @@ BLACKJACK_TARGET = 31
 BLACKJACK_DEALER_CAUTION = 5
 LYING_GAME_DIFFICULTY = 5
 RANDOM_COLOURS_IN_LOGIC_GAME = True
+TEAM_GAME_TIME = 480
 
 #shop settings
 SHOP_PURCHACE_LIMIT = 3
@@ -93,6 +95,7 @@ minigame_parser.add_argument('--blackjack-target', help='target value in blackja
 minigame_parser.add_argument('--blackjack-dealer-caution', help='how cautious the dealer is in blackjack', type=int)
 minigame_parser.add_argument('--lying-game-difficulty', help='number of extra people in each round of the lying game', type=int)
 minigame_parser.add_argument('--random-logic-game-colours', help='trues and falses will be randomly coloured', action=argparse.BooleanOptionalAction)
+minigame_parser.add_argument('--team-game-time', help='time limit in seconds for the team game', type=int)
 
 shop_parser = parser.add_argument_group('Shop Settings')
 shop_parser.add_argument('--shop-purchase-limit', help='maximum number of items players can buy at the shop', type=int)
@@ -172,6 +175,8 @@ if args.lying_game_difficulty != None:
 if args.random_logic_game_colours != None:
     if args.random_logic_game_colours == False:
         OTHERS_CANT_SEE_FLAMINGO = False
+if args.team_game_time != None:
+    TEAM_GAME_TIME = args.team_game_time
 
 if args.shop_purchase_limit != None:
     SHOP_PURCHACE_LIMIT = args.shop_purchase_limit
@@ -1771,7 +1776,7 @@ def spinTheInformationWheel():
         indent -= 1
     indent -= 3
 
-def spinTheFlamingoWheel():
+def spinTheFlamingoWheel(timed=False):
     global indent
     indent += 1
     options = [
@@ -1789,11 +1794,11 @@ def spinTheFlamingoWheel():
         unit = random.randint(3,9)
         limit = random.randint(50,200)
         print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}Digits {RED}cannot{CLEAR} sum to {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
-        result = playNumberGame(unit, limit)
+        result = playNumberGame(unit, limit, timed=timed, start=time.time())
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Board Quiz{CLEAR}':
         questions = random.randint(3,5)
         print(f'{" "*indent}You must answer {GREEN}{questions}{CLEAR} questions about the board in {RED}increasing difficulty{CLEAR}.')
-        result = playBoardQuiz(questions, only=False)
+        result = playBoardQuiz(questions, only=False, timed=timed)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Logic Game{CLEAR}':
         print(f'{" "*indent}You must simplify {GREEN}5{CLEAR} logic expressions in {RED}increasing difficulty{CLEAR}.')
         indent += 2
@@ -1801,19 +1806,26 @@ def spinTheFlamingoWheel():
         print(f'{" "*indent}{GRAY}(coimplies refers to converse implication){CLEAR}')
         print(f'{" "*indent}{GRAY}(conimplies refers to converse nonimplication){CLEAR}')
         indent -= 2
-        result = playLogicGame(5, only=False)
+        result = playLogicGame(5, only=False, timed=timed)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Date Quiz{CLEAR}':
         print(f'{" "*indent}You must identify the {ORANGE}day of the week{CLEAR} of {GREEN}5{CLEAR} dates in {RED}increasing difficulty{CLEAR}.')
-        result = playDateQuiz(questions='all')
+        result = playDateQuiz(questions='all', timed=timed)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Lying Game{CLEAR}':
         questions = random.randint(4, 7)
         print(f'{" "*indent}You must identify the {RED}number of liars{CLEAR} in {GREEN}{questions}{CLEAR} sets of {CYAN}people{CLEAR} making statements about each other.')
-        result = playLyingGame(questions, only=False)
+        result = playLyingGame(questions, only=False, timed=timed)
     if result == f'{" "*indent}The {FLAMINGO_SPACE}Mixed Game{CLEAR}':
         print(f'{" "*indent}You must answer {GREEN}1{CLEAR} question from each of the other {FLAMINGO_SPACE}flamingo games{CLEAR}.')
         order = ['board', 'logic', 'date', 'lying']
         random.shuffle(order)
+        if timed:
+            input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+        start = time.time()
         for n, game in enumerate(order):
+            current = time.time()
+            left = round(TEAM_GAME_TIME-(current-start))
+            if timed:
+                print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
             if game == 'board':
                 result = playBoardQuiz(n+1, only=True)
             if game == 'logic':
@@ -1822,13 +1834,17 @@ def spinTheFlamingoWheel():
                 result = playDateQuiz(questions=n+1)
             if game == 'lying':
                 result = playLyingGame(n+1, only=True)
+            current = time.time()
+            if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+                print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
+                result = False
             if result == False:
                 break
         if result == True:
             unit = random.randint(3,9)
             limit = random.randint(25,100)
             print(f'{" "*indent}You must count to {GREEN}{limit}{CLEAR} {RED}excluding numbers{CLEAR} that follow these rules:\n{" "*(indent+1)}{RED}Cannot{CLEAR} be a multiple of {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} contain the number {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} digits.\n{" "*(indent+1)}Digits {RED}cannot{CLEAR} sum to {GREEN}{unit}{CLEAR}.\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} letters. {GRAY}(in english, excluding spaces and hyphens){CLEAR}\n{" "*(indent+1)}{RED}Cannot{CLEAR} have {GREEN}{unit}{CLEAR} syllables. {GRAY}(in english){CLEAR}\n{" "*indent}Start at {GREEN}1{CLEAR}, unless it breaks some rules.')
-            result = playNumberGame(unit, limit)
+            result = playNumberGame(unit, limit, timed=timed, start=start, mixed=True)
     indent -= 1
     return result
 
@@ -3694,189 +3710,215 @@ def evaluateVote(final):
     playerSmasheds = [None]
     for _ in range(NUM_PLAYERS):
         playerSmasheds.append(False)
-    #voting preamble
-    os.system('clear')
-    if final:
-        print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
-    else:
-        print(f'{" "*23}{ORANGE}Voting{CLEAR}')
-    print('-'*50)
-    print(f'{" "*indent}{YELLOW}Players{CLEAR}, it is time to vote on who you believe is the {RED}Staller{CLEAR}.')
-    indent += 1
-    if final:
-        print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, they will be {RED}permanently eliminated{CLEAR} from the game.')
+    #option to play a team game
+    if random.choice([True, False, False]) and CHAOS_MODE and not final:
+        #preamble
+        os.system('clear')
+        print(f'{" "*21}{ORANGE}Team Game{CLEAR}')
+        print('-'*50)
+        print(f'{" "*indent}{YELLOW}Players{CLEAR}, it is time to vote on who you believe is the {RED}Staller{CLEAR}.')
+        print(f'{" "*indent}But first, you now have the option to play a {GREEN}team game{CLEAR}.')
         indent += 1
-        if FLAMINGO_GAME:
-            print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
-            print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
-            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-        else:
-            print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to have a {RED}50%{CLEAR} chance to {GREEN}win the game{CLEAR}.')
-            print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
-            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last.')
+        print(f'{" "*indent}If you choose to play, you will collectively have {GREEN}{humanize.precisedelta(TEAM_GAME_TIME)}{CLEAR} to complete a random {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        indent += 1
+        print(f'{" "*indent}If you {GREEN}succeed{CLEAR}, all of your {YELLOW}special abilities{CLEAR} will be {CYAN}buffed{CLEAR} for this vote.')
+        indent += 1
+        print(f'{" "*indent}{GRAY}(except for the {YELLOW}Guesser{GRAY}, who will be implicitly buffed as everyone else\'s role is buffed){CLEAR}')
         indent -= 1
-        if FLAMINGO_GAME:
-            print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will have a chance every {ORANGE}5 rounds{CLEAR} to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-        else:
-            print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will instantly {GREEN}win the game{CLEAR} after this vote.')
-        print(f'{" "*indent}If you instead vote out a {CYAN}Finder{CLEAR}, they will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-        print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR} after this vote.')
-    else:
-        print(f'{" "*indent}The player you vote out will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
-        print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, the {RED}Staller{CLEAR} role will be passed onto one of the {CYAN}Finders{CLEAR}.')
-    if FLAMINGO_GAME:
-        print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
-    else:
-        print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will {GREEN}win the game{CLEAR}.')
-    print(f'{" "*indent}If there is a {ORANGE}tie{CLEAR}, no one will be {RED}eliminated{CLEAR}.')
-    indent += 1
-    print(f'{" "*indent}You will vote in {RED}private{CLEAR}, in a {ORANGE}random order{CLEAR} and then all votes will be {RED}revealed{CLEAR}.')
-    indent -= 2
-    print('-'*50)
-    input(f'{TURQUOISE}Press Enter when you are ready to vote {CLEAR}')
-    #actual voting
-    voteOrder = list(range(1, NUM_PLAYERS+1))
-    random.shuffle(voteOrder)
-    votes = [0]
-    individualVotes = [None]
-    for _ in range(NUM_PLAYERS):
-        votes.append(0)
-        individualVotes.append(0)
-    voteSwaps = []
-    murderedPlayers = []
-    smashedPlayers = []
-    shieldedPlayers = []
-    guesserFailed = False
-    shifterShifted = False
-    for player in voteOrder:
-        if player not in eliminatedPlayers:
-            currentPlayer = player
-            os.system('clear')
-            if final:
-                print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
-            else:
-                print(f'{" "*23}{ORANGE}Voting{CLEAR}')
-            print('-'*50)
-            print(f'{YELLOW}Player {player}{CLEAR}, ensure that {RED}no other player{CLEAR} can see the screen.')
+        print(f'{" "*indent}If you {RED}fail{CLEAR} or {ORANGE}run out of time{CLEAR}, there will be {RED}no vote{CLEAR}.')
+        indent -= 1
+        print(f'{" "*indent}If you choose {RED}not{CLEAR} to play, the vote will continue as normal.')
+        indent -= 1
+        print(f'{" "*indent}Would you like to play the {GREEN}team game{CLEAR}?')
+        indent += 1
+        print(f'{" "*indent}0: No')
+        print(f'{" "*indent}1: Yes')
+        indent -= 1
+        playTeamGame = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+        #play the game
+        if playTeamGame:
             indent += 1
-            if not final:
-                print(f'{" "*indent}Would you like to vote? If more people {ORANGE}skip{CLEAR} the vote, than for a {YELLOW}particular player{CLEAR}, then no one will be eliminated.')
-                indent += 1
-                print(f'{" "*indent}0: {ORANGE}Skip{CLEAR} Vote')
-                print(f'{" "*indent}1: Vote for the {RED}Staller{CLEAR}')
-                indent -= 1
-                notSkipVote = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
-            else:
-                notSkipVote = 1
-            if notSkipVote == 1:
-                if not final:
-                    indent += 1
-                vote = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you think is the {RED}Staller{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
-                votes[vote] += 1
-                individualVotes[player] = vote
-                if not final:
-                    indent -= 1
-            else:
-                votes[0] += 1
-                individualVotes[player] = 0
-            if CHAOS_MODE:
-                if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic') and not (playerSpecialAbilities[player] == 'Hypnotist' and final):
-                    print('-'*50)
-                    print(f'{" "*indent}Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player])}')
-                    indent += 1
-                    print(f'{" "*indent}Would you like to use your special ability?')
-                    indent += 1
-                    print(f'{" "*indent}0: No')
-                    print(f'{" "*indent}1: Yes')
-                    indent -= 1
-                    useAbility = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
-                    if useAbility == 1:
-                        indent += 1
-                        evalSpecialAbility(playerSpecialAbilities[player], final)
-                        indent -= 1
-                    indent -= 1
+            print(f'{" "*indent}The {FLAMINGO_SPACE}flamingo game{CLEAR} you will play is:')
+            wonTeamGame = spinTheFlamingoWheel(timed=True)
             indent -= 1
-            print('-'*50)
-            input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
-    currentPlayer = 1
-    #make swaps from the swapper
-    for swap in voteSwaps:
-        temp = votes[swap[0]]
-        votes[swap[0]] = votes[swap[1]]
-        votes[swap[1]] = temp
-        for n, individualVote in enumerate(individualVotes):
-            if individualVote == swap[0]:
-                individualVotes[n] = swap[1]
-            elif individualVote == swap[1]:
-                individualVotes[n] = swap[0]
-    #reveal voting results
-    os.system('clear')
-    if final:
-        print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
-    else:
-        print(f'{" "*23}{ORANGE}Voting{CLEAR}')
-    print('-'*50)
-    if shifterShifted:
-        print(f'{" "*indent}The {GRAY}shifter{CLEAR} has shifted their role!')
-        time.sleep(1)
-    tie = False
-    skipped = False
-    voted = votes.index(max([vote for vote in votes if vote != None]))
-    if voted == 0:
-        skipped = True
-    if votes.count(max([vote for vote in votes if vote != None])) > 1:
-        tie = True
-    input(f'{TURQUOISE}Press Enter to see the results {CLEAR}')
-    indent += 1
-    for player in range(1, NUM_PLAYERS+1):
-        if player not in eliminatedPlayers:
-            print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} voted for...')
-            time.sleep(1.5)
-            if individualVotes[player] == 0:
-                print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted to {ORANGE}skip{CLEAR}!')
+            if not wonTeamGame:
+                print(f'{" "*indent}{RED}Unfortunately{CLEAR}, as you failed the {GREEN}team game{CLEAR}, there will be no {ORANGE}vote{CLEAR}')
             else:
-                print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted for {YELLOW}Player {individualVotes[player]}{CLEAR}!')
-            time.sleep(0.75)
-    indent -= 1
-    #evaluation
-    rearrangeRoles = False
-    jesterWon = False
-    if tie:
-        print(f'That means there was a {ORANGE}tie{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
-    elif skipped:
-        print(f'That means the vote was {ORANGE}skipped{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
+                print(f'{" "*indent}{GREEN}Congratulations!{CLEAR} You won the {GREEN}team game{CLEAR}! Your {YELLOW}special abilities{CLEAR} will now be {CYAN}buffed{CLEAR}.')
+                buffedAbilities = True
+                print('-'*50)
+                input(f'{TURQUOISE}Press Enter to go to the vote {CLEAR}')
+        else:
+            buffedAbilities = False
     else:
-        print(f'That means {YELLOW}Player {voted}{CLEAR} was voted out.')
-        jesterWon = evalVoteOut(voted, final, jesterWon)
-    #evaluate murder and smashing
-    for player in range(1, NUM_PLAYERS+1):
-        if player not in eliminatedPlayers:
-            if player in murderedPlayers and player not in shieldedPlayers:
-                time.sleep(1)
-                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
-                indent += 1
-                print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
-                eliminatedPlayers.append(player)
-                playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
-                indent -= 1
-            elif player in murderedPlayers and player in shieldedPlayers:
-                time.sleep(1)
-                print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
-            if player in smashedPlayers and player not in shieldedPlayers:
-                time.sleep(1)
-                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {PAPAS_WINGERIA_SPACE}smashed{CLEAR}!')
+        playTeamGame = False
+        wonTeamGame = False
+        buffedAbilities = False
+    if not playTeamGame or (playTeamGame and wonTeamGame):
+        #voting preamble
+        os.system('clear')
+        if final:
+            print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
+        else:
+            print(f'{" "*23}{ORANGE}Voting{CLEAR}')
+        print('-'*50)
+        print(f'{" "*indent}{YELLOW}Players{CLEAR}, it is time to vote on who you believe is the {RED}Staller{CLEAR}.')
+        indent += 1
+        if final:
+            print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, they will be {RED}permanently eliminated{CLEAR} from the game.')
+            indent += 1
+            if FLAMINGO_GAME:
+                print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to play a {FLAMINGO_SPACE}flamingo game{CLEAR} to {GREEN}win the game{CLEAR}.')
+                print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last to attempt the {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+            else:
+                print(f'{" "*indent}Every {ORANGE}5 rounds{CLEAR}, a random {CYAN}Finder{CLEAR} will be picked to have a {RED}50%{CLEAR} chance to {GREEN}win the game{CLEAR}.')
+                print(f'{" "*indent}If they fail, they will be {RED}permanently eliminated{CLEAR}.')
+                print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will be picked last.')
+            indent -= 1
+            if FLAMINGO_GAME:
+                print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will have a chance every {ORANGE}5 rounds{CLEAR} to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+            else:
+                print(f'{" "*indent}Otherwise, the {RED}Staller{CLEAR} will instantly {GREEN}win the game{CLEAR} after this vote.')
+            print(f'{" "*indent}If you instead vote out a {CYAN}Finder{CLEAR}, they will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+            print(f'{" "*indent}The {PINK}Jester{CLEAR} or {PAPAS_WINGERIA_SPACE}Executioner{CLEAR} will also able to find the {FLAMINGO_SPACE}flamingo space{CLEAR} after this vote.')
+        else:
+            print(f'{" "*indent}The player you vote out will be {RED}eliminated{CLEAR} from the game for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR}.')
+            print(f'{" "*indent}If you correctly identify the {RED}Staller{CLEAR}, the {RED}Staller{CLEAR} role will be passed onto one of the {CYAN}Finders{CLEAR}.')
+        if FLAMINGO_GAME:
+            print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will have a chance to {GREEN}win the game{CLEAR} by playing a {FLAMINGO_SPACE}flamingo game{CLEAR}.')
+        else:
+            print(f'{" "*indent}If you vote for the {PINK}Jester{CLEAR} or the {PAPAS_WINGERIA_SPACE}Executioner{CLEAR}\'s target, they will {GREEN}win the game{CLEAR}.')
+        print(f'{" "*indent}If there is a {ORANGE}tie{CLEAR}, no one will be {RED}eliminated{CLEAR}.')
+        indent += 1
+        print(f'{" "*indent}You will vote in {RED}private{CLEAR}, in a {ORANGE}random order{CLEAR} and then all votes will be {RED}revealed{CLEAR}.')
+        indent -= 2
+        print('-'*50)
+        input(f'{TURQUOISE}Press Enter when you are ready to vote {CLEAR}')
+        #actual voting
+        voteOrder = list(range(1, NUM_PLAYERS+1))
+        random.shuffle(voteOrder)
+        votes = [0]
+        individualVotes = [None]
+        for _ in range(NUM_PLAYERS):
+            votes.append(0)
+            individualVotes.append(0)
+        voteSwaps = []
+        murderedPlayers = []
+        smashedPlayers = []
+        shieldedPlayers = []
+        guesserFailed = False
+        shifterShifted = False
+        for player in voteOrder:
+            if player not in eliminatedPlayers:
+                currentPlayer = player
+                os.system('clear')
+                if final:
+                    print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
+                else:
+                    print(f'{" "*23}{ORANGE}Voting{CLEAR}')
+                print('-'*50)
+                print(f'{YELLOW}Player {player}{CLEAR}, ensure that {RED}no other player{CLEAR} can see the screen.')
                 indent += 1
                 if not final:
-                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} until the next vote.')
+                    print(f'{" "*indent}Would you like to vote? If more people {ORANGE}skip{CLEAR} the vote, than for a {YELLOW}particular player{CLEAR}, then no one will be eliminated.')
+                    indent += 1
+                    print(f'{" "*indent}0: {ORANGE}Skip{CLEAR} Vote')
+                    print(f'{" "*indent}1: Vote for the {RED}Staller{CLEAR}')
+                    indent -= 1
+                    notSkipVote = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
                 else:
-                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} forever.')
-                playerSmasheds[player] = True
+                    notSkipVote = 1
+                if notSkipVote == 1:
+                    if not final:
+                        indent += 1
+                    vote = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you think is the {RED}Staller{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
+                    votes[vote] += 1
+                    individualVotes[player] = vote
+                    if not final:
+                        indent -= 1
+                else:
+                    votes[0] += 1
+                    individualVotes[player] = 0
+                if CHAOS_MODE:
+                    if (playerSpecialAbilities[player] != 'None') and not ('Toxicologist' in playerSpecialAbilities and playerSpecialAbilities[player] == 'Medic') and not (playerSpecialAbilities[player] == 'Hypnotist' and final):
+                        print('-'*50)
+                        print(f'{" "*indent}Due to your special ability ({grammatiseRole(playerSpecialAbilities[player])}), you now have the option to {getAbilityDescription(playerSpecialAbilities[player], buffedAbilities)}')
+                        indent += 1
+                        print(f'{" "*indent}Would you like to use your special ability?')
+                        indent += 1
+                        print(f'{" "*indent}0: No')
+                        print(f'{" "*indent}1: Yes')
+                        indent -= 1
+                        useAbility = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                        if useAbility == 1:
+                            indent += 1
+                            evalSpecialAbility(playerSpecialAbilities[player], final, buffedAbilities)
+                            indent -= 1
+                        indent -= 1
                 indent -= 1
-            elif player in smashedPlayers and player in shieldedPlayers:
-                time.sleep(1)
-                print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Smasher{CLEAR} tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
-            elif guesserFailed:
-                if player == playerSpecialAbilities.index('Guesser'):
+                print('-'*50)
+                input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
+        currentPlayer = 1
+        #make swaps from the swapper
+        for swap in voteSwaps:
+            temp = votes[swap[0]]
+            votes[swap[0]] = votes[swap[1]]
+            votes[swap[1]] = temp
+            for n, individualVote in enumerate(individualVotes):
+                if individualVote == swap[0]:
+                    individualVotes[n] = swap[1]
+                elif individualVote == swap[1]:
+                    individualVotes[n] = swap[0]
+        #reveal voting results
+        os.system('clear')
+        if final:
+            print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
+        else:
+            print(f'{" "*23}{ORANGE}Voting{CLEAR}')
+        print('-'*50)
+        if shifterShifted:
+            if not buffedAbilities:
+                print(f'{" "*indent}The {GRAY}shifter{CLEAR} has shifted their role!')
+            else:
+                print(f'{" "*indent}The {GRAY}shifter{CLEAR} has shifted {RED}everyone\'s{CLEAR} roles!')
+            time.sleep(1)
+        tie = False
+        skipped = False
+        voted = votes.index(max([vote for vote in votes if vote != None]))
+        if voted == 0:
+            skipped = True
+        if votes.count(max([vote for vote in votes if vote != None])) > 1:
+            tie = True
+        input(f'{TURQUOISE}Press Enter to see the results {CLEAR}')
+        indent += 1
+        for player in range(1, NUM_PLAYERS+1):
+            if player not in eliminatedPlayers:
+                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} voted for...')
+                time.sleep(1.5)
+                if individualVotes[player] == 0:
+                    print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted to {ORANGE}skip{CLEAR}!')
+                else:
+                    print(f'\x1B[A\x1B[2K{" "*indent}{YELLOW}Player {player}{CLEAR} voted for {YELLOW}Player {individualVotes[player]}{CLEAR}!')
+                time.sleep(0.75)
+        indent -= 1
+        #evaluation
+        rearrangeRoles = False
+        jesterWon = False
+        if tie:
+            print(f'That means there was a {ORANGE}tie{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
+        elif skipped:
+            print(f'That means the vote was {ORANGE}skipped{CLEAR}, so no one will be {RED}eliminated{CLEAR}!')
+        else:
+            print(f'That means {YELLOW}Player {voted}{CLEAR} was voted out.')
+            jesterWon = evalVoteOut(voted, final, jesterWon)
+        murderedPlayers = list(set(murderedPlayers))
+        smashedPlayers = list(set(smashedPlayers))
+        shieldedPlayers = list(set(shieldedPlayers))
+        #evaluate murder and smashing
+        for player in range(1, NUM_PLAYERS+1):
+            if player not in eliminatedPlayers:
+                if player in murderedPlayers and player not in shieldedPlayers:
                     time.sleep(1)
                     print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
                     indent += 1
@@ -3884,12 +3926,46 @@ def evaluateVote(final):
                     eliminatedPlayers.append(player)
                     playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
                     indent -= 1
-    #maybe assign lovers
-    if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0 and not final:
-        loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
-        rearrangeRoles = True
-        if random.random() <= CHANCE_OF_3_WAY:
-            loverPlayers.append(random.sample([player for player in list(range(1,NUM_PLAYERS+1)) if player not in loverPlayers], 1)[0])
+                if player in murderedPlayers and player in shieldedPlayers:
+                    carryThrough = True
+                    if guesserFailed:
+                        if player == playerSpecialAbilities.index('Guesser'):
+                            carryThrough = False
+                    if carryThrough:
+                        time.sleep(1)
+                        print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+                if player in smashedPlayers and player not in shieldedPlayers:
+                    time.sleep(1)
+                    print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {PAPAS_WINGERIA_SPACE}smashed{CLEAR}!')
+                    indent += 1
+                    if not final:
+                        print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} until the next vote.')
+                    else:
+                        print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} forever.')
+                    playerSmasheds[player] = True
+                    indent -= 1
+                if player in smashedPlayers and player in shieldedPlayers:
+                    time.sleep(1)
+                    print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Smasher{CLEAR} tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+                if guesserFailed:
+                    if player == playerSpecialAbilities.index('Guesser') and (player not in murderedPlayers or player in murderedPlayers and player in shieldedPlayers):
+                        time.sleep(1)
+                        print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
+                        indent += 1
+                        print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
+                        eliminatedPlayers.append(player)
+                        playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
+                        indent -= 1
+        #maybe assign lovers
+        if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0 and not final:
+            loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
+            rearrangeRoles = True
+            if random.random() <= CHANCE_OF_3_WAY:
+                loverPlayers.append(random.sample([player for player in list(range(1,NUM_PLAYERS+1)) if player not in loverPlayers], 1)[0])
+    else:
+        jesterWon = False
+        rearrangeRoles = False
+        shifterShifted = False
     #continue to game
     print('-'*50)
     if not jesterWon:
@@ -4075,7 +4151,7 @@ def evalVoteOut(voted, final, jesterWon):
                 print(f'{" "*indent}These players are no longer {PINK}lovers{CLEAR}.')
     return jesterWon
 
-def evalSpecialAbility(specialAbility, final):
+def evalSpecialAbility(specialAbility, final, buffedAbilities):
     global indent
     global mewChance
     global guesserFailed
@@ -4088,6 +4164,17 @@ def evalSpecialAbility(specialAbility, final):
             for lover in loverPlayers:
                 if lover not in murderedPlayers:
                     murderedPlayers.append(lover)
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {RED}murder{CLEAR} again?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Murderer', final, False)
     if specialAbility == 'Toxicologist':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {DARK_GREEN}poison{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
         playerPoisoneds[chosenPlayer] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+(5*(VOTING_FREQUENCY//6)), "eliminationReturn": roundNum+VOTING_FREQUENCY}
@@ -4095,6 +4182,17 @@ def evalSpecialAbility(specialAbility, final):
             chosenPlayerLovers = [p for p in loverPlayers if p != chosenPlayer]
             for lover in chosenPlayerLovers:
                 playerPoisoneds[lover] = {"symptomStart": roundNum+VOTING_FREQUENCY//6, "elimination": roundNum+(5*(VOTING_FREQUENCY//6)), "eliminationReturn": roundNum+VOTING_FREQUENCY}
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {DARK_GREEN}poison{CLEAR} again?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Toxicologist', final, False)
     if specialAbility == 'Smasher':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {PAPAS_WINGERIA_SPACE}smash{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
         smashedPlayers.append(chosenPlayer)
@@ -4102,6 +4200,17 @@ def evalSpecialAbility(specialAbility, final):
             for lover in loverPlayers:
                 if lover not in smashedPlayers:
                     smashedPlayers.append(lover)
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {PAPAS_WINGERIA_SPACE}smash{CLEAR} again?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Smasher', final, False)
     if specialAbility == 'Seer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {CYAN}see the role{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
         indent += 1
@@ -4116,6 +4225,17 @@ def evalSpecialAbility(specialAbility, final):
                 print(f'{" "*indent}They are also in {PINK}love{CLEAR} with {YELLOW}Player {chosenPlayerLovers[0]}{CLEAR}.')
             elif len(chosenPlayerLovers) == 2:
                 print(f'{" "*indent}They are also in {PINK}love{CLEAR} with {YELLOW}Player {chosenPlayerLovers[0]}{CLEAR} and {YELLOW}Player {chosenPlayerLovers[1]}{CLEAR}.')
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {CYAN}see{CLEAR} another player\'s {CYAN}role{CLEAR}?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Seer', final, False)
         indent -= 1
     if specialAbility == 'Guesser':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {YELLOW}guess the special ability{TURQUOISE} of (1-{NUM_PLAYERS}): {CLEAR}', False))
@@ -4149,7 +4269,7 @@ def evalSpecialAbility(specialAbility, final):
                 indent -= 1
                 choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
                 if choice == 0:
-                    evalSpecialAbility(playerSpecialAbilities[chosenPlayer], final)
+                    evalSpecialAbility(playerSpecialAbilities[chosenPlayer], final, buffedAbilities)
                 if choice == 1:
                     murderedPlayers.append(chosenPlayer)
             indent -= 1
@@ -4158,44 +4278,89 @@ def evalSpecialAbility(specialAbility, final):
             guesserFailed = True
         indent -= 2
     if specialAbility == 'Shifter':
-        chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GRAY}swap roles{TURQUOISE} with (1-{NUM_PLAYERS}): {CLEAR}', False))
-        temp = playerRoles[chosenPlayer]
-        playerRoles[chosenPlayer] = playerRoles[currentPlayer]
-        playerRoles[currentPlayer] = temp
-        temp = playerSpecialAbilities[chosenPlayer]
-        playerSpecialAbilities[chosenPlayer] = playerSpecialAbilities[currentPlayer]
-        playerSpecialAbilities[currentPlayer] = temp
-        if playerRoles[chosenPlayer] == 'Executioner' and jesterTarget == chosenPlayer:
-            jesterTarget = currentPlayer
+        if not buffedAbilities:
+            chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GRAY}swap roles{TURQUOISE} with (1-{NUM_PLAYERS}): {CLEAR}', False))
+            temp = playerRoles[chosenPlayer]
+            playerRoles[chosenPlayer] = playerRoles[currentPlayer]
+            playerRoles[currentPlayer] = temp
+            temp = playerSpecialAbilities[chosenPlayer]
+            playerSpecialAbilities[chosenPlayer] = playerSpecialAbilities[currentPlayer]
+            playerSpecialAbilities[currentPlayer] = temp
+            if playerRoles[chosenPlayer] == 'Executioner' and jesterTarget == chosenPlayer:
+                jesterTarget = currentPlayer
+        else:
+            shift = 0
+            while shift == 0:
+                shift = int(askOptions(f'{" "*indent}{TURQUOISE}Enter the amount you wish to shift by (1-{NUM_PLAYERS}): {CLEAR}', NUM_PLAYERS))
+            for _ in range(shift):
+                lastPlayerRole = playerRoles[-1]
+                lastPlayerSpecialAbility = playerSpecialAbilities[-1]
+                for player in range(NUM_PLAYERS,1,-1):
+                    playerRoles[player] = playerRoles[player-1]
+                    playerSpecialAbilities[player] = playerSpecialAbilities[player-1]
+                playerRoles[1] = lastPlayerRole
+                playerSpecialAbilities[1] = lastPlayerSpecialAbility
+            if 'Executioner' in playerRoles:
+                if playerRoles.index('Executioner') == jesterTarget:
+                    jesterTarget = random.choice([player for player in list(range(1,NUM_PLAYERS+1)) if playerRoles[player] != 'Executioner'])
         shifterShifted = True
     if specialAbility == 'Hypnotist':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {FLAMINGO_SPACE}hypnotise{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
         hypnosisRound = int(askRange(f'{" "*indent}{TURQUOISE}Enter the round you would like {YELLOW}Player {chosenPlayer}{TURQUOISE} to be {FLAMINGO_SPACE}hypnotised{TURQUOISE} ({roundNum}-{STALLER_WIN}): {CLEAR}', roundNum, STALLER_WIN))
         playerHypnosisRounds[chosenPlayer] = hypnosisRound
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {FLAMINGO_SPACE}hypnotise{CLEAR} again?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Hypnotist', final, False)
     if specialAbility == 'Medic':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {GREEN}shield{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', True))
         shieldedPlayers.append(chosenPlayer)
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to {GREEN}shield{CLEAR} another player?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Medic', final, False)
     if specialAbility == 'Cleaner':
-        for _ in range(len(quantumEntanglements)//2):
-            quantumEntanglements.remove(random.choice(quantumEntanglements))
+        if not buffedAbilities:
+            for _ in range(len(quantumEntanglements)//2):
+                quantumEntanglements.remove(random.choice(quantumEntanglements))
+        else:
+            quantumEntanglements = []
         print(f'{" "*indent}There are now {GREEN}{len(quantumEntanglements)}{CLEAR} {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}.')
         indent += 1
         print(f'{" "*indent}{GRAY}(regenerating map image...){CLEAR}')
         indent -= 1
         generateImage(board, paths, quantumEntanglements)
     if specialAbility == 'Mewer':
-        if mewChance != 1:
+        if not buffedAbilities:
             mewChance = round(mewChance+0.01, 2)
+        else:
+            mewChance = round(mewChance+0.05, 2)
+        if mewChance > 1:
+            mewChance = 1
         print(f'{" "*indent}The {GREEN}chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} is now {RED}{int(mewChance*100)}%{CLEAR}.')
     if specialAbility == 'Swapper':
         candidates = [player for player in list(range(1,NUM_PLAYERS+1)) if player not in eliminatedPlayers]
         if len(candidates) <= 1:
             print(f'{" "*indent}{RED}Unfortunately, there is no one to choose.{CLEAR}')
         else:
-            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
+            player1 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the first player to have their votes {ORANGE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
             valid = False
             while not valid:
-                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to have their votes {TELEPORT_SPACE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
+                player2 = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the second player to have their votes {ORANGE}swapped{TURQUOISE} (1-{NUM_PLAYERS}):{CLEAR} ', True))
                 if player2 == player1:
                     indent += 1
                     print(f'{" "*indent}{ERROR}The 2 players cannot be the same! Please try again{CLEAR}')
@@ -4203,6 +4368,17 @@ def evalSpecialAbility(specialAbility, final):
                 else:
                     valid = True
             voteSwaps.append([player1, player2])
+            if buffedAbilities:
+                indent -= 1
+                print(f'{" "*indent}Would you like to {ORANGE}swap{CLEAR} the votes of {YELLOW}another pair{CLEAR} of players?')
+                indent += 1
+                print(f'{" "*indent}0: No')
+                print(f'{" "*indent}1: Yes')
+                indent -= 1
+                useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+                indent += 1
+                if useAbilityAgain:
+                    evalSpecialAbility('Swapper', final, False)
     if specialAbility == 'Cartographer':
         currentMapLength = len(playerMaps[currentPlayer])
         if currentMapLength < len(SHORTEST_PATH_TO_FLAMINGO):
@@ -4219,6 +4395,17 @@ def evalSpecialAbility(specialAbility, final):
         for information in playerMaps[currentPlayer]:
             print(f'{" "*indent}{grammatiseSpaceType(information["start"], punctuation=False, title=True, article=False, space=False)} {BEIGE}--- {information["direction"]} -->{CLEAR} {grammatiseSpaceType(information["end"], punctuation=False, title=True, article=False, space=False)}')
         indent -= 1
+        if buffedAbilities:
+            indent -= 1
+            print(f'{" "*indent}Would you like to reveal more of your {BEIGE}map{CLEAR}?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            useAbilityAgain = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            indent += 1
+            if useAbilityAgain:
+                evalSpecialAbility('Cartographer', final, False)
 
 def evaluatePoison():
     global indent
@@ -4577,7 +4764,7 @@ def playBlackjack(bet=0):
         indent -= 1
     indent -= 1
 
-def playNumberGame(gameUnit, gameStop):
+def playNumberGame(gameUnit, gameStop, timed=False, start=0, mixed=False):
     global indent
     indent += 1
     def numToWords(num):
@@ -4663,6 +4850,9 @@ def playNumberGame(gameUnit, gameStop):
             ans = askNumber()
         return ans
     
+    if timed and not mixed:
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+        start = time.time()
     internalClock = 0
     done = False
     while done == False:
@@ -4671,7 +4861,12 @@ def playNumberGame(gameUnit, gameStop):
             done = True
             result =  True
         else:
+            current = time.time()
+            left = round(TEAM_GAME_TIME-(current-start))
+            if timed:
+                print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
             ans = askNumber()
+            current = time.time()
             humanAnswer = ans
             indent += 1
             if nextNumber == humanAnswer:
@@ -4700,6 +4895,9 @@ def playNumberGame(gameUnit, gameStop):
                     failReason = f'That was so stupid I\'m not even going to say what was wrong'
                 print(f'{" "*indent}{RED}Incorrect! {failReason}.{CLEAR}')
                 correct = False
+            if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+                print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
+                correct = False
             indent -= 1
             internalClock = humanAnswer
             if correct == False:
@@ -4708,14 +4906,21 @@ def playNumberGame(gameUnit, gameStop):
     indent -= 1
     return result
 
-def playBoardQuiz(numQuestions, only=False):
+def playBoardQuiz(numQuestions, only=False, timed=False):
     global indent
     indent += 1
+    if timed:
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+    start = time.time()
     result = True
     for roundNum in range(1,numQuestions+1):
         if only == True:
             if roundNum != numQuestions:
                 continue
+        current = time.time()
+        left = round(TEAM_GAME_TIME-(current-start))
+        if timed:
+            print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         valid = False
         while not valid:
@@ -4769,6 +4974,7 @@ def playBoardQuiz(numQuestions, only=False):
         choice = 0
         while choice == 0:
             choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 4))
+        current = time.time()
         if choice == possibleAnswers.index(correctAnswer)+1:
             indent += 1
             print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
@@ -4779,12 +4985,21 @@ def playBoardQuiz(numQuestions, only=False):
             indent -= 1
             result = False
             break
+        if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+            indent += 1
+            print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
+            indent -= 1
+            result = False
+            break
     indent -= 1
     return result
 
-def playLogicGame(numQuestions, only=False):
+def playLogicGame(numQuestions, only=False, timed=False):
     global indent
     indent += 1
+    if timed:
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+    start = time.time()
     result = True
     def convertToHumanReadable(expression):
         def allIndexes(char, string):
@@ -4829,6 +5044,10 @@ def playLogicGame(numQuestions, only=False):
         if only == True:
             if roundNum != numQuestions:
                 continue
+        current = time.time()
+        left = round(TEAM_GAME_TIME-(current-start))
+        if timed:
+            print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         correctAnswer = random.choice(['0', '1'])
         expression = correctAnswer
@@ -4868,6 +5087,7 @@ def playLogicGame(numQuestions, only=False):
             print(f'{" "*indent}1: {RED if keepColours else GREEN}False{CLEAR}')
         indent -= 1
         choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+        current = time.time()
         if (choice == int(correctAnswer) and not swapAnwers) or (choice != int(correctAnswer) and swapAnwers):
             indent += 1
             print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
@@ -4878,18 +5098,31 @@ def playLogicGame(numQuestions, only=False):
             indent -= 1
             result = False
             break
+        if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+            indent += 1
+            print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
+            indent -= 1
+            result = False
+            break
     indent -= 1
     return result
 
-def playDateQuiz(questions='all'):
+def playDateQuiz(questions='all', timed=False):
     global indent
     indent += 1
+    if timed:
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+    start = time.time()
     result = True
     today = datetime.datetime.today()
     for roundNum in range(1,6):
         if questions != 'all':
             if questions != roundNum:
                 continue
+        current = time.time()
+        left = round(TEAM_GAME_TIME-(current-start))
+        if timed:
+            print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
         print(f'{" "*indent}Question {getColourFromFraction((5-roundNum)/5)}{roundNum}{CLEAR}:')
         if roundNum == 1:
             lowerBound = datetime.date(today.year, today.month, 1)
@@ -4924,6 +5157,7 @@ def playDateQuiz(questions='all'):
         choice = 0
         while choice == 0:
             choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 4))
+        current = time.time()
         if choice == possibleAnswers.index(correctAnswer)+1:
             indent += 1
             print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
@@ -4934,12 +5168,21 @@ def playDateQuiz(questions='all'):
             indent -= 1
             result = False
             break
+        if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+            indent += 1
+            print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
+            indent -= 1
+            result = False
+            break
     indent -= 1
     return result
 
-def playLyingGame(numQuestions, only=False):
+def playLyingGame(numQuestions, only=False, timed=False):
     global indent
     indent += 1
+    if timed:
+        input(f'{" "*indent}{TURQUOISE}Press Enter when you are Ready to Begin {CLEAR}')
+    start = time.time()
     result = True
     
     def generateValidQuestion(numPeople):
@@ -5042,6 +5285,10 @@ def playLyingGame(numQuestions, only=False):
             while name[0] != letter:
                 name = get_first_name()
             names[letter] = name
+        current = time.time()
+        left = round(TEAM_GAME_TIME-(current-start))
+        if timed:
+            print(f'{" "*indent}You have {getColourFromFraction(left/TEAM_GAME_TIME)}{humanize.precisedelta(left)}{CLEAR} left')
         print(f'{" "*indent}Question {getColourFromFraction((numQuestions-roundNum)/numQuestions)}{roundNum}{CLEAR}:')
         numLiars, statements, otherWayWorks = generateValidQuestion(numPeople)
         indent += 1
@@ -5055,6 +5302,7 @@ def playLyingGame(numQuestions, only=False):
         indent -= 1
         print(f'{" "*indent}How many people are {RED}Lying{CLEAR}?')
         choice = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice (0-{numPeople}):{CLEAR} ', numPeople))
+        current = time.time()
         if choice == numLiars or (choice == numPeople-numLiars and otherWayWorks):
             indent += 1
             print(f'{" "*indent}{GREEN}Correct!{CLEAR}')
@@ -5065,6 +5313,12 @@ def playLyingGame(numQuestions, only=False):
                 print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {GREEN}{min([numLiars])}{CLEAR}')
             else:
                 print(f'{" "*indent}{RED}Incorrect!{CLEAR} The correct answer was {GREEN}{min([numLiars, numPeople-numLiars])}{CLEAR} or {GREEN}{max([numLiars, numPeople-numLiars])}{CLEAR}')
+            indent -= 1
+            result = False
+            break
+        if TEAM_GAME_TIME-(current-start) <= 0 and timed:
+            indent += 1
+            print(f'{" "*indent}{RED}Unfortunately, you ran out of time!{CLEAR}')
             indent -= 1
             result = False
             break
@@ -5140,31 +5394,31 @@ def grammatiseRole(role):
     if role == 'Cartographer':
         return f'{BEIGE}Cartographer{CLEAR}'
 
-def getAbilityDescription(specialAbility):
+def getAbilityDescription(specialAbility, buffed=False):
     if specialAbility == 'Murderer':
-        return f'choose a player to {RED}murder{CLEAR}'
+        return f'choose a player to {RED}murder{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {RED}murder{CLEAR}'
     if specialAbility == 'Toxicologist':
-        return f'choose a player to {DARK_GREEN}poison{CLEAR}'
+        return f'choose a player to {DARK_GREEN}poison{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {DARK_GREEN}poison{CLEAR}'
     if specialAbility == 'Smasher':
-        return f'choose a player to {PAPAS_WINGERIA_SPACE}smash{CLEAR}'
+        return f'choose a player to {PAPAS_WINGERIA_SPACE}smash{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {PAPAS_WINGERIA_SPACE}smash{CLEAR}'
     if specialAbility == 'Seer':
-        return f'choose a player to {CYAN}have their role revealed{CLEAR}'
+        return f'choose a player to {CYAN}have their role revealed{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {CYAN}have their role revealed{CLEAR}'
     if specialAbility == 'Guesser':
         return f'guess a player\'s {YELLOW}special ability{CLEAR}'
     if specialAbility == 'Shifter':
-        return f'{GRAY}swap roles{CLEAR} with another player'
+        return f'{GRAY}swap roles{CLEAR} with another player' if not buffed else f'{GRAY}shift roles{CLEAR} for everyone by a number of players'
     if specialAbility == 'Hypnotist':
-        return f'{FLAMINGO_SPACE}hypnotise{CLEAR} another player'
+        return f'choose a player to {FLAMINGO_SPACE}hypnotise{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {FLAMINGO_SPACE}hypnotise{CLEAR}'
     if specialAbility == 'Medic':
-        return f'choose a player to {GREEN}sheild{CLEAR}'
+        return f'choose a player to {GREEN}sheild{CLEAR}' if not buffed else f'choose {RED}2{CLEAR} players to {GREEN}sheild{CLEAR}'
     if specialAbility == 'Cleaner':
-        return f'{SHOP_SPACE}remove half{CLEAR} of the {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}'
+        return f'{SHOP_SPACE}remove half{CLEAR} of the {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}' if not buffed else f'{SHOP_SPACE}remove{CLEAR} {RED}all{CLEAR} of the {ENTANGLEMENT_SPACE}quantum entanglements{CLEAR}'
     if specialAbility == 'Mewer':
-        return f'{GREEN}increase the chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} by {RED}1%{CLEAR}'
+        return f'{GREEN}increase the chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} by {RED}1%{CLEAR}' if not buffed else f'{GREEN}increase the chance{CLEAR} of a successful {GYM_SPACE}mew{CLEAR} by {RED}5%{CLEAR}'
     if specialAbility == 'Swapper':
-        return f'{ORANGE}swap{CLEAR} the votes that any {YELLOW}2 players{CLEAR} recieve'
+        return f'{ORANGE}swap{CLEAR} the votes that any {YELLOW}2 players{CLEAR} recieve' if not buffed else f'{ORANGE}swap{CLEAR} the votes that any {RED}2{CLEAR} pairts of {YELLOW}players{CLEAR} recieve'
     if specialAbility == 'Cartographer':
-        return f'add to your {BEIGE}map{CLEAR}'
+        return f'add to your {BEIGE}map{CLEAR}' if not buffed else f'add to your {BEIGE}map{CLEAR} {RED}twice{CLEAR}'
 
 def getColourFromFraction(fraction):
     if fraction == 0:
