@@ -3,6 +3,19 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.7.0 - 26/02/2025
+### Features
+- The Travelling Salesman
+  - Travels around the map visiting every space
+  - If you run into them, you can buy 3 random items for 1 gold each
+- The Chinese Postman
+  - Travels around the map visiting every path
+  - Players can send each other gold, in order to facilitate out-of-game deals
+  - The Chinese Postman exclusively speaks Chinese
+### Bug Fixes
+- Ensuring that `numTimeMachines` increases when gambling a time machine
+- Updated `.gitignore` to include the `map` and `saves` folders
+
 ## v2.6.0 - 23/02/2025
 ### Features
 - Team Game

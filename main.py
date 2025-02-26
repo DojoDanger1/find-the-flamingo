@@ -2,6 +2,7 @@ import os
 import copy
 import math
 import time
+import scipy
 import pickle
 import random
 import argparse
@@ -525,14 +526,21 @@ def generateBoard():
     pathDecorators = []
     for _ in paths:
         pathDecorators.append(copy.deepcopy([]))
+    #add the travelling salesman & chinese postman
+    spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
+    salesmanPos = random.choice(spaceCoordinates)
+    decorators[salesmanPos].append({"type": 'travelling salesman', "placedBy": None, "reward": None})
+    postmanPos = random.choice(spaceCoordinates)
+    decorators[postmanPos].append({"type": 'chinese postman', "placedBy": None, "reward": None})
     #return
     print('done!')
     print('generating image...')
     return board, paths, decorators, pathDecorators
 
-def generateImage(board, paths, quantumEntanglements, debug=False):
+def generateImage(board, paths, quantumEntanglements, debug=False, numbers=False):
     os.system('rm -rf map')
     os.mkdir('map')
+    spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
     axisFont = ImageFont.truetype('font/Montserrat-SemiBold.ttf', 40)
     for axis1 in AXIS_ORDER:
         for axis2 in AXIS_ORDER[AXIS_ORDER.index(axis1)+1:]:
@@ -640,6 +648,8 @@ def generateImage(board, paths, quantumEntanglements, debug=False):
                         if cell == 'information':
                             colour = '#ffffff'
                         draw.rectangle((space[axis2Num]*100+15+100, space[axis1Num]*100+15, space[axis2Num]*100+85+100, space[axis1Num]*100+85), fill=ImageColor.getcolor(colour, 'RGBA'), outline=ImageColor.getcolor('#000000', 'RGBA'), width=5)
+                        if numbers:
+                            draw.text((space[axis2Num]*100+50+100, space[axis1Num]*100+50), str(spaceCoordinates.index(space)), fill=ImageColor.getcolor('#000000', 'RGBA'), font=axisFont, anchor='mm')
                 
                 if NUM_DIMENSIONS > 2:
                     name = f'{axis1}{axis2},{",".join([f"{const}={constNums[n]+1}" for (n, const) in enumerate(consts)])}'
@@ -957,6 +967,109 @@ def areThereAnyPurgatories(board, paths, includeHighways,  highwayInformation):
             if len(possibleMoves) == 0:
                 return True
     return False
+
+def createAdjacencyMatrix(board, paths):
+    spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
+    matrix = np.full((len(spaceCoordinates), len(spaceCoordinates)), np.inf)
+    for n in range(len(spaceCoordinates)):
+        matrix[n][n] = 0
+    for path in paths:
+        startNode = spaceCoordinates.index(path['start'])
+        endNode = spaceCoordinates.index(path['end'])
+        if board[path['start']] != 'shadow realm':
+            matrix[startNode][endNode] = 1
+        if not isThisPathAHighway(path):
+            matrix[startNode][endNode] = 1
+            if not path['oneWay'] and board[path['end']] != 'shadow realm':
+                matrix[endNode][startNode] = 1
+        else:
+            if board[path['end']] != 'shadow realm':
+                matrix[endNode][startNode] = 1
+    matrix[spaceCoordinates.index(tuple(np.argwhere(board == "shadow realm")[0]))][spaceCoordinates.index(tuple(np.argwhere(board == "home")[0]))] = 1
+    return matrix
+
+def getRouteFromRouteTable(routeTable, start, end):
+    route = [end]
+    while end != -9999:
+        end = routeTable[start][end]
+        route.insert(0, int(end))
+    return route[1:]
+
+def travellingSalesman(distanceMatrix, routeTable): #nearest neighbour algo
+    spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
+    visited = []
+    current = spaceCoordinates.index(tuple(np.argwhere(board == "flamingo")[0]))
+    route = [current]
+    for _ in range(len(spaceCoordinates)-1):
+        currentMin = np.inf
+        nextNode = None
+        for row in range(len(spaceCoordinates)):
+            if row not in visited and row != current:
+                if distanceMatrix[row][current] < currentMin:
+                    currentMin = distanceMatrix[row][current]
+                    nextNode = row
+        visited.append(current)
+        nextBit = getRouteFromRouteTable(routeTable, current, nextNode)[1:]
+        route += nextBit
+        current = nextNode
+    route += getRouteFromRouteTable(routeTable, current, spaceCoordinates.index(tuple(np.argwhere(board == "flamingo")[0])))[1:]
+    spaceRoute = [spaceCoordinates[space] for space in route]
+    return spaceRoute
+        
+def getAdjacencies(adjacencyMatrix):
+    adjacencies = []
+    for row in adjacencyMatrix:
+        temp = []
+        for n, col in enumerate(row):
+            if col == 1:
+                temp.append(n)
+        adjacencies.append(temp)
+    return adjacencies
+
+def equalDegreees(adjacencies, routeTable):
+    flattenedAdjacencies = sum(adjacencies, [])
+    outDegrees = [len(x) for x in adjacencies]
+    inDegrees = [flattenedAdjacencies.count(x) for x in range(len(adjacencies))]
+    newEdges = []
+    while inDegrees != outDegrees:
+        foundIn = False
+        foundOut = False
+        newEdge = [None, None]
+        for node in range(len(adjacencies)):
+            if foundIn and foundOut:
+                continue
+            if inDegrees[node] > outDegrees[node]:
+                foundOut = True
+                newEdge[0] = node
+            if inDegrees[node] < outDegrees[node]:
+                foundIn = True
+                newEdge[1] = node
+        inDegrees[newEdge[1]] += 1
+        outDegrees[newEdge[0]] += 1
+        newEdges.append(newEdge)
+    for newEdge in newEdges:
+        route = getRouteFromRouteTable(routeTable, newEdge[0], newEdge[1])
+        for index in range(len(route)-1):
+            adjacencies[route[index]].append(route[index+1])
+    return adjacencies
+
+def chinesePostman(adjacencies):
+    spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
+    n = len(adjacencies)
+    if n == 0:
+        return []
+    currPath = [0]
+    circuit = []
+    while len(currPath) > 0:
+        currNode = currPath[-1]
+        if len(adjacencies[currNode]) > 0:
+            nextNode = adjacencies[currNode].pop()
+            currPath.append(nextNode)
+        else:
+            circuit.append(currPath.pop())
+    circuit.reverse()
+    spaceRoute = [spaceCoordinates[space] for space in circuit]
+    return spaceRoute
 
 def addNewInformationToMap(currentMapLength):
     newInformation = SHORTEST_PATH_TO_FLAMINGO[currentMapLength]
@@ -1286,11 +1399,96 @@ def evaluateDecorators():
             print(f'{" "*indent}You now have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR} and {RED}Player {decorator["placedBy"]}{CLEAR} now has {YELLOW}{playerGolds[decorator["placedBy"]]} gold{CLEAR}.')
             decoratorsToRemove.append(n)
             indent -= 2
+        if decorator['type'] == 'travelling salesman':
+            indent += 1
+            print(f'{" "*indent}The {BEIGE}Travelling Salesman{CLEAR} is on this space!')
+            if playerGolds[currentPlayer] < 1:
+                indent += 1
+                print(f'{" "*indent}You don\'t have enough {YELLOW}gold{CLEAR} to buy anything! (You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR})')
+                indent -= 1
+            else:
+                travellingSalesmanDialogue()
+            print(f'{" "*indent}Thank you for {YELLOW}visiting{CLEAR} from the {BEIGE}Travelling Salesman{CLEAR}!')
+            indent -= 1
+        if decorator['type'] == 'chinese postman':
+            indent += 1
+            print(f'{" "*indent}The {RED}Chinese Postman{CLEAR} is on this space!')
+            chinesePostmanDialogue()
+            print(f'{" "*indent}Thank you for {YELLOW}visiting{CLEAR} from the {RED}Chinese Postman{CLEAR}!')
+            indent -= 1
         time.sleep(0.5)
     for decorator in sorted(decoratorsToRemove, reverse=True):
         decorators[playerPositions[currentPlayer]].pop(decorator)
     for goblin in goblinsToAdd:
         decorators[goblin[0]].append(goblin[1])
+
+def travellingSalesmanDialogue():
+    global indent
+    global numTimeMachines
+    indent += 1
+    stock = sorted(random.sample(list(itemPrices.keys()), 3), key=lambda x: list(itemPrices.keys()).index(x))
+    for n in range(3):
+        if playerGolds[currentPlayer] < 1:
+            break
+        print(f'{" "*indent}What would you like to {YELLOW}buy{CLEAR}?')
+        printShopList(salesman=True, salesmanItems=stock)
+        print(f'{" "*indent}You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
+        valid = False
+        while not valid:
+            choice = askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 3-n)
+            if choice == '0':
+                valid = True
+            else:
+                item = stock[int(choice)-1]
+                price = 1
+                if price > playerGolds[currentPlayer]:
+                    indent += 1
+                    print(f'{" "*indent}{RED}You do not have enough gold! Please select a different item.{CLEAR}')
+                    indent -= 1
+                else:
+                    valid = True
+        if choice == '0':
+            break
+        else:
+            playerGolds[currentPlayer] -= price
+            stock.remove(item)
+            if item != 'ingredient bundle':
+                if item in itemRewards.keys():
+                    playerInventories[currentPlayer].append(f'{item};{itemRewards[item]+playerStealBonus[currentPlayer]}')
+                elif item == 'time machine':
+                    numTimeMachines += 1
+                    playerInventories[currentPlayer].append(f'{item};{numTimeMachines}')
+                else:
+                    playerInventories[currentPlayer].append(item)
+            else:
+                addToFoodInventory(itemPrices['ingredient bundle']*3)
+    indent -= 1
+
+def chinesePostmanDialogue():
+    global indent
+    indent += 1
+    print(f'{" "*indent}您想向其他玩家发送一些{YELLOW}金币{CLEAR}吗?')
+    indent += 1
+    print(f'{" "*indent}0: 不')
+    print(f'{" "*indent}1: 是的')
+    indent -= 1
+    choice = int(askOptions(f'{" "*indent}{TURQUOISE}输入您的选择:{CLEAR} ', 1))
+    if choice == 1:
+        indent += 1
+        if playerGolds[currentPlayer] > 0:
+            player = int(askForPlayer(f'{" "*indent}{TURQUOISE}输入您将向其提供{YELLOW}金币{TURQUOISE}的玩家 (1-{NUM_PLAYERS}):{CLEAR} ', False))
+            if player == -1:
+                print(f'{" "*indent}{RED}不幸的是, 没有人可以选择.{CLEAR}')
+            else:
+                amount = 0
+                while amount == 0:
+                    amount = int(askOptions(f'{" "*indent}{TURQUOISE}输入您希望给予玩家 {player} 的{YELLOW}金币{TURQUOISE}数量:{CLEAR} ', playerGolds[currentPlayer]))
+                playerGolds[currentPlayer] -= amount
+                playerGolds[player] += amount
+        else:
+            print(f'{" "*indent}{RED}不幸的是{CLEAR}, 您没有任何{YELLOW}金币{CLEAR}可以捐献!')
+        indent -= 1
+    indent -= 1
 
 def evaluatePathDecorators(chosenPath):
     global indent
@@ -1848,28 +2046,40 @@ def spinTheFlamingoWheel(timed=False):
     indent -= 1
     return result
 
-def printShopList():
+def printShopList(salesman=False, salesmanItems=[]):
     global itemRewards
     global itemDescriptions
     global indent
     indent += 1
     options = 0
+    print(f'{" "*indent}0: Nothing')
+    if salesman:
+        indent -= 1
+        print(f'{" "*indent}{GREEN}{"-"*5}TRAVELLING SALESMAN\'S STOCK{"-"*5}{CLEAR}')
+        indent += 1
     for item in itemDescriptions.keys():
-        actualItemRewards = copy.deepcopy(itemRewards)
-        if item in itemRewards.keys():
-            itemRewards[item] += playerStealBonus[currentPlayer]
+        if not salesman or (salesman and item in salesmanItems):
+            actualItemRewards = copy.deepcopy(itemRewards)
+            if item in itemRewards.keys():
+                itemRewards[item] += playerStealBonus[currentPlayer]
+                itemDescriptions = redefineItemDescriptions()
+            options += 1
+            if str(options) in itemSectionRanges.keys() and not salesman:
+                indent -= 1
+                print(f'{" "*indent}{GREEN}{"-"*5}{itemSectionRanges[str(options)].upper()}{"-"*5}{CLEAR}')
+                indent += 1
+            if not salesman:
+                if itemPrices[item] <= playerGolds[currentPlayer]:
+                    print(f'{" "*indent}{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}{itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
+                else:
+                    print(f'{" "*indent}{GRAY}{options}: {item.title()} - {itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
+            else:
+                if 1 <= playerGolds[currentPlayer]:
+                    print(f'{" "*indent}{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}1 gold{CLEAR} - {itemDescriptions[item]}')
+                else:
+                    print(f'{" "*indent}{GRAY}{options}: {item.title()} - 1 gold{CLEAR} - {itemDescriptions[item]}')
+            itemRewards = copy.deepcopy(actualItemRewards)
             itemDescriptions = redefineItemDescriptions()
-        options += 1
-        if str(options) in itemSectionRanges.keys():
-            indent -= 1
-            print(f'{" "*indent}{GREEN}{"-"*5}{itemSectionRanges[str(options)].upper()}{"-"*5}{CLEAR}')
-            indent += 1
-        if itemPrices[item] <= playerGolds[currentPlayer]:
-            print(f'{" "*indent}{options}: {CYAN}{item.title()}{CLEAR} - {YELLOW}{itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
-        else:
-            print(f'{" "*indent}{GRAY}{options}: {item.title()} - {itemPrices[item]} gold{CLEAR} - {itemDescriptions[item]}')
-        itemRewards = copy.deepcopy(actualItemRewards)
-        itemDescriptions = redefineItemDescriptions()
     indent -= 1
     print(f'{" "*indent}{GREEN}{"-"*15}{CLEAR}')
 
@@ -1882,7 +2092,7 @@ def goToTheShop(portable=False):
     for _ in range(SHOP_PURCHACE_LIMIT):
         if playerGolds[currentPlayer] < min(itemPrices.values()):
             break
-        print(f'{" "*indent}What would you like to buy?')
+        print(f'{" "*indent}What would you like to {YELLOW}buy{CLEAR}?')
         printShopList()
         print(f'{" "*indent}You have {YELLOW}{playerGolds[currentPlayer]} gold{CLEAR}.')
         options = len(itemDescriptions.keys())
@@ -1993,6 +2203,8 @@ def useItem():
     global eliminatedPlayers
     global loverPlayers
     global mewChance
+    global salesmanIndex
+    global postmanIndex
     global roundNum
     done = False
     indent += 1
@@ -2046,7 +2258,12 @@ def useItem():
                                     if playerPosition == playerPositions[currentPlayer] and player != currentPlayer and player not in eliminatedPlayers:
                                         message += f' {RED}Player {player}{CLEAR} is also on this space.'
                                 for decorator in decorators[playerPositions[currentPlayer]]:
-                                    message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
+                                    if decorator['type'] == 'travelling salesman':
+                                        message += f' The {BEIGE}Travelling Salesman{CLEAR} is also on this space.'
+                                    elif decorator['type'] == 'chinese postman':
+                                        message += f' The {RED}Chinese Postman{CLEAR} is also on this space.'
+                                    else:
+                                        message += f' There is also a{"n" if decorator["type"][0] in ["a","e","i","o","u"] else ""} {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                 print(f'{" "*indent}{message}')
                                 for move in possibleMoves:
                                     destinationSpaceType = board[move['destination']]
@@ -2058,7 +2275,12 @@ def useItem():
                                         if playerPosition == move['destination'] and player not in eliminatedPlayers:
                                             message += f' {RED}Player {player}{CLEAR} is on this space.'
                                     for decorator in decorators[move['destination']]:
-                                        message += f' There is also a {CYAN}{decorator["type"]}{CLEAR} on this space.'
+                                        if decorator['type'] == 'travelling salesman':
+                                            message += f' The {BEIGE}Travelling Salesman{CLEAR} is also on this space.'
+                                        elif decorator['type'] == 'chinese postman':
+                                            message += f' The {RED}Chinese Postman{CLEAR} is also on this space.'
+                                        else:
+                                            message += f' There is also a{"n" if decorator["type"][0] in ["a","e","i","o","u"] else ""} {CYAN}{decorator["type"]}{CLEAR} on this space.'
                                     print(f'{" "*indent}{message}')
                                 indent -= 1
                             indent -= 1
@@ -2295,6 +2517,8 @@ def useItem():
                                 eliminatedPlayers = prevEliminatedPlayers[-1-NUM_PLAYERS+numEliminated]
                                 loverPlayers = prevLoverPlayers[-1-NUM_PLAYERS+numEliminated]
                                 mewChance = prevMewChance[-1-NUM_PLAYERS+numEliminated]
+                                salesmanIndex = prevSalesmanIndex[-1-NUM_PLAYERS+numEliminated]
+                                postmanIndex = prevPostmanIndex[-1-NUM_PLAYERS+numEliminated]
                                 for _ in range(NUM_PLAYERS-numEliminated):
                                     prevPlayerRoles.pop(-1)
                                     prevPlayerSpecialAbilities.pop(-1)
@@ -2329,6 +2553,8 @@ def useItem():
                                     prevEliminatedPlayers.pop(-1)
                                     prevLoverPlayers.pop(-1)
                                     prevMewChance.pop(-1)
+                                    prevSalesmanIndex.pop(-1)
+                                    prevPostmanIndex.pop(-1)
                                 if f'time machine;{timeMachineIndex}' in playerInventories[currentPlayer]:
                                     playerInventories[currentPlayer].remove(f'time machine;{timeMachineIndex}')
                                 for gameState in prevPlayerInventories:
@@ -4463,6 +4689,7 @@ def checkForMedicHeal():
 
 def playBlackjack(bet=0):
     global indent
+    global numTimeMachines
     indent += 1
     def getCardColour(card):
         if 'Hearts' in card or 'Diamonds' in card:
@@ -4710,6 +4937,11 @@ def playBlackjack(bet=0):
             itemName = item.split(';')[0].title()
         else:
             itemName = item.title()
+        if itemName == 'Time Machine':
+            numTimeMachines += 1
+            itemToGive = f'time machine;{numTimeMachines}'
+        else:
+            itemToGive = item
     
     if youBusted == True and dealerBusted == True:    
         print(f'{" "*indent}{YELLOW}Both of you busted, so no one wins!{CLEAR}')
@@ -4731,7 +4963,7 @@ def playBlackjack(bet=0):
             print(f'{" "*indent}You won {YELLOW}{bet} gold{CLEAR}!')
             updateQuests('gamble', bet)
         if betType == 'item':
-            playerInventories[currentPlayer].append(item)
+            playerInventories[currentPlayer].append(itemToGive)
             print(f'{" "*indent}You won another {CYAN}{itemName}{CLEAR}!')
         indent -= 1
     elif youBusted == False and dealerBusted == False:
@@ -4744,7 +4976,7 @@ def playBlackjack(bet=0):
                 print(f'{" "*indent}You won {YELLOW}{bet} gold{CLEAR}!')
                 updateQuests('gamble', bet)
             if betType == 'item':
-                playerInventories[currentPlayer].append(item)
+                playerInventories[currentPlayer].append(itemToGive)
                 print(f'{" "*indent}You won another {CYAN}{itemName}{CLEAR}!')
             indent -= 1
         else:
@@ -5445,6 +5677,8 @@ def saveToFile(filename):
         "eliminatedPlayers": eliminatedPlayers,
         "loverPlayers": loverPlayers,
         "mewChance": mewChance,
+        "salesmanIndex": salesmanIndex,
+        "postmanIndex": postmanIndex,
         "playerRoles": playerRoles,
         "playerSpecialAbilities": playerSpecialAbilities,
         "playerPositions": playerPositions,
@@ -5478,6 +5712,8 @@ def saveToFile(filename):
         "prevEliminatedPlayers": prevEliminatedPlayers,
         "prevLoverPlayers": prevLoverPlayers,
         "prevMewChance": prevMewChance,
+        "prevSalesmanIndex": prevSalesmanIndex,
+        "prevPostmanIndex": prevPostmanIndex,
         "prevPlayerRoles": prevPlayerRoles,
         "prevPlayerSpecialAbilities": prevPlayerSpecialAbilities,
         "prevPlayerPositions": prevPlayerPositions,
@@ -5502,7 +5738,9 @@ def saveToFile(filename):
         "prevPlayerMaps": prevPlayerMaps,
         "prevItemPrices": prevItemPrices,
         "prevItemRewards": prevItemRewards,
-        "SHORTEST_PATH_TO_FLAMINGO": SHORTEST_PATH_TO_FLAMINGO
+        "SHORTEST_PATH_TO_FLAMINGO": SHORTEST_PATH_TO_FLAMINGO,
+        "TRAVELLING_SALESMAN_ROUTE": TRAVELLING_SALESMAN_ROUTE,
+        "CHINESE_POSTMAN_ROUTE": CHINESE_POSTMAN_ROUTE
     }
     with open(f'saves/{filename}.pkl', 'wb') as f:
         pickle.dump(data,f)
@@ -5540,10 +5778,26 @@ def redefineItemDescriptions():
 board, paths, decorators, pathDecorators = generateBoard()
 quantumEntanglements = []
 
-generateImage(board, paths, quantumEntanglements, debug=True)
+generateImage(board, paths, quantumEntanglements, debug=True, numbers=False)
 highwayInformation = decideHighwayInformation(board, paths)
 
 SHORTEST_PATH_TO_FLAMINGO = findShortestPathToFlamingo(board, paths, tuple(np.argwhere(board == "home")[0]), highwayInformation)
+
+adjacencyMatrix = createAdjacencyMatrix(board, paths)
+distanceMatrix, routeTable = scipy.sparse.csgraph.floyd_warshall(adjacencyMatrix, return_predecessors=True)
+TRAVELLING_SALESMAN_ROUTE = travellingSalesman(distanceMatrix, routeTable)[:-1]
+adjacencies = getAdjacencies(adjacencyMatrix)
+adjacencies = equalDegreees(adjacencies, routeTable)
+CHINESE_POSTMAN_ROUTE = chinesePostman(adjacencies)[:-1]
+#find travelling salesman and chinese postman
+for n, space in enumerate(TRAVELLING_SALESMAN_ROUTE):
+    if {"type": 'travelling salesman', "placedBy": None, "reward": None} in decorators[space]:
+        salesmanIndex = n
+        break
+for n, space in enumerate(CHINESE_POSTMAN_ROUTE):
+    if {"type": 'chinese postman', "placedBy": None, "reward": None} in decorators[space]:
+        postmanIndex = n
+        break
 
 itemPrices = {
     #help i'm lost
@@ -5684,6 +5938,8 @@ prevBlackHoleRadius = [copy.deepcopy(blackHoleRadius)]
 prevEliminatedPlayers = [copy.deepcopy(eliminatedPlayers)]
 prevLoverPlayers = [copy.deepcopy(loverPlayers)]
 prevMewChance = [copy.deepcopy(mewChance)]
+prevSalesmanIndex = [copy.deepcopy(salesmanIndex)]
+prevPostmanIndex = [copy.deepcopy(postmanIndex)]
 
 indent = 0
 
@@ -5906,6 +6162,8 @@ while running:
                 eliminatedPlayers = data["eliminatedPlayers"]
                 loverPlayers = data['loverPlayers']
                 mewChance = data["mewChance"]
+                salesmanIndex = data["salesmanIndex"]
+                postmanIndex = data["postmanIndex"]
                 playerRoles = data["playerRoles"]
                 playerSpecialAbilities = data["playerSpecialAbilities"]
                 playerPositions = data["playerPositions"]
@@ -5939,6 +6197,8 @@ while running:
                 prevEliminatedPlayers = data["prevEliminatedPlayers"]
                 prevLoverPlayers = data["prevLoverPlayers"]
                 prevMewChance = data["prevMewChance"]
+                prevSalesmanIndex = data["prevSalesmanIndex"]
+                prevPostmanIndex = data["prevPostmanIndex"]
                 prevPlayerRoles = data["prevPlayerRoles"]
                 prevPlayerSpecialAbilities = data["prevPlayerSpecialAbilities"]
                 prevPlayerPositions = data["prevPlayerPositions"]
@@ -5964,6 +6224,8 @@ while running:
                 prevItemPrices = data["prevItemPrices"]
                 prevItemRewards = data["prevItemRewards"]
                 SHORTEST_PATH_TO_FLAMINGO = data["SHORTEST_PATH_TO_FLAMINGO"]
+                TRAVELLING_SALESMAN_ROUTE = data["TRAVELLING_SALESMAN_ROUTE"]
+                CHINESE_POSTMAN_ROUTE = data["CHINESE_POSTMAN_ROUTE"]
                 os.remove(f'saves/{dir[int(choice)-1]}')
                 generateImage(board, paths, quantumEntanglements)
             indent -= 1
@@ -6003,6 +6265,8 @@ while running:
         prevLoverPlayers.append(copy.deepcopy(loverPlayers))
         prevEliminatedPlayers.append(copy.deepcopy(eliminatedPlayers))
         prevMewChance.append(copy.deepcopy(mewChance))
+        prevSalesmanIndex.append(copy.deepcopy(salesmanIndex))
+        prevPostmanIndex.append(copy.deepcopy(postmanIndex))
         #expand black hole
         if blackHoleRadius > -1:
             if random.random() <= 0.5:
@@ -6121,6 +6385,8 @@ while running:
                     decoratorsToRemove = []
                     goblinsToAdd = []
                     flamingosToAdd = []
+                    salesmenToAdd = []
+                    postmenToAdd = []
                     printed = False
                     for cell in np.ndindex(board.shape):
                         for n, decorator in enumerate(decorators[cell]):
@@ -6147,12 +6413,28 @@ while running:
                                     flamingosToAdd.append((chosenDestination, decorator))
                                     print(f'{" "*indent}{RED}Player {decorator["placedBy"]}\'s {FLAMINGO_SPACE}flamingo{CLEAR} has moved!')
                                 printed = True
+                            if decorator['type'] == 'travelling salesman':
+                                decoratorsToRemove.append((cell, n))
+                                salesmanIndex += 1
+                                if salesmanIndex == len(TRAVELLING_SALESMAN_ROUTE):
+                                    salesmanIndex = 0
+                                salesmenToAdd.append((TRAVELLING_SALESMAN_ROUTE[salesmanIndex], decorator))
+                            if decorator['type'] == 'chinese postman':
+                                decoratorsToRemove.append((cell, n))
+                                postmanIndex += 1
+                                if postmanIndex == len(CHINESE_POSTMAN_ROUTE):
+                                    postmanIndex = 0
+                                postmenToAdd.append((CHINESE_POSTMAN_ROUTE[postmanIndex], decorator))
                     for decorator in sorted(decoratorsToRemove, reverse=True):
                         decorators[decorator[0]].pop(decorator[1])
                     for goblin in goblinsToAdd:
                         decorators[goblin[0]].append(goblin[1])
                     for flamingo in flamingosToAdd:
                         decorators[flamingo[0]].append(flamingo[1])
+                    for salesman in salesmenToAdd:
+                        decorators[salesman[0]].append(salesman[1])
+                    for postman in postmenToAdd:
+                        decorators[postman[0]].append(postman[1])
                     if printed:
                         print('-'*50)
 
