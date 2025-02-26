@@ -5774,7 +5774,7 @@ def redefineItemDescriptions():
 board, paths, decorators, pathDecorators = generateBoard()
 quantumEntanglements = []
 
-generateImage(board, paths, quantumEntanglements, debug=True, numbers=True)
+generateImage(board, paths, quantumEntanglements, debug=True, numbers=False)
 highwayInformation = decideHighwayInformation(board, paths)
 
 SHORTEST_PATH_TO_FLAMINGO = findShortestPathToFlamingo(board, paths, tuple(np.argwhere(board == "home")[0]), highwayInformation)

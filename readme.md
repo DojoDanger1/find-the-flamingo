@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## 2.7.2 - 26/02/2025
+### Bug Fixes
+- No longer adding debug numbers on the map when starting a new game
+
 ## v2.7.1 - 26/02/2025
 ### Bug Fixes
 - Now finding travelling salesman route and chinese postman route with `networkx` instead of `scipy`
