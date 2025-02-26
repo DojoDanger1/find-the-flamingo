@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.7.1 - 26/02/2025
+### Bug Fixes
+- Now finding travelling salesman route and chinese postman route with `networkx` instead of `scipy`
+
 ## v2.7.0 - 26/02/2025
 ### Features
 - The Travelling Salesman

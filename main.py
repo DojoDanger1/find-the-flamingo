@@ -2,12 +2,12 @@ import os
 import copy
 import math
 import time
-import scipy
 import pickle
 import random
 import argparse
 import datetime
 import humanize
+import networkx
 import numpy as np
 from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor, ImageFont
@@ -989,11 +989,7 @@ def createAdjacencyMatrix(board, paths):
     return matrix
 
 def getRouteFromRouteTable(routeTable, start, end):
-    route = [end]
-    while end != -9999:
-        end = routeTable[start][end]
-        route.insert(0, int(end))
-    return route[1:]
+    return networkx.reconstruct_path(start, end, routeTable)
 
 def travellingSalesman(distanceMatrix, routeTable): #nearest neighbour algo
     spaceCoordinates = [tuple(x) for x in np.argwhere(board != None)]
@@ -5778,13 +5774,15 @@ def redefineItemDescriptions():
 board, paths, decorators, pathDecorators = generateBoard()
 quantumEntanglements = []
 
-generateImage(board, paths, quantumEntanglements, debug=True, numbers=False)
+generateImage(board, paths, quantumEntanglements, debug=True, numbers=True)
 highwayInformation = decideHighwayInformation(board, paths)
 
 SHORTEST_PATH_TO_FLAMINGO = findShortestPathToFlamingo(board, paths, tuple(np.argwhere(board == "home")[0]), highwayInformation)
 
 adjacencyMatrix = createAdjacencyMatrix(board, paths)
-distanceMatrix, routeTable = scipy.sparse.csgraph.floyd_warshall(adjacencyMatrix, return_predecessors=True)
+networkxgraph = networkx.from_numpy_array(adjacencyMatrix, create_using=networkx.DiGraph)
+distanceMatrix = networkx.floyd_warshall_numpy(networkxgraph)
+routeTable, _ = networkx.floyd_warshall_predecessor_and_distance(networkxgraph)
 TRAVELLING_SALESMAN_ROUTE = travellingSalesman(distanceMatrix, routeTable)[:-1]
 adjacencies = getAdjacencies(adjacencyMatrix)
 adjacencies = equalDegreees(adjacencies, routeTable)
