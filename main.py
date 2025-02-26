@@ -4379,6 +4379,7 @@ def evalSpecialAbility(specialAbility, final, buffedAbilities):
     global guesserFailed
     global shifterShifted
     global jesterTarget
+    global quantumEntanglements
     if specialAbility == 'Murderer':
         chosenPlayer = int(askForPlayer(f'{" "*indent}{TURQUOISE}Enter the player who you want to {RED}murder{TURQUOISE} (1-{NUM_PLAYERS}): {CLEAR}', False))
         murderedPlayers.append(chosenPlayer)

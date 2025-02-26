@@ -3,7 +3,11 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
-## 2.7.2 - 26/02/2025
+## v2.7.3 - 26/02/2025
+### Bug Fixes
+- Fix crash when cleaner uses unbuffed ability
+
+## v2.7.2 - 26/02/2025
 ### Bug Fixes
 - No longer adding debug numbers on the map when starting a new game
 
