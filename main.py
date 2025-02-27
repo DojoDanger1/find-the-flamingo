@@ -4666,7 +4666,7 @@ def evaluatePoison():
             indent -= 2
     elif roundNum == playerPoisoneds[currentPlayer]['elimination']:
         indent += 1
-        print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//6} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//6)}{CLEAR}.')
+        print(f'{" "*indent}Unfortunately, as you have been {DARK_GREEN}poisoned{CLEAR}, you have been {RED}eliminated{CLEAR} and will return on {ORANGE}round {playerPoisoneds[currentPlayer]["eliminationReturn"]}{CLEAR}.')
         indent += 1
         print(f'{" "*indent}You will return right before the vote.')
         indent -= 1

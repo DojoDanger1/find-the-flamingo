@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.7.4 - 27/02/2025
+### Bug Fixes
+- Fix wrong round number on print message for elimination return on toxicologist poison elimination
+
 ## v2.7.3 - 26/02/2025
 ### Bug Fixes
 - Fix crash when cleaner uses unbuffed ability
