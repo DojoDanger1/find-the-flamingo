@@ -4139,8 +4139,37 @@ def evaluateVote(final):
         shieldedPlayers = list(set(shieldedPlayers))
         #evaluate murder and smashing
         for player in range(1, NUM_PLAYERS+1):
-            if player not in eliminatedPlayers:
-                if player in murderedPlayers and player not in shieldedPlayers:
+            if player in murderedPlayers and player not in shieldedPlayers and player not in eliminatedPlayers:
+                time.sleep(1)
+                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
+                indent += 1
+                print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
+                eliminatedPlayers.append(player)
+                playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
+                indent -= 1
+            if player in murderedPlayers and player in shieldedPlayers and player not in eliminatedPlayers:
+                carryThrough = True
+                if guesserFailed:
+                    if player == playerSpecialAbilities.index('Guesser'):
+                        carryThrough = False
+                if carryThrough:
+                    time.sleep(1)
+                    print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+            if player in smashedPlayers and player not in shieldedPlayers:
+                time.sleep(1)
+                print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {PAPAS_WINGERIA_SPACE}smashed{CLEAR}!')
+                indent += 1
+                if not final:
+                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} until the next vote.')
+                else:
+                    print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} forever.')
+                playerSmasheds[player] = True
+                indent -= 1
+            if player in smashedPlayers and player in shieldedPlayers:
+                time.sleep(1)
+                print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Smasher{CLEAR} tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
+            if guesserFailed and player not in eliminatedPlayers:
+                if player == playerSpecialAbilities.index('Guesser') and (player not in murderedPlayers or (player in murderedPlayers and player in shieldedPlayers)):
                     time.sleep(1)
                     print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
                     indent += 1
@@ -4148,36 +4177,6 @@ def evaluateVote(final):
                     eliminatedPlayers.append(player)
                     playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
                     indent -= 1
-                if player in murderedPlayers and player in shieldedPlayers:
-                    carryThrough = True
-                    if guesserFailed:
-                        if player == playerSpecialAbilities.index('Guesser'):
-                            carryThrough = False
-                    if carryThrough:
-                        time.sleep(1)
-                        print(f'{" "*indent}The {RED}Murderer{CLEAR} tried to {RED}murder{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
-                if player in smashedPlayers and player not in shieldedPlayers:
-                    time.sleep(1)
-                    print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {PAPAS_WINGERIA_SPACE}smashed{CLEAR}!')
-                    indent += 1
-                    if not final:
-                        print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} until the next vote.')
-                    else:
-                        print(f'{" "*indent}Their legs have been {RED}broken{CLEAR} forever.')
-                    playerSmasheds[player] = True
-                    indent -= 1
-                if player in smashedPlayers and player in shieldedPlayers:
-                    time.sleep(1)
-                    print(f'{" "*indent}The {PAPAS_WINGERIA_SPACE}Smasher{CLEAR} tried to {PAPAS_WINGERIA_SPACE}smash{CLEAR} {YELLOW}Player {player}{CLEAR}, but they were {GREEN}shielded{CLEAR}!')
-                if guesserFailed:
-                    if player == playerSpecialAbilities.index('Guesser') and (player not in murderedPlayers or player in murderedPlayers and player in shieldedPlayers):
-                        time.sleep(1)
-                        print(f'{" "*indent}{YELLOW}Player {player}{CLEAR} has been {RED}murdered{CLEAR}!')
-                        indent += 1
-                        print(f'{" "*indent}They have been {RED}eliminated{CLEAR} for {ORANGE}{VOTING_FREQUENCY//4} rounds{CLEAR} and will return on {ORANGE}round {roundNum+(VOTING_FREQUENCY//4)}{CLEAR}.')
-                        eliminatedPlayers.append(player)
-                        playerEliminationReturns[player] = roundNum+(VOTING_FREQUENCY//4)
-                        indent -= 1
         #maybe assign lovers
         if random.random() <= CHANCE_OF_LOVERS and len(loverPlayers) == 0 and not final:
             loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
