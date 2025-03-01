@@ -13,7 +13,7 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
     - Level 4: 3 dimensional game of size 4, no roles, no special abilities
     - Level 5: 3 dimensional game of size 4, no special abilities
     - Level 6: 3 dimensional game of size 4 (full game)
-  - Race - see how many rounds it takes you to find the flamingo, with no interruptions: 1 player game, no flamingo game, no roles, no special abilities
+  - Race (`--race`) - see how many rounds it takes you to find the flamingo, with no interruptions: 1 player game, no flamingo game, no roles, no special abilities
 
 ## v2.7.5 - 27/02/2025
 ### Bug Fixes
