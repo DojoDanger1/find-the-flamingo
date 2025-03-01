@@ -3,6 +3,18 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.7.6 - 01/03/2025
+### Features
+- Settings Presets
+  - Tutorial (`--tutorial`) - designed to help new players build up understanding various aspects of the game
+    - Level 1: 2 dimensional game of size 4, no flamingo game, no roles, no special abilities (here it is unlikely that advanced spaces (teleport, timewarp, entanglement, gambling) will generate)
+    - Level 2: 2 dimensional game of size 7, no flamingo game, no roles, no special abilities
+    - Level 3: 2 dimensional game of size 7, no roles, no special abilities
+    - Level 4: 3 dimensional game of size 4, no roles, no special abilities
+    - Level 5: 3 dimensional game of size 4, no special abilities
+    - Level 6: 3 dimensional game of size 4 (full game)
+  - Race - see how many rounds it takes you to find the flamingo, with no interruptions: 1 player game, no flamingo game, no roles, no special abilities
+
 ## v2.7.5 - 27/02/2025
 ### Bug Fixes
 - Fixed logic involving getting murdered/smashed and voted out

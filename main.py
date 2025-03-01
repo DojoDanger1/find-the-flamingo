@@ -61,7 +61,11 @@ INITIAL_MINIMUM_SPEED = 0.25
 CONFIRM_STAY_HERE = True
 
 #take in basic settings as arguments
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+
+presets_parser = parser.add_argument_group('Game Presets')
+presets_parser.add_argument('--tutorial', help='used to help new players build up understanding various aspects of the game.\n1: 2 dimensional board size 4, no flamingo game, no roles, no special abilities.\n2: 2 dimensional board size 7, no flamingo game, no roles, no special abilities.\n3: 2 dimensional board size 7, no roles, no special abilities.\n4: 3 dimensional board size 4, no roles, no special abilities.\n5: 3 dimensional board size 4, no special abilities.\n6: 3 dimensional board size 4 (regular game)', type=int)
+presets_parser.add_argument('--race', help='1 player game, no roles, no special abilities, no flamingo game', action=argparse.BooleanOptionalAction)
 
 board_parser = parser.add_argument_group('Board Parameters')
 board_parser.add_argument('--size', help='grid size (in spaces)', type=int)
@@ -110,6 +114,50 @@ other_parser.add_argument('--minimum-speed', help='minimum speed that players ca
 other_parser.add_argument('--confirm-stay-here', help='choosing to stay here will prompt the player to confirm', action=argparse.BooleanOptionalAction)
 
 args = parser.parse_args()
+
+if args.tutorial == 1:
+    NUM_DIMENSIONS = 2
+    GRID_SIZE = 4
+    FLAMINGO_GAME = False
+    ROLES_ENABLED = False
+    CHAOS_MODE = False
+if args.tutorial == 2:
+    NUM_DIMENSIONS = 2
+    GRID_SIZE = 7
+    FLAMINGO_GAME = False
+    ROLES_ENABLED = False
+    CHAOS_MODE = False
+if args.tutorial == 3:
+    NUM_DIMENSIONS = 2
+    GRID_SIZE = 7
+    FLAMINGO_GAME = True
+    ROLES_ENABLED = False
+    CHAOS_MODE = False
+if args.tutorial == 4:
+    NUM_DIMENSIONS = 3
+    GRID_SIZE = 4
+    FLAMINGO_GAME = True
+    ROLES_ENABLED = False
+    CHAOS_MODE = False
+if args.tutorial == 5:
+    NUM_DIMENSIONS = 3
+    GRID_SIZE = 4
+    FLAMINGO_GAME = True
+    ROLES_ENABLED = True
+    CHAOS_MODE = False
+if args.tutorial == 6:
+    NUM_DIMENSIONS = 3
+    GRID_SIZE = 4
+    FLAMINGO_GAME = True
+    ROLES_ENABLED = True
+    CHAOS_MODE = True
+
+if args.race != None:
+    if args.race == True:
+        NUM_PLAYERS = 1
+        FLAMINGO_GAME = False
+        ROLES_ENABLED = False
+        CHAOS_MODE = False
 
 if args.size != None:
     GRID_SIZE = args.size
