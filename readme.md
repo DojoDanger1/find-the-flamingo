@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.7.7 - 06/03/2025
+### Bug Fixes
+- Fix halving speed below 1 when eliminated 
+
 ## v2.7.6 - 01/03/2025
 ### Features
 - Settings Presets

@@ -6340,10 +6340,11 @@ while running:
                         playerEliminationReturns[player] = -1
                         # half stuff
                         playerGolds[player] = playerGolds[player]//2
-                        playerSpeeds[player] = ((playerSpeeds[player]-1)//2)+1
-                        playerSpeeds[player] = round(playerSpeeds[player], 4)
-                        if playerSpeeds[player] < playerMinimumSpeeds[player]:
-                            playerSpeeds[player] = playerMinimumSpeeds[player]
+                        if playerSpeeds[player] > 1:
+                            playerSpeeds[player] = ((playerSpeeds[player]-1)/2)+1
+                            playerSpeeds[player] = round(playerSpeeds[player], 4)
+                            if playerSpeeds[player] < playerMinimumSpeeds[player]:
+                                playerSpeeds[player] = playerMinimumSpeeds[player]
                         playerInvestmentBonus[player] = playerInvestmentBonus[player]//2
                         playerStealBonus[player] = playerStealBonus[player]//2
                         if len(playerInventories[player]) > 1:
