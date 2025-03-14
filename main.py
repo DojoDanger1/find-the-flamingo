@@ -3961,6 +3961,21 @@ def printRoles(roles, specialAbilities, loverPlayers):
                 print(f'{" "*indent}You will {RED}stop being lovers{CLEAR} when you are {GRAY}(collectively){CLEAR} {RED}voted out{CLEAR}.')
             indent -= 1
             print('-'*50)
+        if player == nextStaller:
+            indent += 1
+            print(f'{" "*indent}You are also the {RED}Traitor{CLEAR}.')
+            print(f'{" "*indent}Would you like an explanation of the {RED}Traitor{CLEAR}?')
+            indent += 1
+            print(f'{" "*indent}0: No')
+            print(f'{" "*indent}1: Yes')
+            indent -= 1
+            explainTraitor = int(askOptions(f'{" "*indent}{TURQUOISE}Enter your Choice:{CLEAR} ', 1))
+            if explainTraitor == 1:
+                indent += 1
+                print(f'{" "*indent}If the {RED}Staller{CLEAR} is voted out, you will be the next {RED}Staller{CLEAR}.')
+                indent -= 1
+            indent -= 1
+            print('-'*50)
         input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
         os.system('clear')
 
@@ -4250,6 +4265,7 @@ def evalVoteOut(voted, final, jesterWon):
     global indent
     global rearrangeRoles
     global loverPlayers
+    global nextStaller
     global jesterTarget
     input(f'{TURQUOISE}Press Enter to reveal the identity of {YELLOW}Player {voted}{TURQUOISE} {CLEAR}')
     indent += 1
@@ -4284,12 +4300,16 @@ def evalVoteOut(voted, final, jesterWon):
             print(f'{" "*indent}The role of {RED}Staller{CLEAR} must now be reassinged.')
             oldStaller = playerRoles.index('Staller')
             finders = [n for n, role in enumerate(playerRoles) if role == 'Finder']
-            newStaller = random.choice(finders)
+            newStaller = random.choice(finders) if nextStaller == -1 else nextStaller
             playerRoles[newStaller] = 'Staller'
             playerRoles[oldStaller] = 'Finder'
             if CHAOS_MODE:
                 playerSpecialAbilities[newStaller] = random.choice(STALLER_ABILITIES)
                 playerSpecialAbilities[oldStaller] = random.choice(FINDER_ABILITIES)
+                if random.random() <= 0.5:
+                    nextStaller = random.choice([x for x in list(range(1,NUM_PLAYERS+1)) if playerRoles[x] == 'Finder'])
+                else:
+                    nextStaller = -1
             rearrangeRoles = True
         else:
             print(f'{" "*indent}{YELLOW}Player {voted}{CLEAR}, you have been {RED}permanently eliminated{CLEAR} from the game.')
@@ -5995,6 +6015,7 @@ if ROLES_ENABLED:
     playerRoles[random.randint(1,NUM_PLAYERS)] = 'Staller'
     jesterType = random.choice(['Jester', 'Executioner'])
     playerRoles[random.choice([x for x in list(range(1,NUM_PLAYERS+1)) if playerRoles[x] == 'Finder'])] = jesterType
+    nextStaller = -1
     if jesterType == 'Jester':
         jesterTarget = playerRoles.index('Jester')
     else:
@@ -6011,6 +6032,8 @@ if ROLES_ENABLED:
             loverPlayers = random.sample(list(range(1,NUM_PLAYERS+1)), 2)
             if random.random() <= CHANCE_OF_3_WAY:
                 loverPlayers.append(random.sample([player for player in list(range(1,NUM_PLAYERS+1)) if player not in loverPlayers], 1)[0])
+        if random.random() <= 0.5:
+            nextStaller = random.choice([x for x in list(range(1,NUM_PLAYERS+1)) if playerRoles[x] == 'Finder'])
     printRoles(playerRoles, playerSpecialAbilities, loverPlayers)
 
 running = True

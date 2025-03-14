@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.8.0 - 14/03/2025
+### Features
+- Traitor Modifier: This player is guaranteed to be the next Staller. Can only be given to Finders.
+
 ## v2.7.7 - 06/03/2025
 ### Bug Fixes
 - Fix halving speed below 1 when eliminated 
