@@ -4515,6 +4515,8 @@ def evalSpecialAbility(specialAbility, final, buffedAbilities):
                 print(f'{" "*indent}They are also in {PINK}love{CLEAR} with {YELLOW}Player {chosenPlayerLovers[0]}{CLEAR}.')
             elif len(chosenPlayerLovers) == 2:
                 print(f'{" "*indent}They are also in {PINK}love{CLEAR} with {YELLOW}Player {chosenPlayerLovers[0]}{CLEAR} and {YELLOW}Player {chosenPlayerLovers[1]}{CLEAR}.')
+        if chosenPlayer == nextStaller:
+            print(f'{" "*indent}They are also the {RED}Traitor{CLEAR}.')
         if buffedAbilities:
             indent -= 1
             print(f'{" "*indent}Would you like to {CYAN}see{CLEAR} another player\'s {CYAN}role{CLEAR}?')
