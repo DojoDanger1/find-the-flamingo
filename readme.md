@@ -3,6 +3,10 @@ A game about spatial awareness, logic, memory, lying, and absolute nonsense.
 
 # Changelog
 
+## v2.8.2 - 17/03/2025
+### Adjustments
+- Changed how clearing the screen works. May now work with windows.
+
 ## v2.8.1 - 14/03/2025
 ### Bug Fixes
 - Ensured that Seer can see if the chosen player is the Traitor.

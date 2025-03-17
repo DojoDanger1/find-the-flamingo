@@ -8,6 +8,7 @@ import argparse
 import datetime
 import humanize
 import networkx
+import subprocess
 import numpy as np
 from names import get_first_name
 from PIL import Image, ImageDraw, ImageColor, ImageFont
@@ -1121,6 +1122,9 @@ def addNewInformationToMap(currentMapLength):
     correctMove = [move for move in movesFromStart if move['destination'] == newInformation['end']][0]
     mapInformation = {'start': board[newInformation['start']], 'direction': correctMove['direction'], 'end': board[newInformation['end']]}
     playerMaps[currentPlayer].append(mapInformation)
+
+def clearScreen():
+    subprocess.call('clear' if os.name == 'posix' else 'cls')
 
 def askRange(prompt, lowerBound, upperBound):
     global indent
@@ -3724,7 +3728,7 @@ def entanglementSpace():
 
 def printRoles(roles, specialAbilities, loverPlayers):
     global indent
-    os.system('clear')
+    clearScreen()
     for player in range(1, NUM_PLAYERS+1):
         print(f'{" "*17}{ORANGE}Role Assignment{CLEAR}')
         print('-'*50)
@@ -3977,7 +3981,7 @@ def printRoles(roles, specialAbilities, loverPlayers):
             indent -= 1
             print('-'*50)
         input(f'{TURQUOISE}Press Enter to Continue {CLEAR}')
-        os.system('clear')
+        clearScreen()
 
 def evaluateVote(final):
     global indent
@@ -3998,7 +4002,7 @@ def evaluateVote(final):
     #option to play a team game
     if random.choice([True, False, False]) and CHAOS_MODE and not final:
         #preamble
-        os.system('clear')
+        clearScreen()
         print(f'{" "*21}{ORANGE}Team Game{CLEAR}')
         print('-'*50)
         print(f'{" "*indent}{YELLOW}Players{CLEAR}, it is time to vote on who you believe is the {RED}Staller{CLEAR}.')
@@ -4041,7 +4045,7 @@ def evaluateVote(final):
         buffedAbilities = False
     if not playTeamGame or (playTeamGame and wonTeamGame):
         #voting preamble
-        os.system('clear')
+        clearScreen()
         if final:
             print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
         else:
@@ -4097,7 +4101,7 @@ def evaluateVote(final):
         for player in voteOrder:
             if player not in eliminatedPlayers:
                 currentPlayer = player
-                os.system('clear')
+                clearScreen()
                 if final:
                     print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
                 else:
@@ -4156,7 +4160,7 @@ def evaluateVote(final):
                 elif individualVote == swap[1]:
                     individualVotes[n] = swap[0]
         #reveal voting results
-        os.system('clear')
+        clearScreen()
         if final:
             print(f'{" "*19}{ORANGE}Final Voting{CLEAR}')
         else:
@@ -4258,7 +4262,7 @@ def evaluateVote(final):
             printRoles(playerRoles, playerSpecialAbilities, loverPlayers)
         else:
             input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
-        os.system('clear')
+        clearScreen()
     return jesterWon
 
 def evalVoteOut(voted, final, jesterWon):
@@ -6042,7 +6046,7 @@ running = True
 currentPlayer = 1
 roundNum = 1
 winner = None
-os.system('clear')
+clearScreen()
 while running:
     padding = math.floor((50-6-len(str(roundNum)))/2)
     print(f'{" "*padding}{ORANGE}Round {roundNum}{CLEAR}')
@@ -6086,7 +6090,7 @@ while running:
     #ask for item use
     if len(playerInventories[currentPlayer]) > 0:
         if useItem() == 'continue':
-            os.system('clear')
+            clearScreen()
             continue
     timeTravelled = False
     #conditions on allowed to move
@@ -6104,7 +6108,7 @@ while running:
         if running == True:
             if len(playerInventories[currentPlayer]) > 0:
                 if useItem() == 'continue':
-                    os.system('clear')
+                    clearScreen()
                     continue
     if playerFrozens[currentPlayer] and allowedToMove:
         allowedToMove = False
@@ -6190,7 +6194,7 @@ while running:
                                 timeTravelled = True
                                 break
     if timeTravelled:
-        os.system('clear')
+        clearScreen()
         continue
     reduceTimeOnQuests()
     #change turn order
@@ -6301,7 +6305,7 @@ while running:
                 generateImage(board, paths, quantumEntanglements)
             indent -= 1
         saveToFile('current')
-        os.system('clear')
+        clearScreen()
         #store backups
         prevPlayerRoles.append(copy.deepcopy(playerRoles))
         prevPlayerSpecialAbilities.append(copy.deepcopy(playerSpecialAbilities))
@@ -6412,7 +6416,7 @@ while running:
                                 print(f'{" "*indent}{RED}You lost!{CLEAR}')
                                 print('-'*50)
                                 input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
-                                os.system('clear')
+                                clearScreen()
                             else:
                                 print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
                                 winner = staller
@@ -6447,7 +6451,7 @@ while running:
                                     currentPlayer += 1
                                 print('-'*50)
                                 input(f'{TURQUOISE}Press Enter to return back to the game {CLEAR}')
-                                os.system('clear')
+                                clearScreen()
                         else:
                             print(f'{" "*indent}{GREEN}Congratulations! You Win!{CLEAR}')
                             winner = chosen
